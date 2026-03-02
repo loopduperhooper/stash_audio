@@ -790,7 +790,7 @@ export const FilteredImageList = PatchComponent(
       <>
         {modal}
         {!withSidebar ? (
-          content
+          <div className="item-list-container image-list">{content}</div>
         ) : (
           <div
             className={cx("item-list-container image-list", {
