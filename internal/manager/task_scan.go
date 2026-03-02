@@ -363,7 +363,9 @@ func (j *ScanJob) handleFile(ctx context.Context, f file.ScannedFile, progress *
 		if videoFile != nil {
 			txnMgr := j.scanner.Repository.TxnManager
 			fileRepo := j.scanner.Repository.File
-			if err := video.CleanCaptions(ctx, videoFile, txnMgr, fileRepo); err != nil {
+			if err := txn.WithDatabase(ctx, txnMgr, func(ctx context.Context) error {
+				return video.CleanCaptions(ctx, videoFile, txnMgr, fileRepo)
+			}); err != nil {
 				logger.Errorf("Error cleaning captions: %v", err)
 			}
 		}
