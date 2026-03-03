@@ -549,6 +549,7 @@ type scanFilter struct {
 	videoExcludeRegex []*regexp.Regexp
 	imageExcludeRegex []*regexp.Regexp
 	minModTime        time.Time
+	stashIgnoreFilter *file.StashIgnoreFilter
 }
 
 func newScanFilter(c *config.Config, repo models.Repository, minModTime time.Time) *scanFilter {
@@ -560,6 +561,7 @@ func newScanFilter(c *config.Config, repo models.Repository, minModTime time.Tim
 		videoExcludeRegex: generateRegexps(c.GetExcludes()),
 		imageExcludeRegex: generateRegexps(c.GetImageExcludes()),
 		minModTime:        minModTime,
+		stashIgnoreFilter: file.NewStashIgnoreFilter(),
 	}
 }
 
@@ -577,6 +579,12 @@ func (f *scanFilter) Accept(ctx context.Context, path string, info fs.FileInfo) 
 	s := f.stashPaths.GetStashFromDirPath(path)
 	if s == nil {
 		logger.Debugf("Skipping %s as it is not in the stash library", path)
+		return false
+	}
+
+	// Check .stashignore files, bounded to the library root.
+	if !f.stashIgnoreFilter.Accept(ctx, path, info, s.Path) {
+		logger.Debugf("Skipping %s due to .stashignore", path)
 		return false
 	}
 
