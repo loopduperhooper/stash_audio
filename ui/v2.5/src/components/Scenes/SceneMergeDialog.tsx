@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import * as GQL from "src/core/generated-graphql";
 import { Icon } from "../Shared/Icon";
 import { LoadingIndicator } from "../Shared/LoadingIndicator";
-import { StringListSelect, GallerySelect } from "../Shared/Select";
+import { GallerySelect } from "../Shared/Select";
 import * as FormUtils from "src/utils/form";
 import ImageUtils from "src/utils/image";
 import TextUtils from "src/utils/text";
@@ -41,13 +41,24 @@ import {
   ScrapedTagsRow,
 } from "../Shared/ScrapeDialog/ScrapedObjectsRow";
 import { Scene, SceneSelect } from "src/components/Scenes/SceneSelect";
+import { StashIDPill } from "src/components/Shared/StashID";
 
 interface IStashIDsField {
   values: GQL.StashId[];
 }
 
 const StashIDsField: React.FC<IStashIDsField> = ({ values }) => {
-  return <StringListSelect value={values.map((v) => v.stash_id)} />;
+  if (!values.length) return null;
+
+  return (
+    <ul className="pl-0 mw-100">
+      {values.map((v) => (
+        <li key={v.stash_id} className="row no-gutters">
+          <StashIDPill linkType="scenes" stashID={v} />
+        </li>
+      ))}
+    </ul>
+  );
 };
 
 type MergeOptions = {
