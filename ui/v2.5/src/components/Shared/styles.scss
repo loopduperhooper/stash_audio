@@ -494,30 +494,10 @@ button.collapse-button {
   }
 }
 
-.bulk-update-text-input {
-  button {
-    background-color: $secondary;
-    color: $text-muted;
-    font-size: $btn-font-size-sm;
-    margin: $btn-padding-y $btn-padding-x;
-    padding: 0;
-    position: absolute;
-    right: 0;
-    z-index: 4;
-
-    &:hover,
-    &:focus,
-    &:active,
-    &:not(:disabled):not(.disabled):active,
-    &:not(:disabled):not(.disabled):active:focus {
-      background-color: $secondary;
-      border-color: transparent;
-      box-shadow: none;
-    }
-  }
-
-  &.unset button {
-    visibility: hidden;
+.bulk-update-date-input {
+  .react-datepicker-wrapper .btn {
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
   }
 }
 
@@ -1267,4 +1247,9 @@ input[type="range"].double-range-slider-max {
 .reveal-in-filesystem-button {
   margin-left: 0.25rem;
   padding: 0 0.25rem;
+}
+
+// general styling for appended minimal button to input group
+.text-input + .input-group-append .btn.minimal {
+  background-color: $textfield-bg;
 }
