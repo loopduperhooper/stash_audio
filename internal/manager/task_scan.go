@@ -14,6 +14,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/remeh/sizedwaitgroup"
 	"github.com/stashapp/stash/internal/manager/config"
+	"github.com/stashapp/stash/pkg/audio"
 	"github.com/stashapp/stash/pkg/file"
 	"github.com/stashapp/stash/pkg/file/video"
 	"github.com/stashapp/stash/pkg/fsutil"
@@ -641,6 +642,10 @@ func imageFileFilter(ctx context.Context, f models.File) bool {
 	return useAsImage(f.Base().Path)
 }
 
+func audioFileFilter(ctx context.Context, f models.File) bool {
+	return isAudio(f.Base().Path)
+}
+
 func galleryFileFilter(ctx context.Context, f models.File) bool {
 	return isZip(f.Base().Basename)
 }
@@ -698,6 +703,13 @@ func getScanHandlers(options ScanMetadataInput, taskQueue *job.TaskQueue, progre
 				},
 				FileNamingAlgorithm: c.GetVideoFileNamingAlgorithm(),
 				Paths:               mgr.Paths,
+			},
+		},
+		&file.FilteredHandler{
+			Filter: file.FilterFunc(audioFileFilter),
+			Handler: &audio.ScanHandler{
+				CreatorUpdater: r.Audio,
+				PluginCache:    pluginCache,
 			},
 		},
 	}
