@@ -74,6 +74,7 @@ type storeRepository struct {
 	GalleryChapter *GalleryChapterStore
 	Scene          *SceneStore
 	SceneMarker    *SceneMarkerStore
+	Audio          *AudioStore
 	Performer      *PerformerStore
 	SavedFilter    *SavedFilterStore
 	Studio         *StudioStore
@@ -109,6 +110,7 @@ func NewDatabase() *Database {
 		Folder:         folderStore,
 		Scene:          NewSceneStore(r, blobStore),
 		SceneMarker:    NewSceneMarkerStore(),
+		Audio:          NewAudioStore(r, blobStore),
 		Image:          NewImageStore(r),
 		Gallery:        galleryStore,
 		GalleryChapter: NewGalleryChapterStore(),

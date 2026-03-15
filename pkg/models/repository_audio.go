@@ -18,6 +18,7 @@ type AudioGetter interface {
 type AudioFinder interface {
 	AudioGetter
 	FindByChecksum(ctx context.Context, checksum string) ([]*Audio, error)
+	FindByFingerprints(ctx context.Context, fp []Fingerprint) ([]*Audio, error)
 	FindByPath(ctx context.Context, path string) ([]*Audio, error)
 	FindByFileID(ctx context.Context, fileID FileID) ([]*Audio, error)
 	FindByPrimaryFileID(ctx context.Context, fileID FileID) ([]*Audio, error)

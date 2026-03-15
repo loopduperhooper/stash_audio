@@ -421,6 +421,75 @@ var (
 )
 
 var (
+	audioTableMgr = &table{
+		table:    goqu.T(audioTable),
+		idColumn: goqu.T(audioTable).Col(idColumn),
+	}
+
+	audiosFilesJoinTable      = goqu.T(audiosFilesTable)
+	audiosPerformersJoinTable = goqu.T(performersAudiosTable)
+	audiosTagsJoinTable       = goqu.T(audiosTagsTable)
+	audiosStashIDsJoinTable   = goqu.T("audio_stash_ids")
+	audiosURLsJoinTable       = goqu.T(audioURLsTable)
+
+	audiosFilesTableMgr = &relatedFilesTable{
+		table: table{
+			table:    audiosFilesJoinTable,
+			idColumn: audiosFilesJoinTable.Col(audioIDColumn),
+		},
+	}
+
+	audiosTagsTableMgr = &joinTable{
+		table: table{
+			table:    audiosTagsJoinTable,
+			idColumn: audiosTagsJoinTable.Col(audioIDColumn),
+		},
+		fkColumn:     audiosTagsJoinTable.Col(tagIDColumn),
+		foreignTable: tagTableMgr,
+		orderBy:      tagTableSort,
+	}
+
+	audiosPerformersTableMgr = &joinTable{
+		table: table{
+			table:    audiosPerformersJoinTable,
+			idColumn: audiosPerformersJoinTable.Col(audioIDColumn),
+		},
+		fkColumn: audiosPerformersJoinTable.Col(performerIDColumn),
+	}
+
+	audiosStashIDsTableMgr = &stashIDTable{
+		table: table{
+			table:    audiosStashIDsJoinTable,
+			idColumn: audiosStashIDsJoinTable.Col(audioIDColumn),
+		},
+	}
+
+	audiosURLsTableMgr = &orderedValueTable[string]{
+		table: table{
+			table:    audiosURLsJoinTable,
+			idColumn: audiosURLsJoinTable.Col(audioIDColumn),
+		},
+		valueColumn: audiosURLsJoinTable.Col(audioURLColumn),
+	}
+
+	audiosViewTableMgr = &viewHistoryTable{
+		table: table{
+			table:    goqu.T(audiosViewDatesTable),
+			idColumn: goqu.T(audiosViewDatesTable).Col(audioIDColumn),
+		},
+		dateColumn: goqu.T(audiosViewDatesTable).Col(audioViewDateColumn),
+	}
+
+	audiosOTableMgr = &viewHistoryTable{
+		table: table{
+			table:    goqu.T(audiosODatesTable),
+			idColumn: goqu.T(audiosODatesTable).Col(audioIDColumn),
+		},
+		dateColumn: goqu.T(audiosODatesTable).Col(audioODateColumn),
+	}
+)
+
+var (
 	blobTableMgr = &table{
 		table:    goqu.T(blobTable),
 		idColumn: goqu.T(blobTable).Col(blobChecksumColumn),
