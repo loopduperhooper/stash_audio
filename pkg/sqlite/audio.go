@@ -46,8 +46,10 @@ type audioRow struct {
 	StudioID     null.Int    `db:"studio_id,omitempty"`
 	CreatedAt    Timestamp   `db:"created_at"`
 	UpdatedAt    Timestamp   `db:"updated_at"`
-	ResumeTime   float64     `db:"resume_time"`
-	PlayDuration float64     `db:"play_duration"`
+	ResumeTime   float64       `db:"resume_time"`
+	PlayDuration float64       `db:"play_duration"`
+	PlayCount    int           `db:"play_count"`
+	LastPlayedAt NullTimestamp `db:"last_played_at"`
 
 	// not used in resolutions or updates
 	CoverBlob zero.String `db:"cover_blob"`
@@ -67,6 +69,8 @@ func (r *audioRow) fromAudio(o models.Audio) {
 	r.UpdatedAt = Timestamp{Timestamp: o.UpdatedAt}
 	r.ResumeTime = o.ResumeTime
 	r.PlayDuration = o.PlayDuration
+	r.PlayCount = o.PlayCount
+	r.LastPlayedAt = NullTimestampFromTimePtr(o.LastPlayedAt)
 }
 
 type audioQueryRow struct {
@@ -96,6 +100,8 @@ func (r *audioQueryRow) resolve() *models.Audio {
 
 		ResumeTime:   r.ResumeTime,
 		PlayDuration: r.PlayDuration,
+		PlayCount:    r.PlayCount,
+		LastPlayedAt: r.LastPlayedAt.TimePtr(),
 	}
 
 	if r.PrimaryFileFolderPath.Valid && r.PrimaryFileBasename.Valid {
@@ -121,6 +127,8 @@ func (r *audioRowRecord) fromPartial(o models.AudioPartial) {
 	r.setTimestamp("updated_at", o.UpdatedAt)
 	r.setFloat64("resume_time", o.ResumeTime)
 	r.setFloat64("play_duration", o.PlayDuration)
+	r.setInt("play_count", o.PlayCount)
+	r.setNullTimestamp("last_played_at", o.LastPlayedAt)
 }
 
 type audioRepositoryType struct {

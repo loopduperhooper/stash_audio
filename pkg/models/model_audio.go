@@ -30,8 +30,10 @@ type Audio struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	ResumeTime   float64 `json:"resume_time"`
-	PlayDuration float64 `json:"play_duration"`
+	ResumeTime   float64    `json:"resume_time"`
+	PlayDuration float64    `json:"play_duration"`
+	PlayCount    int        `json:"play_count"`
+	LastPlayedAt *time.Time `json:"last_played_at"`
 
 	URLs         RelatedStrings  `json:"urls"`
 	TagIDs       RelatedIDs      `json:"tag_ids"`
@@ -73,6 +75,8 @@ type AudioPartial struct {
 	UpdatedAt    OptionalTime
 	ResumeTime   OptionalFloat64
 	PlayDuration OptionalFloat64
+	PlayCount    OptionalInt
+	LastPlayedAt OptionalTime
 
 	URLs          *UpdateStrings
 	TagIDs        *UpdateIDs
