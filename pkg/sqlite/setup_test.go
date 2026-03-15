@@ -120,6 +120,15 @@ const (
 )
 
 const (
+	audioIdxWithPerformer = iota
+	audioIdxWithTag
+	audioIdxWithStudio
+	audioIdxWithPlayCount
+	// new indexes above
+	totalAudios
+)
+
+const (
 	performerIdxWithScene = iota
 	performerIdx1WithScene
 	performerIdx2WithScene
@@ -321,6 +330,8 @@ var (
 
 	sceneIDs       []int
 	imageIDs       []int
+	audioIDs       []int
+	audioFileIDs   []models.FileID
 	performerIDs   []int
 	groupIDs       []int
 	galleryIDs     []int
@@ -487,6 +498,18 @@ var (
 		imageIdx2WithPerformer:         {performerIdxWithTwoImages},
 		imageIdxWithStudioPerformer:    {performerIdxWithImageStudio},
 		imageIdxWithPerformerParentTag: {performerIdxWithParentTag},
+	}
+)
+
+var (
+	audioStudios = map[int]int{
+		audioIdxWithStudio: studioIdxWithScene,
+	}
+	audioTags = linkMap{
+		audioIdxWithTag: {tagIdxWithScene},
+	}
+	audioPerformers = linkMap{
+		audioIdxWithPerformer: {performerIdxWithScene},
 	}
 )
 
@@ -733,6 +756,10 @@ func populateDB() error {
 
 		if err := createImages(ctx, totalImages); err != nil {
 			return fmt.Errorf("error creating images: %s", err.Error())
+		}
+
+		if err := createAudios(ctx, totalAudios); err != nil {
+			return fmt.Errorf("error creating audios: %s", err.Error())
 		}
 
 		if err := addTagImage(ctx, db.Tag, tagIdxWithCoverImage); err != nil {
@@ -1347,6 +1374,102 @@ func createImages(ctx context.Context, n int) error {
 		}
 
 		imageIDs = append(imageIDs, image.ID)
+	}
+
+	return nil
+}
+
+func getAudioStringValue(index int, field string) string {
+	return getPrefixedStringValue("audio", index, field)
+}
+
+func getAudioPlayCount(index int) int {
+	if index == audioIdxWithPlayCount {
+		return index + 1
+	}
+	return 0
+}
+
+func getAudioLastPlayedAt(index int) *time.Time {
+	if index == audioIdxWithPlayCount {
+		t := time.Date(2023, 1, index+1, 0, 0, 0, 0, time.UTC)
+		return &t
+	}
+	return nil
+}
+
+func makeAudioFileForTest(i int) *models.AudioFile {
+	return &models.AudioFile{
+		BaseFile: &models.BaseFile{
+			Basename:       getAudioStringValue(i, pathField),
+			ParentFolderID: folderIDs[folderIdxWithSceneFiles],
+			Fingerprints: models.Fingerprints{
+				{
+					Type:        models.FingerprintTypeMD5,
+					Fingerprint: getAudioStringValue(i, checksumField),
+				},
+			},
+		},
+		Duration:   float64(i) * 60.0,
+		AudioCodec: getAudioStringValue(i, "codec"),
+		BitRate:    int64(128000 + i*1000),
+		Format:     "mp3",
+		SampleRate: 44100,
+		Channels:   2,
+	}
+}
+
+func makeAudio(i int) *models.Audio {
+	var studioID *int
+	if _, ok := audioStudios[i]; ok {
+		v := studioIDs[audioStudios[i]]
+		studioID = &v
+	}
+
+	pids := indexesToIDs(performerIDs, audioPerformers[i])
+	tids := indexesToIDs(tagIDs, audioTags[i])
+
+	return &models.Audio{
+		Title:        getAudioStringValue(i, titleField),
+		Details:      getAudioStringValue(i, "Details"),
+		Rating:       getIntPtr(getRating(i)),
+		Date:         getObjectDate(i),
+		Organized:    i%2 == 0,
+		OCounter:     getOCounter(i),
+		PlayCount:    getAudioPlayCount(i),
+		LastPlayedAt: getAudioLastPlayedAt(i),
+		ResumeTime:   float64(i) * 1.5,
+		PlayDuration: float64(i) * 10.0,
+		StudioID:     studioID,
+		PerformerIDs: models.NewRelatedIDs(pids),
+		TagIDs:       models.NewRelatedIDs(tids),
+		URLs: models.NewRelatedStrings([]string{
+			getAudioStringValue(i, urlField),
+		}),
+		CreatedAt: time.Date(2001, 1, i+1, 0, 0, 0, 0, time.UTC),
+		UpdatedAt: time.Date(2001, 1, i+1, 0, 0, 0, 0, time.UTC),
+	}
+}
+
+func createAudios(ctx context.Context, n int) error {
+	qb := db.Audio
+	fqb := db.File
+
+	for i := 0; i < n; i++ {
+		f := makeAudioFileForTest(i)
+
+		if err := fqb.Create(ctx, f); err != nil {
+			return fmt.Errorf("creating audio file: %w", err)
+		}
+		audioFileIDs = append(audioFileIDs, f.ID)
+
+		audio := makeAudio(i)
+
+		if err := qb.Create(ctx, audio, []models.FileID{f.ID}); err != nil {
+			return fmt.Errorf("Error creating audio %v+: %s", audio, err.Error())
+		}
+
+		audioIDs = append(audioIDs, audio.ID)
 	}
 
 	return nil
