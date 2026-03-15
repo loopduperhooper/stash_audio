@@ -61,6 +61,8 @@ const (
 	VideoExtensions            = "video_extensions"
 	ImageExtensions            = "image_extensions"
 	GalleryExtensions          = "gallery_extensions"
+	AudioExtensions            = "audio_extensions"
+	AudioExclude               = "audio_exclude"
 	CreateGalleriesFromFolders = "create_galleries_from_folders"
 
 	// CalculateMD5 is the config key used to determine if MD5 should be calculated
@@ -313,6 +315,7 @@ var (
 	defaultVideoExtensions   = []string{"m4v", "mp4", "mov", "wmv", "avi", "mpg", "mpeg", "rmvb", "rm", "flv", "asf", "mkv", "webm", "f4v"}
 	defaultImageExtensions   = []string{"png", "jpg", "jpeg", "gif", "webp", "avif"}
 	defaultGalleryExtensions = []string{"zip", "cbz"}
+	defaultAudioExtensions   = []string{"mp3", "ogg", "flac", "aac", "wav", "wma", "m4a", "opus", "aiff"}
 	defaultMenuItems         = []string{"scenes", "images", "groups", "markers", "galleries", "performers", "studios", "tags"}
 )
 
@@ -800,6 +803,18 @@ func (i *Config) GetGalleryExtensions() []string {
 		ret = defaultGalleryExtensions
 	}
 	return ret
+}
+
+func (i *Config) GetAudioExtensions() []string {
+	ret := i.getStringSlice(AudioExtensions)
+	if len(ret) == 0 {
+		ret = defaultAudioExtensions
+	}
+	return ret
+}
+
+func (i *Config) GetAudioExcludes() []string {
+	return i.getStringSlice(AudioExclude)
 }
 
 func (i *Config) GetCreateGalleriesFromFolders() bool {
