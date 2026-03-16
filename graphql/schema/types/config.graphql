@@ -173,6 +173,10 @@ input ConfigGeneralInput {
   excludes: [String!]
   "Array of file regexp to exclude from Image Scans"
   imageExcludes: [String!]
+  "Array of audio file extensions"
+  audioExtensions: [String!]
+  "Array of file regexp to exclude from Audio Scans"
+  audioExcludes: [String!]
   "Custom Performer Image Location"
   customPerformerImageLocation: String
   "Stash-box instances used for tagging"
@@ -323,6 +327,10 @@ type ConfigGeneralResult {
   excludes: [String!]!
   "Array of file regexp to exclude from Image Scans"
   imageExcludes: [String!]!
+  "Array of audio file extensions"
+  audioExtensions: [String!]!
+  "Array of file regexp to exclude from Audio Scans"
+  audioExcludes: [String!]!
   "Custom Performer Image Location"
   customPerformerImageLocation: String
   "Stash-box instances used for tagging"
@@ -610,12 +618,14 @@ input StashConfigInput {
   path: String!
   excludeVideo: Boolean!
   excludeImage: Boolean!
+  excludeAudio: Boolean!
 }
 
 type StashConfig {
   path: String!
   excludeVideo: Boolean!
   excludeImage: Boolean!
+  excludeAudio: Boolean!
 }
 
 input GenerateAPIKeyInput {

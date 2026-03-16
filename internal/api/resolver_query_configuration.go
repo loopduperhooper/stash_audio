@@ -128,6 +128,8 @@ func makeConfigGeneralResult() *ConfigGeneralResult {
 		CreateGalleriesFromFolders:    config.GetCreateGalleriesFromFolders(),
 		Excludes:                      config.GetExcludes(),
 		ImageExcludes:                 config.GetImageExcludes(),
+		AudioExtensions:               config.GetAudioExtensions(),
+		AudioExcludes:                 config.GetAudioExcludes(),
 		CustomPerformerImageLocation:  &customPerformerImageLocation,
 		StashBoxes:                    config.GetStashBoxes(),
 		PythonPath:                    config.GetPythonPath(),

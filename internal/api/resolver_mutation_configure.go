@@ -379,6 +379,16 @@ func (r *mutationResolver) ConfigureGeneral(ctx context.Context, input ConfigGen
 		c.SetInterface(config.ImageExclude, input.ImageExcludes)
 	}
 
+	if input.AudioExcludes != nil {
+		for _, r := range input.AudioExcludes {
+			_, err := regexp.Compile(r)
+			if err != nil {
+				return makeConfigGeneralResult(), fmt.Errorf("audio exclusion pattern '%v' invalid: %w", r, err)
+			}
+		}
+		c.SetInterface(config.AudioExclude, input.AudioExcludes)
+	}
+
 	if input.VideoExtensions != nil {
 		c.SetInterface(config.VideoExtensions, input.VideoExtensions)
 	}
@@ -389,6 +399,10 @@ func (r *mutationResolver) ConfigureGeneral(ctx context.Context, input ConfigGen
 
 	if input.GalleryExtensions != nil {
 		c.SetInterface(config.GalleryExtensions, input.GalleryExtensions)
+	}
+
+	if input.AudioExtensions != nil {
+		c.SetInterface(config.AudioExtensions, input.AudioExtensions)
 	}
 
 	r.setConfigBool(config.CreateGalleriesFromFolders, input.CreateGalleriesFromFolders)

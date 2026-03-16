@@ -3,6 +3,7 @@ fragment ConfigGeneralData on ConfigGeneralResult {
     path
     excludeVideo
     excludeImage
+    excludeAudio
   }
   databasePath
   backupDirectoryPath
@@ -49,8 +50,10 @@ fragment ConfigGeneralData on ConfigGeneralResult {
   videoExtensions
   imageExtensions
   galleryExtensions
+  audioExtensions
   excludes
   imageExcludes
+  audioExcludes
   customPerformerImageLocation
   stashBoxes {
     name
