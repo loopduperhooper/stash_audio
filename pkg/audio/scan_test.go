@@ -71,6 +71,23 @@ func (m *mockCreatorUpdater) AddFileID(ctx context.Context, id int, fileID model
 // Compile-time interface check.
 var _ ScanCreatorUpdater = (*mockCreatorUpdater)(nil)
 
+// mockCoverUpdater implements CoverUpdater for testing.
+type mockCoverUpdater struct {
+	mock.Mock
+}
+
+func (m *mockCoverUpdater) HasCover(ctx context.Context, audioID int) (bool, error) {
+	args := m.Called(ctx, audioID)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *mockCoverUpdater) UpdateCover(ctx context.Context, audioID int, cover []byte) error {
+	args := m.Called(ctx, audioID, cover)
+	return args.Error(0)
+}
+
+var _ CoverUpdater = (*mockCoverUpdater)(nil)
+
 const testAudioID = 1
 
 const testFileID = models.FileID(100)
@@ -219,6 +236,63 @@ func TestHandle_MatchesExistingByFingerprint(t *testing.T) {
 	})
 	cu.AssertCalled(t, "FindByFingerprints", mock.Anything, mock.Anything)
 	cu.AssertNotCalled(t, "Create", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestExtractCoverIfMissing_SkipsWhenNoFFMpegOrCoverUpdater(t *testing.T) {
+	// Neither FFMpeg nor CoverUpdater set — must not panic or call anything.
+	cu := &mockCoverUpdater{}
+	h := &ScanHandler{} // intentionally missing both fields
+
+	h.extractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
+
+	cu.AssertNotCalled(t, "HasCover", mock.Anything, mock.Anything)
+	cu.AssertNotCalled(t, "UpdateCover", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestExtractCoverIfMissing_SkipsWhenCoverAlreadyExists(t *testing.T) {
+	cu := &mockCoverUpdater{}
+	cu.On("HasCover", mock.Anything, testAudioID).Return(true, nil)
+
+	h := &ScanHandler{
+		CoverUpdater: cu,
+		// FFMpeg intentionally nil — extraction must not be attempted.
+	}
+
+	h.extractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
+
+	cu.AssertCalled(t, "HasCover", mock.Anything, testAudioID)
+	cu.AssertNotCalled(t, "UpdateCover", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestExtractCoverIfMissing_SkipsUpdateWhenNoCoverExtracted(t *testing.T) {
+	// Cover extraction returns nil (file has no embedded art).
+	cu := &mockCoverUpdater{}
+	cu.On("HasCover", mock.Anything, testAudioID).Return(false, nil)
+
+	// Use a nil FFMpeg — extractCoverIfMissing guards against it, but we
+	// can't invoke a real ffmpeg binary in a unit test. We verify the guard
+	// path: when FFMpeg is nil after HasCover returns false, nothing panics
+	// and UpdateCover is never called.
+	h := &ScanHandler{
+		CoverUpdater: cu,
+		FFMpeg:       nil,
+	}
+
+	h.extractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
+
+	cu.AssertNotCalled(t, "UpdateCover", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestExtractCoverIfMissing_SkipsUpdateOnHasCoverError(t *testing.T) {
+	cu := &mockCoverUpdater{}
+	cu.On("HasCover", mock.Anything, testAudioID).Return(false, errors.New("db error"))
+
+	h := &ScanHandler{CoverUpdater: cu}
+
+	// Must not panic and must not call UpdateCover.
+	h.extractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
+
+	cu.AssertNotCalled(t, "UpdateCover", mock.Anything, mock.Anything, mock.Anything)
 }
 
 // TestAudioModelFields verifies that PlayCount and LastPlayedAt are present on

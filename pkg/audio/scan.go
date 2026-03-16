@@ -144,7 +144,7 @@ func (h *ScanHandler) associateExisting(ctx context.Context, existing []*models.
 // it for audioID, but only when no cover is already set. Errors are logged
 // and not propagated so cover extraction never aborts a scan.
 func (h *ScanHandler) extractCoverIfMissing(ctx context.Context, audioID int, filePath string) {
-	if h.FFMpeg == nil || h.CoverUpdater == nil {
+	if h.CoverUpdater == nil {
 		return
 	}
 
@@ -154,6 +154,10 @@ func (h *ScanHandler) extractCoverIfMissing(ctx context.Context, audioID int, fi
 		return
 	}
 	if hasCover {
+		return
+	}
+
+	if h.FFMpeg == nil {
 		return
 	}
 
