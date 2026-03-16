@@ -709,6 +709,8 @@ func getScanHandlers(options ScanMetadataInput, taskQueue *job.TaskQueue, progre
 			Filter: file.FilterFunc(audioFileFilter),
 			Handler: &audio.ScanHandler{
 				CreatorUpdater: r.Audio,
+				CoverUpdater:   r.Audio,
+				FFMpeg:         mgr.FFMpeg,
 				PluginCache:    pluginCache,
 			},
 		},

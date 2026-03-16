@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/stashapp/stash/pkg/ffmpeg"
 	"github.com/stashapp/stash/pkg/logger"
 	"github.com/stashapp/stash/pkg/models"
 	"github.com/stashapp/stash/pkg/plugin"
@@ -27,9 +28,17 @@ type ScanCreatorUpdater interface {
 	AddFileID(ctx context.Context, id int, fileID models.FileID) error
 }
 
+// CoverUpdater is the interface needed by ScanHandler to store cover art.
+type CoverUpdater interface {
+	HasCover(ctx context.Context, audioID int) (bool, error)
+	UpdateCover(ctx context.Context, audioID int, cover []byte) error
+}
+
 // ScanHandler handles scanned audio files, creating or updating Audio records.
 type ScanHandler struct {
 	CreatorUpdater ScanCreatorUpdater
+	CoverUpdater   CoverUpdater
+	FFMpeg         *ffmpeg.FFMpeg
 	PluginCache    *plugin.Cache
 }
 
@@ -79,6 +88,8 @@ func (h *ScanHandler) Handle(ctx context.Context, f models.File, oldFile models.
 			return fmt.Errorf("creating new audio: %w", err)
 		}
 
+		h.extractCoverIfMissing(ctx, newAudio.ID, f.Base().Path)
+
 		if h.PluginCache != nil {
 			h.PluginCache.RegisterPostHooks(ctx, newAudio.ID, hook.AudioCreatePost, nil, nil)
 		}
@@ -119,7 +130,43 @@ func (h *ScanHandler) associateExisting(ctx context.Context, existing []*models.
 				h.PluginCache.RegisterPostHooks(ctx, a.ID, hook.AudioUpdatePost, nil, nil)
 			}
 		}
+
+		// Extract cover if the audio has none yet (respects manually uploaded covers).
+		if !found {
+			h.extractCoverIfMissing(ctx, a.ID, f.Path)
+		}
 	}
 
 	return nil
+}
+
+// extractCoverIfMissing extracts embedded cover art from filePath and stores
+// it for audioID, but only when no cover is already set. Errors are logged
+// and not propagated so cover extraction never aborts a scan.
+func (h *ScanHandler) extractCoverIfMissing(ctx context.Context, audioID int, filePath string) {
+	if h.FFMpeg == nil || h.CoverUpdater == nil {
+		return
+	}
+
+	hasCover, err := h.CoverUpdater.HasCover(ctx, audioID)
+	if err != nil {
+		logger.Warnf("checking cover for audio %d: %v", audioID, err)
+		return
+	}
+	if hasCover {
+		return
+	}
+
+	cover, err := h.FFMpeg.ExtractEmbeddedCover(ctx, filePath)
+	if err != nil {
+		logger.Warnf("extracting embedded cover for %s: %v", filePath, err)
+		return
+	}
+	if len(cover) == 0 {
+		return
+	}
+
+	if err := h.CoverUpdater.UpdateCover(ctx, audioID, cover); err != nil {
+		logger.Warnf("storing cover for audio %d: %v", audioID, err)
+	}
 }
