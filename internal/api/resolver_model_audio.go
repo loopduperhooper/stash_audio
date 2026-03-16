@@ -50,13 +50,13 @@ func (r *audioResolver) Rating100(ctx context.Context, obj *models.Audio) (*int,
 func (r *audioResolver) Paths(ctx context.Context, obj *models.Audio) (*AudioPathsType, error) {
 	baseURL, _ := ctx.Value(BaseURLCtxKey).(string)
 	builder := urlbuilders.NewAudioURLBuilder(baseURL, obj)
-	screenshotPath := builder.GetScreenshotURL()
+	coverPath := builder.GetCoverURL()
 	streamPath := builder.GetStreamURL()
 	vttPath := builder.GetVTTURL()
 	return &AudioPathsType{
-		Screenshot: &screenshotPath,
-		Stream:     &streamPath,
-		Vtt:        &vttPath,
+		Cover:  &coverPath,
+		Stream: &streamPath,
+		Vtt:    &vttPath,
 	}, nil
 }
 

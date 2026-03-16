@@ -20,8 +20,8 @@ func NewAudioURLBuilder(baseURL string, audio *models.Audio) AudioURLBuilder {
 	}
 }
 
-func (b AudioURLBuilder) GetScreenshotURL() string {
-	return b.BaseURL + "/audio/" + b.AudioID + "/screenshot?t=" + b.UpdatedAt
+func (b AudioURLBuilder) GetCoverURL() string {
+	return b.BaseURL + "/audio/" + b.AudioID + "/cover?t=" + b.UpdatedAt
 }
 
 func (b AudioURLBuilder) GetStreamURL() string {

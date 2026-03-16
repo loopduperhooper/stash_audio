@@ -36,7 +36,7 @@ func (rs audioRoutes) Routes() chi.Router {
 		r.Use(rs.AudioCtx)
 
 		r.Get("/stream", rs.Stream)
-		r.Get("/screenshot", rs.Screenshot)
+		r.Get("/cover", rs.Cover)
 		r.Get("/vtt/chapter", rs.VttChapter)
 	})
 
@@ -64,7 +64,7 @@ func (rs audioRoutes) Stream(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (rs audioRoutes) Screenshot(w http.ResponseWriter, r *http.Request) {
+func (rs audioRoutes) Cover(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("default") == "true" {
 		utils.ServeImage(w, r, static.ReadAll(static.DefaultAudioImage))
 		return
