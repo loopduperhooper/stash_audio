@@ -9,10 +9,10 @@ import (
 
 // Audio stores the metadata for a single audio file.
 type Audio struct {
-	ID       int    `json:"id"`
-	Title    string `json:"title"`
-	Details  string `json:"details"`
-	Date     *Date  `json:"date"`
+	ID      int    `json:"id"`
+	Title   string `json:"title"`
+	Details string `json:"details"`
+	Date    *Date  `json:"date"`
 	// Rating expressed in 1-100 scale
 	Rating    *int `json:"rating"`
 	OCounter  int  `json:"o_counter"`

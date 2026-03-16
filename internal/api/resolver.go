@@ -98,6 +98,12 @@ func (r *Resolver) ImageFile() ImageFileResolver {
 func (r *Resolver) BasicFile() BasicFileResolver {
 	return &basicFileResolver{r}
 }
+func (r *Resolver) AudioFile() AudioFileResolver {
+	return &audioFileResolver{r}
+}
+func (r *Resolver) Audio() AudioResolver {
+	return &audioResolver{r}
+}
 func (r *Resolver) Folder() FolderResolver {
 	return &folderResolver{r}
 }
@@ -131,11 +137,14 @@ type tagResolver struct{ *Resolver }
 type galleryFileResolver struct{ *Resolver }
 type videoFileResolver struct{ *Resolver }
 type imageFileResolver struct{ *Resolver }
+type audioFileResolver struct{ *Resolver }
 type basicFileResolver struct{ *Resolver }
 type folderResolver struct{ *Resolver }
 type savedFilterResolver struct{ *Resolver }
 type pluginResolver struct{ *Resolver }
 type configResultResolver struct{ *Resolver }
+
+type audioResolver struct{ *Resolver }
 
 func (r *Resolver) withTxn(ctx context.Context, fn func(ctx context.Context) error) error {
 	return r.repository.WithTxn(ctx, fn)

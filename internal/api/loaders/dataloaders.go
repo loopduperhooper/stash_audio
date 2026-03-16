@@ -21,6 +21,7 @@
 //go:generate go run github.com/vektah/dataloaden SceneOHistoryLoader int []time.Time
 //go:generate go run github.com/vektah/dataloaden ScenePlayHistoryLoader int []time.Time
 //go:generate go run github.com/vektah/dataloaden SceneLastPlayedLoader int *time.Time
+//go:generate go run github.com/vektah/dataloaden AudioFileIDsLoader int []github.com/stashapp/stash/pkg/models.FileID
 package loaders
 
 import (
@@ -54,6 +55,7 @@ type Loaders struct {
 
 	ImageFiles   *ImageFileIDsLoader
 	GalleryFiles *GalleryFileIDsLoader
+	AudioFiles   *AudioFileIDsLoader
 
 	GalleryByID         *GalleryLoader
 	GalleryCustomFields *CustomFieldsLoader
@@ -185,6 +187,11 @@ func (m Middleware) Middleware(next http.Handler) http.Handler {
 				wait:     wait,
 				maxBatch: maxBatch,
 				fetch:    m.fetchGalleriesFileIDs(ctx),
+			},
+			AudioFiles: &AudioFileIDsLoader{
+				wait:     wait,
+				maxBatch: maxBatch,
+				fetch:    m.fetchAudiosFileIDs(ctx),
 			},
 			ScenePlayCount: &ScenePlayCountLoader{
 				wait:     wait,
@@ -454,6 +461,17 @@ func (m Middleware) fetchGalleriesFileIDs(ctx context.Context) func(keys []int) 
 		err := m.Repository.WithDB(ctx, func(ctx context.Context) error {
 			var err error
 			ret, err = m.Repository.Gallery.GetManyFileIDs(ctx, keys)
+			return err
+		})
+		return ret, toErrorSlice(err)
+	}
+}
+
+func (m Middleware) fetchAudiosFileIDs(ctx context.Context) func(keys []int) ([][]models.FileID, []error) {
+	return func(keys []int) (ret [][]models.FileID, errs []error) {
+		err := m.Repository.WithDB(ctx, func(ctx context.Context) error {
+			var err error
+			ret, err = m.Repository.Audio.GetManyFileIDs(ctx, keys)
 			return err
 		})
 		return ret, toErrorSlice(err)

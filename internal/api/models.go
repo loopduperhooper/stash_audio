@@ -98,3 +98,21 @@ func (BasicFile) IsVisualFile() {}
 func (f *BasicFile) Fingerprints() []models.Fingerprint {
 	return f.BaseFile.Fingerprints
 }
+
+type AudioFile struct {
+	*models.AudioFile
+}
+
+func (AudioFile) IsBaseFile() {}
+
+func (f *AudioFile) Fingerprints() []models.Fingerprint {
+	return f.AudioFile.Fingerprints
+}
+
+func (f *AudioFile) DurationFinite() float64 {
+	return f.AudioFile.DurationFinite()
+}
+
+func (f *AudioFile) BitRate() int64 {
+	return f.AudioFile.BitRate
+}

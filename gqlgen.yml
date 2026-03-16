@@ -44,6 +44,13 @@ models:
         fieldName: DurationFinite
       frame_rate:
         fieldName: FrameRateFinite
+  AudioFile:
+    fields:
+      # override float fields
+      duration:
+        fieldName: DurationFinite
+      bit_rate:
+        fieldName: BitRate
   # movie is group under the hood
   Movie:
     model: github.com/stashapp/stash/pkg/models.Group
