@@ -36,6 +36,10 @@ func useAsImage(pathname string) bool {
 	return isImage(pathname)
 }
 
+func useAsAudio(pathname string) bool {
+	return isAudio(pathname)
+}
+
 func isZip(pathname string) bool {
 	gExt := config.GetInstance().GetGalleryExtensions()
 	return fsutil.MatchExtension(pathname, gExt)

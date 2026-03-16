@@ -36,7 +36,7 @@ const Stash: React.FC<IStashProps> = ({
 
   return (
     <Row className={`stash-row align-items-center ${classAdd}`}>
-      <Form.Label column md={7}>
+      <Form.Label column md={5}>
         {stash.path}
       </Form.Label>
       <Col md={2} xs={4} className="col form-label">
@@ -57,6 +57,19 @@ const Stash: React.FC<IStashProps> = ({
       <Col md={2} xs={4} className="col-form-label">
         <div>
           <h6 className="d-md-none">
+            <FormattedMessage id="audio" />
+          </h6>
+          <BooleanSetting
+            id={`stash-exclude-audio-${index}`}
+            checked={!stash.excludeAudio}
+            onChange={(v) => handleInput("excludeAudio", !v)}
+          />
+        </div>
+      </Col>
+
+      <Col md={2} xs={4} className="col-form-label">
+        <div>
+          <h6 className="d-md-none">
             <FormattedMessage id="images" />
           </h6>
           <BooleanSetting
@@ -67,18 +80,6 @@ const Stash: React.FC<IStashProps> = ({
         </div>
       </Col>
 
-      <Col md={2} xs={4} className="col-form-label">
-        <div>
-          <h6 className="d-md-none">
-            <FormattedMessage id="audio" />
-          </h6>
-          <BooleanSetting
-            id={`stash-exclude-audio-${index}`}
-            checked={!stash.excludeAudio}
-            onChange={(v) => handleInput("excludeAudio", !v)}
-          />
-        </div>
-      </Col>
       <Col className="justify-content-end" xs={4} md={1}>
         <Dropdown className="text-right">
           <Dropdown.Toggle
@@ -173,17 +174,17 @@ const StashConfiguration: React.FC<IStashConfigurationProps> = ({
       <div className="content" id="stash-table">
         {stashes.length > 0 && (
           <Row className="d-none d-md-flex">
-            <h6 className="col-md-7">
+            <h6 className="col-md-5">
               <FormattedMessage id="path" />
             </h6>
             <h6 className="col-md-2 col-4">
               <FormattedMessage id="videos" />
             </h6>
             <h6 className="col-md-2 col-4">
-              <FormattedMessage id="images" />
+              <FormattedMessage id="audio" />
             </h6>
             <h6 className="col-md-2 col-4">
-              <FormattedMessage id="audio" />
+              <FormattedMessage id="images" />
             </h6>
           </Row>
         )}

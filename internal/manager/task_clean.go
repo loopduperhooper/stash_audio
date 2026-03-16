@@ -154,6 +154,7 @@ func newCleanFilter(c *config.Config) *cleanFilter {
 			generatedPath:     c.GetGeneratedPath(),
 			videoExcludeRegex: generateRegexps(c.GetExcludes()),
 			imageExcludeRegex: generateRegexps(c.GetImageExcludes()),
+			audioExcludeRegex: generateRegexps(c.GetAudioExcludes()),
 			stashIgnoreFilter: file.NewStashIgnoreFilter(),
 		},
 	}
@@ -215,6 +216,8 @@ func (f *cleanFilter) shouldCleanFile(path string, info fs.FileInfo, stash *conf
 		return f.shouldCleanVideoFile(path, stash)
 	case useAsImage(path):
 		return f.shouldCleanImage(path, stash)
+	case useAsAudio(path):
+		return f.shouldCleanAudioFile(path, stash)
 	default:
 		logger.Infof("File extension does not match any media extensions. Marking to clean: \"%s\"", path)
 		return true
@@ -228,6 +231,20 @@ func (f *cleanFilter) shouldCleanVideoFile(path string, stash *config.StashConfi
 	}
 
 	if matchFileRegex(path, f.videoExcludeRegex) {
+		logger.Infof("File matched regex. Marking to clean: \"%s\"", path)
+		return true
+	}
+
+	return false
+}
+
+func (f *cleanFilter) shouldCleanAudioFile(path string, stash *config.StashConfig) bool {
+	if stash.ExcludeAudio {
+		logger.Infof("File in stash library that excludes audio. Marking to clean: \"%s\"", path)
+		return true
+	}
+
+	if matchFileRegex(path, f.audioExcludeRegex) {
 		logger.Infof("File matched regex. Marking to clean: \"%s\"", path)
 		return true
 	}

@@ -4,6 +4,12 @@ mutation AudioUpdate($input: AudioUpdateInput!) {
   }
 }
 
+mutation BulkAudioUpdate($input: BulkAudioUpdateInput!) {
+  bulkAudioUpdate(input: $input) {
+    ...SlimAudioData
+  }
+}
+
 mutation AudioIncrementO($id: ID!) {
   audioIncrementO(id: $id)
 }
