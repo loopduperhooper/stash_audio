@@ -88,6 +88,20 @@ fragment VisualFileData on VisualFile {
   }
 }
 
+fragment AudioFileData on AudioFile {
+  id
+  path
+  size
+  mod_time
+  duration
+  audio_codec
+  bit_rate
+  fingerprints {
+    type
+    value
+  }
+}
+
 fragment SelectFolderData on Folder {
   id
   path

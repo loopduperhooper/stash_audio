@@ -30,6 +30,7 @@ import {
   faImage,
   faImages,
   faMapMarkerAlt,
+  faMusic,
   faPlayCircle,
   faQuestionCircle,
   faSignOutAlt,
@@ -50,6 +51,10 @@ interface IMenuItem {
   userCreatable?: boolean;
 }
 const messages = defineMessages({
+  audios: {
+    id: "audios",
+    defaultMessage: "Audio",
+  },
   scenes: {
     id: "scenes",
     defaultMessage: "Scenes",
@@ -111,6 +116,13 @@ const allMenuItems: IMenuItem[] = [
     href: "/images",
     icon: faImage,
     hotkey: "g i",
+  },
+  {
+    name: "audios",
+    message: messages.audios,
+    href: "/audios",
+    icon: faMusic,
+    hotkey: "g a",
   },
   {
     name: "groups",

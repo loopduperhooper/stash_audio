@@ -1,4 +1,5 @@
 export enum View {
+  Audios = "audios",
   Galleries = "galleries",
   Images = "images",
   Scenes = "scenes",

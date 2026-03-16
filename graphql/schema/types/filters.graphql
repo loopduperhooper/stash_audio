@@ -972,6 +972,7 @@ enum FilterMode {
   GROUPS
   TAGS
   IMAGES
+  AUDIOS
 }
 
 type SavedFilter {

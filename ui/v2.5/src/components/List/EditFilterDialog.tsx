@@ -206,6 +206,7 @@ const CriterionOptionList: React.FC<ICriterionList> = ({
 };
 
 const FilterModeToConfigKey = {
+  [FilterMode.Audios]: "audios",
   [FilterMode.Galleries]: "galleries",
   [FilterMode.Images]: "images",
   [FilterMode.Movies]: "groups",

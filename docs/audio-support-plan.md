@@ -13,9 +13,15 @@ Audio files are modelled very closely after `Scene`, with a few key differences:
 - Cover art is a stored image (similar to scene cover) rather than a generated screenshot
 - Has `o_counter` (like Scene and Image)
 - Markers supported (timed annotations with a WebVTT track)
-- HLS streaming is audio-only (the audio stream extracted/remuxed)
+- Streaming is direct file serve (browsers natively handle MP3, FLAC, OGG, AAC, WAV via `<audio>`)
 
 Reference models: `Scene` (primary) and `Image` (for cover art pattern).
+
+---
+
+## Cross-cutting: Unit Tests
+
+Every Go task should include unit tests consistent with `pkg/audio/scan_test.go` (testify/mock, table-driven). The frontend has no test infrastructure (no Jest/Vitest), so no frontend tests are expected.
 
 ---
 
@@ -28,11 +34,10 @@ Reference models: `Scene` (primary) and `Image` (for cover art pattern).
 | DB migration | `pkg/sqlite/migrations/1_initial.up.sql` | `pkg/sqlite/migrations/85_audios.up.sql` |
 | SQLite CRUD | `pkg/sqlite/scene.go` | `pkg/sqlite/audio.go` |
 | File decorator | `pkg/file/video/scan.go` | `pkg/file/audio/scan.go` |
-| Manager/streaming | `internal/manager/scene.go` | `internal/manager/audio.go` |
 | Routes | `internal/api/routes_scene.go` | `internal/api/routes_audio.go` |
 | GraphQL schema | `graphql/schema/types/scene.graphql` | `graphql/schema/types/audio.graphql` |
 | GQL resolvers | `internal/api/resolver_{model,query,mutation}_scene.go` | `internal/api/resolver_{model,query,mutation}_audio.go` |
-| GQL client fragments | `ui/v2.5/graphql/data/scene.graphql` | `ui/v2.5/graphql/data/audio.graphql` |
+| GQL client fragments | `ui/v2.5/graphql/data/scene.graphql` | `ui/v2.5/graphql/data/audio-slim.graphql` |
 | GQL client queries | `ui/v2.5/graphql/queries/scene.graphql` | `ui/v2.5/graphql/queries/audio.graphql` |
 | GQL client mutations | `ui/v2.5/graphql/mutations/scene.graphql` | `ui/v2.5/graphql/mutations/audio.graphql` |
 | React routes | `ui/v2.5/src/components/Scenes/` | `ui/v2.5/src/components/Audios/` |
@@ -47,21 +52,13 @@ Reference models: `Scene` (primary) and `Image` (for cover art pattern).
 
 File: `pkg/models/model_audio.go`
 
-Implemented: `Audio` struct, `AudioPartial`, `CreateAudioInput`, `UpdateAudioInput`, `NewAudio()`, `NewAudioPartial()`, all `LoadRelationships` methods.
-
-Additional fields beyond the original plan: `ResumeTime float64`, `PlayDuration float64`.
-
-**Gap found — `PlayCount` and `LastPlayedAt` missing from Go model:**
-The DB migration includes `play_count` and `last_played_at` columns, and the sort infrastructure references them, but neither the `Audio` struct, `AudioPartial`, `audioRow`, nor `audioQueryRow.resolve()` map these fields. These must be added:
-- Add `PlayCount int` and `LastPlayedAt *time.Time` to `Audio` struct
-- Add `PlayCount OptionalInt` and `LastPlayedAt OptionalTime` to `AudioPartial`
-- Add `PlayCount` and `LastPlayedAt` to `audioRow`, `fromAudio()`, `resolve()`, and `fromPartial()`
+`Audio` struct, `AudioPartial`, `NewAudio()`, `NewAudioPartial()`, all `LoadRelationships` methods. Fields include `ResumeTime`, `PlayDuration`, `PlayCount`, `LastPlayedAt`.
 
 ---
 
 #### Task 1.2 — Audio file metadata type ✅
 
-Implemented in `pkg/models/model_file.go`. `AudioFile` type with fields: `Duration`, `AudioCodec`, `Format`, `BitRate`, `SampleRate`, `Channels`.
+`AudioFile` type in `pkg/models/model_file.go`. Fields: `Duration`, `AudioCodec`, `Format`, `BitRate`, `SampleRate`, `Channels`.
 
 ---
 
@@ -77,34 +74,21 @@ All interfaces defined: `AudioGetter`, `AudioFinder`, `AudioQueryer`, `AudioCoun
 
 File: `pkg/sqlite/migrations/85_audios.up.sql`
 
-Tables created: `audios`, `audio_files`, `audios_files`, `audio_urls`, `performers_audios`, `audios_tags`, `audio_stash_ids`, `audio_o_dates`, `audio_view_dates`, `audio_markers`, `audio_markers_tags`.
-
-Implementation differs from original plan in several ways (all improvements):
-- Uses `cover_blob` referencing `blobs` table (matches Scene pattern) instead of a separate `audios_cover` table
-- Includes `resume_time`, `play_count`, `play_duration`, `last_played_at` columns
-- Includes `audio_files` table for audio-specific metadata (duration, codec, format, etc.)
-- Includes `audio_markers` and `audio_markers_tags` tables
-- Includes `audio_o_dates` and `audio_view_dates` history tables
+Tables: `audios`, `audio_files`, `audios_files`, `audio_urls`, `performers_audios`, `audios_tags`, `audio_stash_ids`, `audio_o_dates`, `audio_view_dates`, `audio_markers`, `audio_markers_tags`. Uses `cover_blob` referencing the `blobs` table.
 
 ---
 
 #### Task 1.5 — SQLite repository implementation ✅
 
-File: `pkg/sqlite/audio.go` (~1,067 lines)
+File: `pkg/sqlite/audio.go`
 
-Implemented: full CRUD, Find/FindMany, FindByChecksum, FindByFingerprints, FindByFileID, Query/QueryCount, all relationship loaders, cover blob helpers (GetCover, HasCover, UpdateCover, destroyCover). Wired into `pkg/sqlite/database.go`.
-
-**Gap — see Task 1.1 note about PlayCount/LastPlayedAt field mappings.**
+Full CRUD, Find/FindMany, FindByChecksum, FindByFingerprints, FindByFileID, Query/QueryCount, all relationship loaders, cover blob helpers (`GetCover`, `HasCover`, `UpdateCover`, `destroyCover`). Wired into `pkg/sqlite/database.go`.
 
 ---
 
-#### Task 1.6 — Fix PlayCount/LastPlayedAt field mappings (NEW)
+#### Task 1.6 — Fix PlayCount/LastPlayedAt field mappings ✅
 
-The DB migration has `play_count`, `last_played_at` columns and the sort handler supports them, but the Go model and SQLite row structs don't map them. This creates a runtime mismatch.
-
-Files to update:
-- `pkg/models/model_audio.go` — add `PlayCount int` and `LastPlayedAt *time.Time` to `Audio`; add to `AudioPartial`
-- `pkg/sqlite/audio.go` — add fields to `audioRow`, `fromAudio()`, `resolve()`, `fromPartial()`
+`PlayCount` and `LastPlayedAt` added to `Audio`, `AudioPartial`, `audioRow`, `fromAudio()`, `resolve()`, and `fromPartial()`. Regression guard test added in `pkg/audio/scan_test.go`.
 
 ---
 
@@ -114,446 +98,163 @@ Files to update:
 
 File: `pkg/file/audio/scan.go`
 
-Implemented: ffprobe-based metadata extraction for audio files (duration, codec, format, bitrate, sample rate, channels).
+ffprobe-based metadata extraction for audio files (duration, codec, format, bitrate, sample rate, channels).
 
 ---
 
-#### Task 2.2 — Configuration ✅ (partially)
+#### Task 2.2 — Configuration ✅
 
-Constants `AudioExtensions` and `AudioExclude` added to `internal/manager/config/config.go` with getter methods.
-
-**Remaining work (moved to Task 6.1):**
-- GraphQL config schema updates (`config.graphql`) not yet done
-- Config resolver updates not yet done
-- These are deferred to Phase 6 (Settings UI) since they're needed for the settings panel
+Config constants `AudioExtensions` and `AudioExclude` in `internal/manager/config/config.go`. GraphQL config schema and resolver updates done in Phase 6.
 
 ---
 
 #### Task 2.3 — Scanner pipeline integration ✅
 
-Audio decorator and `ScanHandler` wired into `internal/manager/task_scan.go`. The handler (`pkg/audio/scan.go`) creates new `Audio` records for new files and associates existing ones by fingerprint match.
+Audio decorator and `ScanHandler` wired into `internal/manager/task_scan.go`. Creates new `Audio` records for new files; associates existing ones by fingerprint match.
 
 ---
 
-#### ~~Task 2.4 — File identification and fingerprinting~~ ✅ REMOVED
+#### Task 2.4 — ~~File identification and fingerprinting~~ ✅ REMOVED
 
-This was a no-op. MD5 fingerprinting is handled generically by the base scanner. `FindByChecksum` and `FindByFingerprints` are implemented in the audio store. No audio-specific fingerprinting work needed.
-
----
-
-### Phase 3 — GraphQL API
-
-#### Task 3.0 — Implement audio filter criteria (`pkg/sqlite/audio_filter.go`) (NEW)
-
-The `audioFilterHandler` struct and validation logic exist but the `handle()` method has a `TODO: implement audio-specific filter criteria` stub. The Go-side `AudioFilterType` (in `pkg/models/audio.go`) is fully defined with comprehensive criteria (Title, Details, Path, Checksum, Rating, Duration, Bitrate, AudioCodec, Tags, Performers, Studios, PlayCount, PlayDuration, LastPlayedAt, etc.).
-
-Implement all filter criteria handlers in `audioFilterHandler.handle()`, following `pkg/sqlite/scene_filter.go` as a template. This includes:
-- String filters: title, details, path, checksum, audio_codec, url
-- Int filters: rating100, o_counter, duration, bitrate, file_count, tag_count, performer_count, play_count, play_duration, resume_time
-- Boolean filters: organized
-- Hierarchical filters: studios, tags, performer_tags
-- Multi-criterion filters: performers, stash_id_endpoint
-- Timestamp filters: created_at, updated_at, last_played_at
-- Date filters: date
-- Special filters: has_markers, is_missing, performer_favorite
-- Sub-entity filters: performers_filter, studios_filter, tags_filter, files_filter
-
-This is required before the GraphQL API can support queries with filters.
+No-op. MD5 fingerprinting is handled generically by the base scanner.
 
 ---
 
-#### Task 3.1 — GraphQL schema: types and filters (`graphql/schema/types/audio.graphql`)
+#### Task 2.5 — Embedded cover art extraction during scan ✅
 
-Define:
+Files: `pkg/ffmpeg/cover.go`, `pkg/audio/scan.go`
 
-```graphql
-type Audio {
-  id: ID!
-  title: String
-  details: String
-  date: String
-  rating100: Int
-  o_counter: Int!
-  organized: Boolean!
-  play_count: Int!
-  play_duration: Float!
-  resume_time: Float!
-  last_played_at: Time
-  created_at: Time!
-  updated_at: Time!
-
-  # relationships
-  studio: Studio
-  tags: [Tag!]!
-  performers: [Performer!]!
-  urls: [String!]!
-  stash_ids: [StashID!]!
-
-  # file info (primary file)
-  files: [AudioFile!]!
-  paths: AudioPathsType!
-}
-
-type AudioFile {
-  id: ID!
-  path: String!
-  size: Int64!
-  duration: Float
-  audio_codec: String
-  bitrate: Int
-  format: String
-  sample_rate: Int
-  channels: Int
-  created_at: Time!
-  updated_at: Time!
-  fingerprints: [Fingerprint!]!
-}
-
-type AudioPathsType {
-  screenshot: String  # cover art URL
-  stream: String      # direct audio stream
-  hls: String         # HLS m3u8 playlist
-  vtt: String         # WebVTT subtitles (markers)
-}
-
-type FindAudiosResultType {
-  count: Int!
-  duration: Float
-  audios: [Audio!]!
-}
-
-input AudioCreateInput {
-  title: String
-  details: String
-  date: String
-  rating100: Int
-  organized: Boolean
-  studio_id: ID
-  tag_ids: [ID!]
-  performer_ids: [ID!]
-  urls: [String!]
-  stash_ids: [StashID!]
-  cover_image: String  # base64-encoded cover art
-}
-
-input AudioUpdateInput {
-  id: ID!
-  # ... same optional fields as Create
-  cover_image: String
-}
-
-input BulkAudioUpdateInput {
-  ids: [ID!]!
-  # ... bulk-editable subset of fields
-}
-
-input AudioDestroyInput {
-  id: ID!
-  delete_file: Boolean
-  delete_generated: Boolean
-}
-
-input AudioFilterType {
-  AND: AudioFilterType
-  OR:  AudioFilterType
-  NOT: AudioFilterType
-
-  id:              IntCriterionInput
-  title:           StringCriterionInput
-  details:         StringCriterionInput
-  path:            StringCriterionInput
-  checksum:        StringCriterionInput
-  file_count:      IntCriterionInput
-  rating100:       IntCriterionInput
-  organized:       Boolean
-  o_counter:       IntCriterionInput
-  bitrate:         IntCriterionInput
-  audio_codec:     StringCriterionInput
-  duration:        IntCriterionInput
-  has_markers:     String
-  is_missing:      String          # "studio", "tags", "performers", "cover_image"
-  studios:         HierarchicalMultiCriterionInput
-  tags:            HierarchicalMultiCriterionInput
-  tag_count:       IntCriterionInput
-  performer_tags:  HierarchicalMultiCriterionInput
-  performer_favorite: Boolean
-  performers:      MultiCriterionInput
-  performer_count: IntCriterionInput
-  stash_id:        StringCriterionInput
-  stash_id_endpoint: StashIDCriterionInput
-  url:             StringCriterionInput
-  resume_time:     IntCriterionInput
-  play_count:      IntCriterionInput
-  play_duration:   IntCriterionInput
-  last_played_at:  TimestampCriterionInput
-  date:            DateCriterionInput
-  performers_filter: PerformerFilterType
-  studios_filter:  StudioFilterType
-  tags_filter:     TagFilterType
-  files_filter:    FileFilterType
-  created_at:      TimestampCriterionInput
-  updated_at:      TimestampCriterionInput
-}
-
-enum AudioSortEnum {
-  title
-  date
-  rating
-  o_counter
-  duration
-  bitrate
-  play_count
-  last_played_at
-  created_at
-  updated_at
-  random
-}
-```
-
-Add to `graphql/schema/schema.graphql`:
-```graphql
-# Queries
-findAudio(id: ID!): Audio
-findAudios(
-  audio_filter: AudioFilterType
-  filter: FindFilterType
-): FindAudiosResultType!
-findAudiosByPathRegex(filter: FindFilterType): FindAudiosResultType!
-findAudioMarkers(
-  audio_marker_filter: AudioMarkerFilterType
-  filter: FindFilterType
-): FindAudioMarkersResultType!
-
-# Mutations
-audioCreate(input: AudioCreateInput!): Audio
-audioUpdate(input: AudioUpdateInput!): Audio
-audiosUpdate(input: [AudioUpdateInput!]!): [Audio]
-bulkAudioUpdate(input: BulkAudioUpdateInput!): [Audio!]
-audioDestroy(input: AudioDestroyInput!): Boolean!
-audiosDestroy(ids: [ID!]!): Boolean!
-audioIncrementO(id: ID!): OCountResult!
-audioDecrementO(id: ID!): OCountResult!
-audioResetO(id: ID!): OCountResult!
-audioIncrementPlayCount(id: ID!): Int
-audioDecrementPlayCount(id: ID!): Int
-assignAudioFile(input: AssignFileInput!): Boolean!
-```
+`FFMpeg.ExtractEmbeddedCover()` extracts the attached picture stream (`-map 0:v -c copy -f image2 pipe:1`). `ScanHandler` has a `CoverUpdater` interface and calls `extractCoverIfMissing()` on new audio creation and new file association. Errors are logged, never fatal. `ScanHandler` wired with `CoverUpdater` and `FFMpeg` in `task_scan.go`. Unit tests in `pkg/audio/scan_test.go`; table-driven tests for `HasEmbeddedCover` in `pkg/ffmpeg/ffprobe_test.go`.
 
 ---
 
-#### Task 3.2 — Audio markers schema (`graphql/schema/types/audio-marker.graphql`)
+### Phase 3 — GraphQL API ✅ COMPLETE (except Task 3.4)
 
-Define `AudioMarker` following `SceneMarker`:
+#### Task 3.0 — Audio filter criteria (`pkg/sqlite/audio_filter.go`) ✅
 
-```graphql
-type AudioMarker {
-  id: ID!
-  title: String!
-  seconds: Float!
-  end_seconds: Float
-  stream: String!   # URL to stream from this marker
-  primary_tag: Tag!
-  tags: [Tag!]!
-  audio: Audio!
-  created_at: Time!
-  updated_at: Time!
-}
-```
-
-Note: Unlike `SceneMarker`, `AudioMarker` has no `screenshot` or `preview` fields since there are no video frames to capture.
-
-Add CRUD mutations: `audioMarkerCreate`, `audioMarkerUpdate`, `audioMarkerDestroy`.
+Full `audioFilterHandler.handle()` implementation covering all filter criteria: string, int, boolean, hierarchical, multi-criterion, timestamp, date, has_markers, is_missing, performer_favorite, sub-entity filters.
 
 ---
 
-#### Task 3.3 — Go GraphQL resolvers (`internal/api/`)
+#### Task 3.1 — GraphQL schema: types and filters ✅
 
-Create three resolver files following existing scene resolver patterns:
+File: `graphql/schema/types/audio.graphql`
 
-**`resolver_model_audio.go`** — field resolvers for `Audio` type:
-- `Studio`, `Tags`, `Performers`, `URLs`, `StashIDs`, `Files`, `Paths`
-- `PlayCount`, `PlayDuration`, `ResumeTime`, `LastPlayedAt`, `OCounter`
-
-**`resolver_query_find_audio.go`** — query implementations:
-- `FindAudio`, `FindAudios`, `FindAudiosByPathRegex`
-
-**`resolver_mutation_audio.go`** — mutation implementations:
-- `AudioCreate`, `AudioUpdate`, `AudiosUpdate`, `BulkAudioUpdate`
-- `AudioDestroy`, `AudiosDestroy`
-- `AudioIncrementO`, `AudioDecrementO`, `AudioResetO`
-- `AudioIncrementPlayCount`, `AudioDecrementPlayCount`
-- `AudioSaveActivity` (save resume_time and play_duration, following `sceneSaveActivity`)
-- `AssignAudioFile`
-
-Wire into `internal/api/resolver.go`.
-
-**Note:** Also need to run `go generate` to regenerate the GraphQL bindings after adding the schema files.
+`Audio`, `AudioPathsType`, `FindAudiosResultType`, `AudioCreateInput`, `AudioUpdateInput`, `BulkAudioUpdateInput`, `AudioDestroyInput`, `AudiosDestroyInput`, `AssignAudioFileInput`, `AudioFilterType`. Paths use `cover` (not `screenshot`) since there are no video frames.
 
 ---
 
-#### Task 3.4 — Audio marker resolvers
+#### Task 3.2 — Audio markers schema ✅
 
-Create `resolver_mutation_audio_marker.go` and extend query resolver for `FindAudioMarkers`, `AudioMarkerWall`, `AudioMarkerTags`.
+File: `graphql/schema/types/audio-marker.graphql`
+
+`AudioMarker` type defined. CRUD mutations stubbed. No `screenshot` or `preview` fields (audio has no video frames).
+
+---
+
+#### Task 3.3 — Go GraphQL resolvers ✅
+
+Files: `internal/api/resolver_model_audio.go`, `resolver_query_find_audio.go`, `resolver_mutation_audio.go`
+
+Full CRUD, o-counter, play count, `AudioSaveActivity`, `AssignAudioFile`. Wired into `internal/api/resolver.go`.
+
+---
+
+#### Task 3.4 — Audio marker resolvers ⏸ DEFERRED
+
+Requires a full SQLite store for audio markers (following `pkg/sqlite/scene_marker.go`) and wired resolvers for `FindAudioMarkers`, `AudioMarkerCreate/Update/Destroy`. This is deferred until after the core audio experience is complete, as markers are a secondary feature.
 
 ---
 
 ### Phase 4 — Streaming & HTTP Routes
 
-#### Task 4.1 — Audio streaming manager (`internal/manager/audio.go`)
+#### Task 4.1 — HLS audio streaming manager 🔭 STRETCH GOAL
 
-Following `internal/manager/scene.go`, create stream endpoints for audio:
-
-```go
-var (
-    directEndpoint = endpointType{"Direct stream", ffmpeg.MimeAudio, ""}
-    hlsEndpoint    = endpointType{"HLS", ffmpeg.MimeHLS, ".m3u8"}
-)
-```
-
-- `GetAudioStreamEndpoints(audio *models.Audio) ([]*AudioStreamEndpoint, error)`
-- Support direct stream (pass-through if codec is browser-compatible) and HLS remux.
-- For HLS: extract only audio track into AAC/HLS segments.
+HLS remux for audio (extract audio track into AAC/HLS segments, following `internal/manager/scene.go`). Deferred: browsers natively handle all common audio formats via `<audio>`, so HLS adds complexity without a clear benefit for typical use. Revisit if gapless playback or adaptive bitrate becomes a real requirement.
 
 ---
 
-#### Task 4.2 — HTTP routes for audio (`internal/api/routes_audio.go`)
-
-Following `internal/api/routes_scene.go`:
+#### Task 4.2 — HTTP routes for audio (`internal/api/routes_audio.go`) ✅
 
 ```
-GET /audio/{audioId}/stream          — direct audio stream
-GET /audio/{audioId}/stream.m3u8     — HLS manifest
-GET /audio/{audioId}/stream.m3u8/{segment}.ts — HLS segment
-GET /audio/{audioId}/screenshot      — cover art image
-GET /audio/{audioId}/vtt/chapter     — WebVTT chapters from markers
+GET /audio/{audioId}/stream      — direct file serve via file.OsFS
+GET /audio/{audioId}/cover       — cover art blob or default SVG fallback
+GET /audio/{audioId}/vtt/chapter — WebVTT stub (empty, ready for markers)
 ```
 
-Register routes in `internal/api/server.go`.
+`AudioCtx` middleware looks up audio by numeric ID or checksum, loads primary file. Registered in `internal/api/server.go`. Default cover SVG embedded via `//go:embed` in `internal/static/embed.go`.
 
 ---
 
-#### Task 4.3 — Cover art storage and retrieval (partially complete)
+#### Task 4.3 — Cover art storage and retrieval ✅
 
-Cover art is stored via the `blobs` table (referenced by `cover_blob` column in `audios`). SQLite store methods are already implemented:
-- ✅ `GetCover(ctx, audioID)` — implemented
-- ✅ `HasCover(ctx, audioID)` — implemented
-- ✅ `UpdateCover(ctx, audioID, image)` — implemented
-- ✅ `destroyCover(ctx, audioID)` — implemented
-
-Remaining work:
-- Serve cover art via the `/audio/{audioId}/screenshot` HTTP route (in Task 4.2)
-- Accept base64-encoded cover art in GraphQL `AudioCreateInput.cover_image` / `AudioUpdateInput.cover_image` (in Task 3.3)
+`GetCover`/`HasCover`/`UpdateCover`/`destroyCover` implemented in `pkg/sqlite/audio.go`. Cover served via `/audio/{id}/cover` route. Base64-encoded `cover_image` accepted in `AudioCreateInput`/`AudioUpdateInput` resolvers.
 
 ---
 
 ### Phase 5 — React Frontend
 
-#### Task 5.1 — GraphQL client fragments and queries (`ui/v2.5/graphql/`)
+#### Phase 5a — Audio list page ✅ COMPLETE
 
-Create:
-- `ui/v2.5/graphql/data/audio.graphql` — `AudioDataFragment`, `AudioFileDataFragment`, `SlimAudioDataFragment`
-- `ui/v2.5/graphql/queries/audio.graphql` — `FindAudio`, `FindAudios`, `FindAudioMarkers`
-- `ui/v2.5/graphql/mutations/audio.graphql` — all mutations from Task 3.3
+- `FilterMode.AUDIOS` added to GraphQL schema, Go model constants, and TypeScript generated types
+- `ui/v2.5/graphql/data/audio-slim.graphql` — `SlimAudioData` fragment
+- `ui/v2.5/graphql/data/file.graphql` — `AudioFileData` fragment added
+- `ui/v2.5/graphql/queries/audio.graphql` — `FindAudios`, `FindAudiosMetadata`, `FindAudio`
+- `useFindAudios`, `useFindAudiosMetadata`, `queryFindAudios`, `useFindAudio` in `StashService.ts`
+- `src/models/list-filter/audios.ts` — `AudioListFilterOptions`
+- `src/models/list-filter/factory.ts` — `FilterMode.Audios` case
+- `src/components/List/views.ts` — `View.Audios`
+- `src/components/List/EditFilterDialog.tsx` — `FilterModeToConfigKey` entry
+- `src/components/FrontPage/FrontPageConfig.tsx` — `FilterModeToMessageID` entry
+- `src/components/Audios/AudioCard.tsx` — GridCard-based card with cover, duration, codec, tag/performer popovers
+- `src/components/Audios/AudioCardGrid.tsx` — responsive grid
+- `src/components/Audios/AudioList.tsx` — `FilteredAudioList` with sidebar, pagination, zoom, "view random"
+- `src/components/Audios/Audios.tsx` — route wrapper with `<Helmet>`
+- `MainNavbar.tsx` — "audios" menu item (faMusic, hotkey `g a`)
+- `App.tsx` — lazy import + `/audios` route
+- `en-GB.json` — `"audios"` key
 
-Run `yarn codegen` to generate TypeScript types.
-
----
-
-#### Task 5.2 — Audio list and card components
-
-Create `ui/v2.5/src/components/Audios/`:
-
-- `AudioCard.tsx` — displays cover art, title, duration, rating, tags. Pattern: `SceneCard.tsx`.
-- `AudioCardGrid.tsx` — grid layout wrapping `AudioCard`. Pattern: `SceneCardGrid.tsx`.
-- `AudioList.tsx` — main list view with filter sidebar, sort controls, pagination. Pattern: `SceneList.tsx`.
-
-The list should support the same view modes as Scenes (grid, list, wall).
-
----
-
-#### Task 5.3 — Audio filter components
-
-Create `ui/v2.5/src/components/Audios/AudioFilter.tsx` (or extend the shared filter system):
-
-- Wire `AudioFilterType` fields into filter UI controls.
-- Reuse existing criterion components (RatingCriterion, TagsCriterion, PerformersCriterion, etc.) that are already shared across Scene/Image/Gallery.
-
-Add `AudioSortEnum` to the sort selector.
+Codegen: `make generate` (or `pnpm run gqlgen` from `ui/v2.5/`)
 
 ---
 
-#### Task 5.4 — Audio details page (`AudioDetails/`)
+#### Phase 5b — Audio detail page ✅ COMPLETE
 
-Create `ui/v2.5/src/components/Audios/AudioDetails/`:
+Files: `src/components/Audios/AudioDetails/`
 
-- `Audio.tsx` — top-level detail page with tabs:
-  - **Details** — read-only view of title, date, studio, performers, tags, rating, URLs
-  - **Edit** — inline edit form (mirrors `SceneEditPanel.tsx`)
-  - **File Info** — file path, size, duration, bitrate, codec, fingerprints
-  - **Markers** — list of `AudioMarker` objects; add/edit/delete inline
-  - **History** — play count, o-counter history
-- `AudioDetailPanel.tsx` — details tab content
-- `AudioEditPanel.tsx` — edit tab content; handles save/revert
-- `AudioFileInfoPanel.tsx` — file info tab
-- `AudioMarkersPanel.tsx` — markers tab
-
-Pattern: `SceneDetails/Scene.tsx`, `SceneDetailPanel.tsx`, `SceneEditPanel.tsx`, `SceneFileInfoPanel.tsx`, `SceneMarkersPanel.tsx`.
+- `Audio.tsx` — `AudioLoader` (route, data fetch) + `AudioPage` (tabs/toolbar). Two-column layout matching Scene: tabs on left, player on right. Tabs: Details, File Info. Toolbar: rating, play count, o-counter, organized, operations (delete). Hotkeys: `a` details, `i` file info, `o` o-counter.
+- `AudioDetailPanel.tsx` — created_at, updated_at, details text, tags, performer cards.
+- `AudioFileInfoPanel.tsx` — stream URL, stash IDs, URLs, md5, path, size, mod_time, duration, bitrate, audio_codec.
+- `AudioPlayer.tsx` — cover art `<img>` + native `<audio controls>` with resume_time restore and VTT chapter track.
+- `DeleteAudiosDialog.tsx` — delete confirmation modal with delete-file and delete-generated options.
+- `Audios.tsx` — `/audios/:id` route added.
+- `ui/v2.5/graphql/data/audio.graphql` — full `AudioData` fragment (incl. details, urls, stash_ids, resume_time, play_duration, PerformerData).
+- `ui/v2.5/graphql/mutations/audio.graphql` — AudioUpdate, AudioIncrementO/DecrementO/ResetO, AudioSaveActivity, AudioIncrementPlayCount, AudioDestroy, AudiosDestroy, AudioAssignFile.
+- StashService hooks: `useAudioUpdate`, `useAudioIncrementO`, `useAudioDecrementO`, `useAudioIncrementPlayCount`, `useAudioSaveActivity`, `useAudioDestroy`, `useAudiosDestroy`.
 
 ---
 
-#### Task 5.5 — Audio player with HLS and cover art
+#### Phase 5c — Edit panel, bulk dialogs, mutations
 
-Create `ui/v2.5/src/components/Audios/AudioPlayer.tsx`:
+- `AudioEditPanel.tsx` — inline edit form (title, date, studio, performers, tags, rating, URLs, cover image upload)
+- `EditAudiosDialog.tsx` — bulk edit: rating, studio, tags, performers, organized
+- `DeleteAudiosDialog.tsx` — bulk delete with optional file deletion
+- `ui/v2.5/graphql/mutations/audio.graphql` — all mutations wired up
+- Wire edit/delete operations into `FilteredAudioList` toolbar
 
-- Uses `hls.js` (already a dependency via scene player).
-- Displays cover art above the player controls.
-- Shows title and performer(s).
-- Supports WebVTT chapter track from markers (loaded via `/audio/{id}/vtt/chapter`).
-- Controls: play/pause, seek bar, volume, playback rate, download.
-
-Reuse the existing `ScenePlayer` HLS infrastructure where possible. The main difference is rendering cover art instead of a video canvas.
+Pattern: `EditScenesDialog.tsx`, `DeleteScenesDialog.tsx`, `SceneEditPanel.tsx`.
 
 ---
 
-#### Task 5.6 — Bulk edit and delete dialogs
+### Phase 6 — Settings UI ✅ COMPLETE
 
-Create:
-- `EditAudiosDialog.tsx` — bulk edit: rating, studio, tags, performers, organized. Pattern: `EditScenesDialog.tsx`.
-- `DeleteAudiosDialog.tsx` — bulk delete with optional file deletion. Pattern: `DeleteScenesDialog.tsx`.
+#### Task 6.1 — Library settings for audio ✅
 
----
-
-#### Task 5.7 — "Audios" top-level navigation tab
-
-1. Add an `Audios` route entry in `ui/v2.5/src/components/Audios/Audios.tsx`:
-   ```
-   /audios          → AudioList
-   /audios/:id      → Audio (detail)
-   /audios/new      → AudioCreate (optional, for manual entry)
-   ```
-
-2. Add `Audios` link to the main navigation sidebar in `ui/v2.5/src/components/MainNavbar.tsx` (or equivalent), between `Scenes` and `Images`.
-
-3. Add `Audios` to the stats page (`/stats`) following the scene/image pattern.
-
----
-
-### Phase 6 — Settings UI
-
-#### Task 6.1 — Library settings for audio
-
-**Backend (deferred from Task 2.2):**
-The Go config constants and getter methods exist (`AudioExtensions`, `AudioExclude`), but the GraphQL config schema has not been updated. This must be done first:
-- Add `audioExtensions: [String!]!` and `excludedAudioPatterns: [String!]!` to `ConfigLibraryResult` in `graphql/schema/types/config.graphql`
-- Add same fields to `ConfigLibraryInput`
-- Update config resolvers in `internal/api/resolver_config.go`
-
-**Frontend:**
-Update `ui/v2.5/src/components/Settings/SettingsLibraryPanel.tsx` (or equivalent):
-
-- Add `audioExtensions` field (multi-value text input, seeded with defaults).
-- Add `excludedAudioPatterns` field (multi-value text input).
-- Add `excludeAudio: Boolean` toggle per stash library (in the stash config section), following `excludeVideo` / `excludeImage`.
+- `audioExtensions` and `audioExcludes` added to `ConfigGeneralInput`/`ConfigGeneralResult` in `graphql/schema/types/config.graphql`
+- `excludeAudio` added to `StashConfigInput`/`StashConfig` in `internal/manager/config/stash_config.go`
+- Config resolvers updated in `internal/api/resolver_query_configuration.go` and `resolver_mutation_configure.go`
+- Frontend: `SettingsLibraryPanel.tsx` — audio extensions and excludes inputs; `StashConfiguration.tsx` — per-stash `excludeAudio` toggle
+- Locale strings added to `en-GB.json`
 
 ---
 
@@ -561,28 +262,25 @@ Update `ui/v2.5/src/components/Settings/SettingsLibraryPanel.tsx` (or equivalent
 
 #### Task 7.1 — Auto-tag support for audio
 
-Extend the auto-tagging pipeline (`internal/autotag/`) to support `Audio`:
-- `AudioTagger` following `SceneTagger` — match performers, studios, tags from filename/path.
-- Register in the auto-tag task manager.
+Extend `internal/autotag/` to support `Audio`: `AudioTagger` following `SceneTagger` — match performers, studios, tags from filename/path. Register in the auto-tag task manager.
 
 ---
 
-#### Task 7.2 — Scraper support for audio (optional, stretch goal)
+#### Task 7.2 — Scraper support for audio (stretch goal)
 
-Extend the scraper framework (`internal/scraper/`) to support an `AudioScraped` type so that metadata can be pulled from external sources. This is a large task and can be deferred to a follow-up.
+Extend the scraper framework (`internal/scraper/`) to support an `AudioScraped` type for pulling metadata from external sources. Large task, deferred to a follow-up.
 
 ---
 
 ## Build Order Summary
 
 ```
-Phase 1 ✅  →  Phase 2 ✅  →  Phase 3      →  Phase 4      →  Phase 5      →  Phase 6      →  Phase 7
-Data model     Scanning       GraphQL API     Streaming       Frontend        Settings        Autotag
+Phase 1 ✅  →  Phase 2 ✅  →  Phase 3 ✅  →  Phase 4 ✅  →  Phase 5      →  Phase 6 ✅  →  Phase 7
+Data model     Scanning       GraphQL API     Routes          Frontend        Settings        Autotag
+                                                              5a ✅ 5b  5c
 ```
 
-**Current status:** Phases 1–2 complete. Next priority: fix PlayCount/LastPlayedAt gap (Task 1.6), then implement filter criteria (Task 3.0), then proceed with GraphQL schema and resolvers (Tasks 3.1–3.4).
-
-Each phase depends on the previous, but within a phase tasks can often be parallelised. The backend (Phases 1–4) must be complete before the frontend (Phase 5) can be wired to real data, but frontend components can be scaffolded with mock data in parallel.
+**Current status:** Phases 1–4 and 6 complete. Phases 5a and 5b complete. Next: Phase 5c (edit panel, bulk dialogs).
 
 ---
 
@@ -592,20 +290,21 @@ Each phase depends on the previous, but within a phase tasks can often be parall
 |---|---|
 | Scene model (template) | `pkg/models/model_scene.go` |
 | Scene SQLite store | `pkg/sqlite/scene.go` |
-| Scene filter (template for Task 3.0) | `pkg/sqlite/scene_filter.go` |
+| Scene filter (template) | `pkg/sqlite/scene_filter.go` |
 | Video file decorator | `pkg/file/video/scan.go` |
 | Config extensions | `internal/manager/config/config.go` |
 | Scene GraphQL schema | `graphql/schema/types/scene.graphql` |
 | Scene marker schema | `graphql/schema/types/scene-marker.graphql` |
-| Scene stream manager | `internal/manager/scene.go` |
 | Scene HTTP routes | `internal/api/routes_scene.go` |
 | Scene React list | `ui/v2.5/src/components/Scenes/SceneList.tsx` |
 | Scene React detail | `ui/v2.5/src/components/Scenes/SceneDetails/Scene.tsx` |
 | Scene GQL fragments | `ui/v2.5/graphql/data/scene.graphql` |
-| **Audio model (implemented)** | `pkg/models/model_audio.go` |
-| **Audio filter type (implemented)** | `pkg/models/audio.go` |
-| **Audio SQLite store (implemented)** | `pkg/sqlite/audio.go` |
-| **Audio filter handler (stub)** | `pkg/sqlite/audio_filter.go` |
-| **Audio file decorator (implemented)** | `pkg/file/audio/scan.go` |
-| **Audio scan handler (implemented)** | `pkg/audio/scan.go` |
+| **Audio model** | `pkg/models/model_audio.go` |
+| **Audio filter type** | `pkg/models/audio.go` |
+| **Audio SQLite store** | `pkg/sqlite/audio.go` |
+| **Audio filter handler** | `pkg/sqlite/audio_filter.go` |
+| **Audio file decorator** | `pkg/file/audio/scan.go` |
+| **Audio scan handler** | `pkg/audio/scan.go` |
 | **Audio DB migration** | `pkg/sqlite/migrations/85_audios.up.sql` |
+| **Audio HTTP routes** | `internal/api/routes_audio.go` |
+| **Audio React components** | `ui/v2.5/src/components/Audios/` |
