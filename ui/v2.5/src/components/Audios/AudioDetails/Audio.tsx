@@ -25,7 +25,11 @@ import { OrganizedButton } from "src/components/Scenes/SceneDetails/OrganizedBut
 import { objectTitle } from "src/core/files";
 import { useRatingKeybinds } from "src/hooks/keybinds";
 import { lazyComponent } from "src/utils/lazyComponent";
-import { faEllipsisV } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronLeft,
+  faChevronRight,
+  faEllipsisV,
+} from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 import { TruncatedText } from "src/components/Shared/TruncatedText";
 import { FormattedDate } from "src/components/Shared/Date";
@@ -42,10 +46,17 @@ const DeleteAudiosDialog = lazyComponent(
 
 interface IAudioPageProps {
   audio: GQL.AudioDataFragment;
+  collapsed: boolean;
+  setCollapsed: (v: boolean) => void;
   onDelete: () => void;
 }
 
-const AudioPage: React.FC<IAudioPageProps> = ({ audio, onDelete }) => {
+const AudioPage: React.FC<IAudioPageProps> = ({
+  audio,
+  collapsed,
+  setCollapsed,
+  onDelete,
+}) => {
   const Toast = useToast();
   const intl = useIntl();
 
@@ -194,7 +205,11 @@ const AudioPage: React.FC<IAudioPageProps> = ({ audio, onDelete }) => {
           onClose={onDeleteDialogClosed}
         />
       )}
-      <div className="scene-tabs order-xl-first order-last">
+      <div
+        className={`scene-tabs order-xl-first order-last${
+          collapsed ? " collapsed" : ""
+        }`}
+      >
         <div>
           <div className="scene-header-container">
             {audio.studio && (
@@ -259,9 +274,14 @@ const AudioPage: React.FC<IAudioPageProps> = ({ audio, onDelete }) => {
         </div>
         {renderTabs()}
       </div>
-      <div className="scene-divider d-none d-xl-block" />
-      <div className="scene-player-container">
-        <AudioPlayer audio={audio} />
+
+      <div className="scene-divider d-none d-xl-block">
+        <Button onClick={() => setCollapsed(!collapsed)}>
+          <Icon
+            className="fa-fw"
+            icon={collapsed ? faChevronRight : faChevronLeft}
+          />
+        </Button>
       </div>
     </>
   );
@@ -279,6 +299,7 @@ const AudioLoader: React.FC<RouteComponentProps<IAudioParams>> = ({
   const { data, loading, error } = useFindAudio(id);
 
   const [audio, setAudio] = useState<GQL.AudioDataFragment>();
+  const [collapsed, setCollapsed] = useState(false);
 
   useLayoutEffect(() => {
     if (!loading) {
@@ -296,7 +317,15 @@ const AudioLoader: React.FC<RouteComponentProps<IAudioParams>> = ({
 
   return (
     <div className="row">
-      <AudioPage audio={audio} onDelete={onDelete} />
+      <AudioPage
+        audio={audio}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        onDelete={onDelete}
+      />
+      <div className={`scene-player-container audio-player-container${collapsed ? " expanded" : ""}`}>
+        <AudioPlayer audio={audio} />
+      </div>
     </div>
   );
 };

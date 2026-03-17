@@ -1,0 +1,64 @@
+// Audio player container — fills the right side of the detail page
+.audio-player-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.audio-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+  height: 100%;
+  min-height: 400px;
+  padding: 1rem;
+}
+
+.audio-player-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.audio-cover-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.audio-cover-placeholder {
+  width: 280px;
+  height: 280px;
+  background-color: #1a1a1a;
+  border-radius: 4px;
+}
+
+.audio-player-element {
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+// At xl breakpoint, make the player fill the full viewport height
+@media (min-width: 1200px) {
+  .audio-player-container {
+    height: calc(100vh - 4rem);
+    position: sticky;
+    top: 4rem;
+  }
+
+  .audio-player {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .audio-player-cover {
+    max-height: calc(100vh - 10rem);
+  }
+}

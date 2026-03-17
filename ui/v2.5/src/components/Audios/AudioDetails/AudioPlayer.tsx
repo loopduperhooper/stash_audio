@@ -16,7 +16,6 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
   const coverSrc = audio.paths.cover ?? "";
   const streamSrc = audio.paths.stream ?? "";
 
-  // Restore resume time on mount
   useEffect(() => {
     const el = audioRef.current;
     if (!el || !audio.resume_time) return;
