@@ -14,7 +14,8 @@ interface IAudioCardGrid {
   onSelectChange: (id: string, selected: boolean, shiftKey: boolean) => void;
 }
 
-const zoomWidths = [280, 340, 480, 640];
+// Narrower than scenes (16:9) so square cards end up similar total height
+const zoomWidths = [175, 220, 300, 400];
 
 export const AudioCardGrid: React.FC<IAudioCardGrid> = PatchComponent(
   "AudioCardGrid",

@@ -93,15 +93,18 @@ const AudioCardDetails = PatchComponent(
     const duration = primaryFile?.duration;
     const codec = primaryFile?.audio_codec;
 
+    const durationStr =
+      duration !== undefined
+        ? `${Math.floor(duration / 60)}:${String(Math.floor(duration % 60)).padStart(2, "0")}`
+        : undefined;
+
+    const details = [props.audio.date, durationStr, codec]
+      .filter(Boolean)
+      .join(" · ");
+
     return (
       <div className="audio-card__details">
-        <span className="audio-card__date">{props.audio.date}</span>
-        {duration !== undefined && (
-          <span className="audio-card__duration">
-            {Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, "0")}
-          </span>
-        )}
-        {codec && <span className="audio-card__codec">{codec}</span>}
+        <span>{details}</span>
       </div>
     );
   }
