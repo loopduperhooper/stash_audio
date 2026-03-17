@@ -84,6 +84,7 @@ CREATE TABLE `audio_stash_ids` (
   `audio_id`  integer NOT NULL,
   `endpoint`  varchar(255) NOT NULL,
   `stash_id`  varchar(36) NOT NULL,
+  `updated_at` datetime not null default '1970-01-01T00:00:00Z',
   foreign key(`audio_id`) references `audios`(`id`) on delete CASCADE,
   PRIMARY KEY(`audio_id`, `endpoint`)
 );
