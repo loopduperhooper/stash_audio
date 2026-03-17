@@ -21,14 +21,11 @@ fragment AudioData on Audio {
   }
 
   studio {
-    id
-    name
-    image_path
+    ...SlimStudioData
   }
 
   tags {
-    id
-    name
+    ...SlimTagData
   }
 
   performers {

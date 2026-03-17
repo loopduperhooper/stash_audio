@@ -203,7 +203,7 @@ export const AudioEditPanel: React.FC<IProps> = ({
 
       <Form noValidate onSubmit={formik.handleSubmit}>
         {renderInputField("title", "text", "title")}
-        {renderURLListField("urls", "urls", onSubmit, urlProps)}
+        {renderURLListField("urls", undefined, undefined, "urls", urlProps)}
         {renderDateField("date", "date")}
 
         {renderField(
@@ -272,3 +272,5 @@ export const AudioEditPanel: React.FC<IProps> = ({
     </div>
   );
 };
+
+export default AudioEditPanel;
