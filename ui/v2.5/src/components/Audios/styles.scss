@@ -1,3 +1,30 @@
+// Audio card grid
+.audio-card {
+  &-preview {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+    overflow: hidden;
+    position: relative;
+
+    &-image {
+      height: 100%;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    &-placeholder {
+      align-items: center;
+      background-color: #1a1a1a;
+      display: flex;
+      height: 100%;
+      justify-content: center;
+      width: 100%;
+    }
+  }
+}
+
 // Audio player container — fills the right side of the detail page
 .audio-player-container {
   display: flex;
