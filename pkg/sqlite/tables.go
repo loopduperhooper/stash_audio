@@ -262,6 +262,11 @@ var (
 		idColumn: goqu.T(imageFileTable).Col(fileIDColumn),
 	}
 
+	audioFileTableMgr = &table{
+		table:    goqu.T(audioFileTable),
+		idColumn: goqu.T(audioFileTable).Col(fileIDColumn),
+	}
+
 	folderTableMgr = &table{
 		table:    goqu.T(folderTable),
 		idColumn: goqu.T(folderTable).Col(idColumn),

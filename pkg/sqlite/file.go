@@ -21,6 +21,7 @@ const (
 	fileTable      = "files"
 	videoFileTable = "video_files"
 	imageFileTable = "image_files"
+	audioFileTable = "audio_files"
 	fileIDColumn   = "file_id"
 
 	videoCaptionsTable    = "video_captions"
@@ -91,6 +92,26 @@ func (f *imageFileRow) fromImageFile(ff models.ImageFile) {
 	f.Format = ff.Format
 	f.Width = ff.Width
 	f.Height = ff.Height
+}
+
+type audioFileRow struct {
+	FileID     models.FileID `db:"file_id"`
+	Duration   float64       `db:"duration"`
+	AudioCodec string        `db:"audio_codec"`
+	Format     string        `db:"format"`
+	BitRate    int64         `db:"bit_rate"`
+	SampleRate int           `db:"sample_rate"`
+	Channels   int           `db:"channels"`
+}
+
+func (f *audioFileRow) fromAudioFile(ff models.AudioFile) {
+	f.FileID = ff.ID
+	f.Duration = ff.Duration
+	f.AudioCodec = ff.AudioCodec
+	f.Format = ff.Format
+	f.BitRate = ff.BitRate
+	f.SampleRate = ff.SampleRate
+	f.Channels = ff.Channels
 }
 
 // we redefine this to change the columns around
@@ -166,6 +187,40 @@ func (f *imageFileQueryRow) resolve() *models.ImageFile {
 	}
 }
 
+type audioFileQueryRow struct {
+	FileID     null.Int    `db:"file_id_audio"`
+	Duration   null.Float  `db:"audio_duration"`
+	AudioCodec null.String `db:"audio_codec_audio"`
+	Format     null.String `db:"audio_format"`
+	BitRate    null.Int    `db:"audio_bit_rate"`
+	SampleRate null.Int    `db:"audio_sample_rate"`
+	Channels   null.Int    `db:"audio_channels"`
+}
+
+func audioFileQueryColumns() []interface{} {
+	table := audioFileTableMgr.table
+	return []interface{}{
+		table.Col("file_id").As("file_id_audio"),
+		table.Col("duration").As("audio_duration"),
+		table.Col("audio_codec").As("audio_codec_audio"),
+		table.Col("format").As("audio_format"),
+		table.Col("bit_rate").As("audio_bit_rate"),
+		table.Col("sample_rate").As("audio_sample_rate"),
+		table.Col("channels").As("audio_channels"),
+	}
+}
+
+func (f *audioFileQueryRow) resolve() *models.AudioFile {
+	return &models.AudioFile{
+		Duration:   f.Duration.Float64,
+		AudioCodec: f.AudioCodec.String,
+		Format:     f.Format.String,
+		BitRate:    f.BitRate.Int64,
+		SampleRate: int(f.SampleRate.Int64),
+		Channels:   int(f.Channels.Int64),
+	}
+}
+
 type fileQueryRow struct {
 	FileID         null.Int      `db:"file_id"`
 	Basename       null.String   `db:"basename"`
@@ -184,6 +239,7 @@ type fileQueryRow struct {
 	fingerprintQueryRow
 	videoFileQueryRow
 	imageFileQueryRow
+	audioFileQueryRow
 }
 
 func (r *fileQueryRow) resolve() models.File {
@@ -222,6 +278,12 @@ func (r *fileQueryRow) resolve() models.File {
 		imf := r.imageFileQueryRow.resolve()
 		imf.BaseFile = basic
 		ret = imf
+	}
+
+	if r.audioFileQueryRow.FileID.Valid {
+		af := r.audioFileQueryRow.resolve()
+		af.BaseFile = basic
+		ret = af
 	}
 
 	r.appendRelationships(basic)
@@ -354,6 +416,10 @@ func (qb *FileStore) Create(ctx context.Context, f models.File) error {
 		if err := qb.createImageFile(ctx, fileID, *ef); err != nil {
 			return err
 		}
+	case *models.AudioFile:
+		if err := qb.createAudioFile(ctx, fileID, *ef); err != nil {
+			return err
+		}
 	}
 
 	if err := FingerprintReaderWriter.insertJoins(ctx, fileID, f.Base().Fingerprints); err != nil {
@@ -389,6 +455,10 @@ func (qb *FileStore) Update(ctx context.Context, f models.File) error {
 		}
 	case *models.ImageFile:
 		if err := qb.updateOrCreateImageFile(ctx, id, *ef); err != nil {
+			return err
+		}
+	case *models.AudioFile:
+		if err := qb.updateOrCreateAudioFile(ctx, id, *ef); err != nil {
 			return err
 		}
 	}
@@ -475,6 +545,37 @@ func (qb *FileStore) updateOrCreateImageFile(ctx context.Context, id models.File
 	return nil
 }
 
+func (qb *FileStore) createAudioFile(ctx context.Context, id models.FileID, f models.AudioFile) error {
+	var r audioFileRow
+	r.fromAudioFile(f)
+	r.FileID = id
+	if _, err := audioFileTableMgr.insert(ctx, r); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (qb *FileStore) updateOrCreateAudioFile(ctx context.Context, id models.FileID, f models.AudioFile) error {
+	exists, err := audioFileTableMgr.idExists(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return qb.createAudioFile(ctx, id, f)
+	}
+
+	var r audioFileRow
+	r.fromAudioFile(f)
+	r.FileID = id
+	if err := audioFileTableMgr.updateByID(ctx, id, r); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (qb *FileStore) selectDataset() *goqu.SelectDataset {
 	table := qb.table()
 
@@ -482,6 +583,7 @@ func (qb *FileStore) selectDataset() *goqu.SelectDataset {
 	fingerprintTable := fingerprintTableMgr.table
 	videoFileTable := videoFileTableMgr.table
 	imageFileTable := imageFileTableMgr.table
+	audioFileTable := audioFileTableMgr.table
 
 	zipFileTable := table.As("zip_files")
 	zipFolderTable := folderTable.As("zip_files_folders")
@@ -506,6 +608,7 @@ func (qb *FileStore) selectDataset() *goqu.SelectDataset {
 
 	cols = append(cols, videoFileQueryColumns()...)
 	cols = append(cols, imageFileQueryRow{}.columns(imageFileTableMgr)...)
+	cols = append(cols, audioFileQueryColumns()...)
 
 	ret := dialect.From(table).Select(cols...)
 
@@ -521,6 +624,9 @@ func (qb *FileStore) selectDataset() *goqu.SelectDataset {
 	).LeftJoin(
 		imageFileTable,
 		goqu.On(table.Col(idColumn).Eq(imageFileTable.Col(fileIDColumn))),
+	).LeftJoin(
+		audioFileTable,
+		goqu.On(table.Col(idColumn).Eq(audioFileTable.Col(fileIDColumn))),
 	).LeftJoin(
 		zipFileTable,
 		goqu.On(table.Col("zip_file_id").Eq(zipFileTable.Col("id"))),
