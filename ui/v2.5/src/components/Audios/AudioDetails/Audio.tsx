@@ -294,7 +294,11 @@ const AudioLoader: React.FC<RouteComponentProps<IAudioParams>> = ({
   if (error) return <ErrorMessage error={error.message} />;
   if (!audio) return <ErrorMessage error={`No audio found with id ${id}`} />;
 
-  return <AudioPage audio={audio} onDelete={onDelete} />;
+  return (
+    <div className="row">
+      <AudioPage audio={audio} onDelete={onDelete} />
+    </div>
+  );
 };
 
 export default AudioLoader;
