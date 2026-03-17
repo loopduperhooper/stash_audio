@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { useHistory } from "react-router-dom";
+import { EditAudiosDialog } from "./EditAudiosDialog";
+import { DeleteAudiosDialog } from "./DeleteAudiosDialog";
 import * as GQL from "src/core/generated-graphql";
 import {
   queryFindAudios,
@@ -239,6 +241,7 @@ export const FilteredAudioList = PatchComponent(
 
     const {
       selectedIds,
+      selectedItems,
       onSelectChange,
       onSelectAll,
       onSelectNone,
@@ -246,7 +249,7 @@ export const FilteredAudioList = PatchComponent(
       hasSelection,
     } = listSelect;
 
-    const { modal, closeModal } = modalState;
+    const { modal, showModal, closeModal } = modalState;
 
     const { setPage, removeCriterion, clearAllCriteria } = useFilterOperations({
       filter,
@@ -265,6 +268,24 @@ export const FilteredAudioList = PatchComponent(
     });
 
     const viewRandom = useViewRandom(effectiveFilter, totalCount);
+
+    const onEdit = useCallback(() => {
+      showModal(
+        <EditAudiosDialog
+          selected={selectedItems}
+          onClose={onCloseEditDelete}
+        />
+      );
+    }, [showModal, selectedItems, onCloseEditDelete]);
+
+    const onDelete = useCallback(() => {
+      showModal(
+        <DeleteAudiosDialog
+          selected={selectedItems}
+          onClose={onCloseEditDelete}
+        />
+      );
+    }, [showModal, selectedItems, onCloseEditDelete]);
 
     const convertedExtraOperations: IListFilterOperation[] =
       providedOperations.map((o) => ({
@@ -307,6 +328,8 @@ export const FilteredAudioList = PatchComponent(
         items={items.length}
         hasSelection={hasSelection}
         operations={otherOperations}
+        onEdit={onEdit}
+        onDelete={onDelete}
         operationsMenuClassName="audio-list-operations-dropdown"
       />
     );
@@ -320,6 +343,8 @@ export const FilteredAudioList = PatchComponent(
           listSelect={listSelect}
           setFilter={setFilter}
           showEditFilter={showEditFilter}
+          onEdit={onEdit}
+          onDelete={onDelete}
           operationComponent={operations}
           view={view}
           zoomable

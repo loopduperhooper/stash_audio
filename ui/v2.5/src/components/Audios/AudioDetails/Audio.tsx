@@ -35,6 +35,7 @@ import { AudioPlayer } from "./AudioPlayer";
 
 const AudioDetailPanel = lazyComponent(() => import("./AudioDetailPanel"));
 const AudioFileInfoPanel = lazyComponent(() => import("./AudioFileInfoPanel"));
+const AudioEditPanel = lazyComponent(() => import("./AudioEditPanel"));
 const DeleteAudiosDialog = lazyComponent(
   () => import("../DeleteAudiosDialog")
 );
@@ -135,6 +136,10 @@ const AudioPage: React.FC<IAudioPageProps> = ({ audio, onDelete }) => {
     </Dropdown>
   );
 
+  async function onSaveAudio(input: GQL.AudioUpdateInput) {
+    await updateAudio({ variables: { input } });
+  }
+
   const renderTabs = () => (
     <Tab.Container
       activeKey={activeTabKey}
@@ -148,6 +153,11 @@ const AudioPage: React.FC<IAudioPageProps> = ({ audio, onDelete }) => {
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
+            <Nav.Link eventKey="audio-edit-panel">
+              <FormattedMessage id="actions.edit" />
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
             <Nav.Link eventKey="audio-file-info-panel">
               <FormattedMessage id="file_info" />
             </Nav.Link>
@@ -157,6 +167,14 @@ const AudioPage: React.FC<IAudioPageProps> = ({ audio, onDelete }) => {
       <Tab.Content>
         <Tab.Pane eventKey="audio-details-panel">
           <AudioDetailPanel audio={audio} />
+        </Tab.Pane>
+        <Tab.Pane eventKey="audio-edit-panel">
+          <AudioEditPanel
+            audio={audio}
+            isVisible={activeTabKey === "audio-edit-panel"}
+            onSubmit={onSaveAudio}
+            onDelete={() => setIsDeleteAlertOpen(true)}
+          />
         </Tab.Pane>
         <Tab.Pane className="file-info-panel" eventKey="audio-file-info-panel">
           <AudioFileInfoPanel audio={audio} />

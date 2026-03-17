@@ -259,6 +259,8 @@ export const queryFindAudios = (filter: ListFilterModel) =>
 
 export const useAudioUpdate = () => GQL.useAudioUpdateMutation();
 
+export const useBulkAudioUpdate = () => GQL.useBulkAudioUpdateMutation();
+
 export const useAudioIncrementO = () => GQL.useAudioIncrementOMutation();
 export const useAudioDecrementO = () => GQL.useAudioDecrementOMutation();
 
