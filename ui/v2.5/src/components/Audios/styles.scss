@@ -2,26 +2,25 @@
 .audio-player-container {
   display: flex;
   flex-direction: column;
+  background-color: #000;
 }
 
 .audio-player {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background-color: #000;
-  height: 100%;
-  min-height: 400px;
   padding: 1rem;
+  flex: 1;
+  min-height: 300px;
 }
 
 .audio-player-cover {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1 1 auto;
-  width: 100%;
+  flex: 1;
   min-height: 0;
+  width: 100%;
 }
 
 .audio-cover-image {
@@ -45,20 +44,18 @@
   margin-top: 1rem;
 }
 
-// At xl breakpoint, make the player fill the full viewport height
+// At xl breakpoint, make the player fill the viewport height
 @media (min-width: 1200px) {
   .audio-player-container {
+    // Match scene-tabs: fill to bottom of viewport, no sticky needed
+    // margin-top cancels the .main padding-top (0.5rem) so black starts flush
     height: calc(100vh - 4rem);
-    position: sticky;
-    top: 4rem;
+    margin-top: -0.5rem;
+    overflow: hidden;
   }
 
   .audio-player {
     height: 100%;
     min-height: 0;
-  }
-
-  .audio-player-cover {
-    max-height: calc(100vh - 10rem);
   }
 }
