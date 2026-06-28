@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/corona10/goimagehash"
-	"github.com/stashapp/stash/pkg/sliceutil"
+	"github.com/stashapp/stash_audio/pkg/sliceutil"
 )
 
 type Phash struct {

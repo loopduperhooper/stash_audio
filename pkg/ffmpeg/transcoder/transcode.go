@@ -1,6 +1,6 @@
 package transcoder
 
-import "github.com/stashapp/stash/pkg/ffmpeg"
+import "github.com/stashapp/stash_audio/pkg/ffmpeg"
 
 type TranscodeOptions struct {
 	OutputPath string

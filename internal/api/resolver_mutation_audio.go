@@ -6,10 +6,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/plugin/hook"
-	"github.com/stashapp/stash/pkg/sliceutil/stringslice"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/plugin"
+	"github.com/stashapp/stash_audio/pkg/plugin/hook"
+	"github.com/stashapp/stash_audio/pkg/sliceutil/stringslice"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 func (r *mutationResolver) getAudio(ctx context.Context, id int) (ret *models.Audio, err error) {
@@ -69,6 +70,10 @@ func (r *mutationResolver) AudioCreate(ctx context.Context, input AudioCreateInp
 	newAudio.TagIDs, err = translator.relatedIds(input.TagIds)
 	if err != nil {
 		return nil, fmt.Errorf("converting tag ids: %w", err)
+	}
+	newAudio.GroupIDs, err = translator.relatedIds(input.GroupIds)
+	if err != nil {
+		return nil, fmt.Errorf("converting group ids: %w", err)
 	}
 
 	if err := r.withTxn(ctx, func(ctx context.Context) error {
@@ -198,6 +203,10 @@ func (r *mutationResolver) audioUpdate(ctx context.Context, input AudioUpdateInp
 	if err != nil {
 		return nil, fmt.Errorf("converting tag ids: %w", err)
 	}
+	updatedAudio.GroupIDs, err = translator.updateIds(input.GroupIds, "group_ids")
+	if err != nil {
+		return nil, fmt.Errorf("converting group ids: %w", err)
+	}
 
 	audio, err := r.repository.Audio.UpdatePartial(ctx, audioID, updatedAudio)
 	if err != nil {
@@ -281,7 +290,7 @@ func (r *mutationResolver) BulkAudioUpdate(ctx context.Context, input BulkAudioU
 	return newRet, nil
 }
 
-func (r *mutationResolver) AudioDestroy(ctx context.Context, input AudioDestroyInput) (bool, error) {
+func (r *mutationResolver) AudioDestroy(ctx context.Context, input plugin.AudioDestroyInput) (bool, error) {
 	audioID, err := strconv.Atoi(input.ID)
 	if err != nil {
 		return false, fmt.Errorf("converting id: %w", err)

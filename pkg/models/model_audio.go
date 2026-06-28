@@ -38,6 +38,7 @@ type Audio struct {
 	URLs         RelatedStrings  `json:"urls"`
 	TagIDs       RelatedIDs      `json:"tag_ids"`
 	PerformerIDs RelatedIDs      `json:"performer_ids"`
+	GroupIDs     RelatedIDs      `json:"group_ids"`
 	StashIDs     RelatedStashIDs `json:"stash_ids"`
 }
 
@@ -81,6 +82,7 @@ type AudioPartial struct {
 	URLs          *UpdateStrings
 	TagIDs        *UpdateIDs
 	PerformerIDs  *UpdateIDs
+	GroupIDs      *UpdateIDs
 	StashIDs      *UpdateStashIDs
 	PrimaryFileID *FileID
 }
@@ -131,6 +133,12 @@ func (a *Audio) LoadPerformerIDs(ctx context.Context, l PerformerIDLoader) error
 func (a *Audio) LoadTagIDs(ctx context.Context, l TagIDLoader) error {
 	return a.TagIDs.load(func() ([]int, error) {
 		return l.GetTagIDs(ctx, a.ID)
+	})
+}
+
+func (a *Audio) LoadGroupIDs(ctx context.Context, l GroupIDLoader) error {
+	return a.GroupIDs.load(func() ([]int, error) {
+		return l.GetGroupIDs(ctx, a.ID)
 	})
 }
 

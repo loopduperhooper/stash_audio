@@ -9,7 +9,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 const idColumn = "id"
@@ -312,51 +312,6 @@ func (r *joinRepository) replace(ctx context.Context, id int, foreignIDs []int) 
 	return nil
 }
 
-type captionRepository struct {
-	repository
-}
-
-func (r *captionRepository) get(ctx context.Context, id models.FileID) ([]*models.VideoCaption, error) {
-	query := fmt.Sprintf("SELECT %s, %s, %s from %s WHERE %s = ?", captionCodeColumn, captionFilenameColumn, captionTypeColumn, r.tableName, r.idColumn)
-	var ret []*models.VideoCaption
-	err := r.queryFunc(ctx, query, []interface{}{id}, false, func(rows *sqlx.Rows) error {
-		var captionCode string
-		var captionFilename string
-		var captionType string
-
-		if err := rows.Scan(&captionCode, &captionFilename, &captionType); err != nil {
-			return err
-		}
-
-		caption := &models.VideoCaption{
-			LanguageCode: captionCode,
-			Filename:     captionFilename,
-			CaptionType:  captionType,
-		}
-		ret = append(ret, caption)
-		return nil
-	})
-	return ret, err
-}
-
-func (r *captionRepository) insert(ctx context.Context, id models.FileID, caption *models.VideoCaption) (sql.Result, error) {
-	stmt := fmt.Sprintf("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)", r.tableName, r.idColumn, captionCodeColumn, captionFilenameColumn, captionTypeColumn)
-	return dbWrapper.Exec(ctx, stmt, id, caption.LanguageCode, caption.Filename, caption.CaptionType)
-}
-
-func (r *captionRepository) replace(ctx context.Context, id models.FileID, captions []*models.VideoCaption) error {
-	if err := r.destroy(ctx, []int{int(id)}); err != nil {
-		return err
-	}
-
-	for _, caption := range captions {
-		if _, err := r.insert(ctx, id, caption); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 type stringRepository struct {
 	repository

@@ -7,11 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stashapp/stash/internal/identify"
-	"github.com/stashapp/stash/internal/manager"
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/internal/manager/task"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/internal/manager"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/internal/manager/task"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 func (r *mutationResolver) MetadataScan(ctx context.Context, input manager.ScanMetadataInput) (string, error) {
@@ -72,25 +71,8 @@ func (r *mutationResolver) ExportObjects(ctx context.Context, input manager.Expo
 	return nil, nil
 }
 
-func (r *mutationResolver) MetadataGenerate(ctx context.Context, input manager.GenerateMetadataInput) (string, error) {
-	jobID, err := manager.GetInstance().Generate(ctx, input)
-
-	if err != nil {
-		return "", err
-	}
-
-	return strconv.Itoa(jobID), nil
-}
-
 func (r *mutationResolver) MetadataAutoTag(ctx context.Context, input manager.AutoTagMetadataInput) (string, error) {
 	jobID := manager.GetInstance().AutoTag(ctx, input)
-	return strconv.Itoa(jobID), nil
-}
-
-func (r *mutationResolver) MetadataIdentify(ctx context.Context, input identify.Options) (string, error) {
-	t := manager.CreateIdentifyJob(input)
-	jobID := manager.GetInstance().JobManager.Add(ctx, "Identifying...", t)
-
 	return strconv.Itoa(jobID), nil
 }
 
@@ -102,20 +84,14 @@ func (r *mutationResolver) MetadataClean(ctx context.Context, input manager.Clea
 func (r *mutationResolver) MetadataCleanGenerated(ctx context.Context, input task.CleanGeneratedOptions) (string, error) {
 	mgr := manager.GetInstance()
 	t := &task.CleanGeneratedJob{
-		Options:                  input,
-		Paths:                    mgr.Paths,
-		BlobsStorageType:         mgr.Config.GetBlobsStorage(),
-		VideoFileNamingAlgorithm: mgr.Config.GetVideoFileNamingAlgorithm(),
-		Repository:               mgr.Repository,
-		BlobCleaner:              mgr.Repository.Blob,
+		Options:          input,
+		Paths:            mgr.Paths,
+		BlobsStorageType: mgr.Config.GetBlobsStorage(),
+		Repository:       mgr.Repository,
+		BlobCleaner:      mgr.Repository.Blob,
 	}
 	jobID := mgr.JobManager.Add(ctx, "Cleaning generated files...", t)
 
-	return strconv.Itoa(jobID), nil
-}
-
-func (r *mutationResolver) MigrateHashNaming(ctx context.Context) (string, error) {
-	jobID := manager.GetInstance().MigrateHash(ctx)
 	return strconv.Itoa(jobID), nil
 }
 

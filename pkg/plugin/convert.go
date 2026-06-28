@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"github.com/stashapp/stash/pkg/plugin/common"
+	"github.com/stashapp/stash_audio/pkg/plugin/common"
 )
 
 func toPluginArgs(args OperationInput) common.ArgsMap {

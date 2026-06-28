@@ -3,8 +3,8 @@ package savedfilter
 import (
 	"context"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/models/jsonschema"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models/jsonschema"
 )
 
 // ToJSON converts a SavedFilter object into its JSON equivalent.

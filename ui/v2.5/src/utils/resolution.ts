@@ -1,4 +1,20 @@
-import { ResolutionEnum } from "src/core/generated-graphql";
+export enum ResolutionEnum {
+  VeryLow = "VERY_LOW",
+  Low = "LOW",
+  R360P = "360P",
+  Standard = "STANDARD",
+  WebHd = "WEB_HD",
+  StandardHd = "STANDARD_HD",
+  FullHd = "FULL_HD",
+  QuadHd = "QUAD_HD",
+  VrHd = "VR_HD",
+  FourK = "FOUR_K",
+  FiveK = "FIVE_K",
+  SixK = "SIX_K",
+  SevenK = "SEVEN_K",
+  EightK = "EIGHT_K",
+  Huge = "HUGE",
+}
 
 const stringResolutionMap = new Map<string, ResolutionEnum>([
   ["144p", ResolutionEnum.VeryLow],

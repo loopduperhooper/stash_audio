@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 	"github.com/stretchr/testify/assert"
 )
 

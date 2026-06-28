@@ -11,11 +11,11 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
 	"github.com/mattn/go-sqlite3"
-	"github.com/stashapp/stash/pkg/file"
-	"github.com/stashapp/stash/pkg/hash/md5"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/sqlite/blob"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/file"
+	"github.com/stashapp/stash_audio/pkg/hash/md5"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/sqlite/blob"
+	"github.com/stashapp/stash_audio/pkg/utils"
 	"gopkg.in/guregu/null.v4"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func CountByStudioID(ctx context.Context, r models.GroupQueryer, id int, depth *int) (int, error) {

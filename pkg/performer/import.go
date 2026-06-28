@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/models/jsonschema"
-	"github.com/stashapp/stash/pkg/sliceutil"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models/jsonschema"
+	"github.com/stashapp/stash_audio/pkg/sliceutil"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 type ImporterReaderWriter interface {

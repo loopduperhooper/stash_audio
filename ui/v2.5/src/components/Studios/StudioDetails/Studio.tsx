@@ -19,9 +19,6 @@ import { LoadingIndicator } from "src/components/Shared/LoadingIndicator";
 import { ErrorMessage } from "src/components/Shared/ErrorMessage";
 import { useToast } from "src/hooks/Toast";
 import { useConfigurationContext } from "src/hooks/Config";
-import { StudioScenesPanel } from "./StudioScenesPanel";
-import { StudioGalleriesPanel } from "./StudioGalleriesPanel";
-import { StudioImagesPanel } from "./StudioImagesPanel";
 import { StudioChildrenPanel } from "./StudioChildrenPanel";
 import { StudioPerformersPanel } from "./StudioPerformersPanel";
 import { StudioEditPanel } from "./StudioEditPanel";
@@ -49,7 +46,7 @@ import { AliasList } from "src/components/Shared/DetailsPage/AliasList";
 import { HeaderImage } from "src/components/Shared/DetailsPage/HeaderImage";
 import { goBackOrReplace } from "src/utils/history";
 import { OCounterButton } from "src/components/Shared/CountButton";
-import { OrganizedButton } from "src/components/Scenes/SceneDetails/OrganizedButton";
+import { OrganizedButton } from "src/components/Shared/OrganizedButton";
 
 interface IProps {
   studio: GQL.StudioDataFragment;
@@ -63,9 +60,6 @@ interface IStudioParams {
 
 const validTabs = [
   "default",
-  "scenes",
-  "galleries",
-  "images",
   "performers",
   "groups",
   "childstudios",
@@ -86,27 +80,15 @@ const StudioTabs: React.FC<{
     showAllCounts && studio.child_studios.length > 0
   );
 
-  const sceneCount =
-    (showAllDetails ? studio.scene_count_all : studio.scene_count) ?? 0;
-  const galleryCount =
-    (showAllDetails ? studio.gallery_count_all : studio.gallery_count) ?? 0;
-  const imageCount =
-    (showAllDetails ? studio.image_count_all : studio.image_count) ?? 0;
   const performerCount =
     (showAllDetails ? studio.performer_count_all : studio.performer_count) ?? 0;
   const groupCount =
     (showAllDetails ? studio.group_count_all : studio.group_count) ?? 0;
 
   const populatedDefaultTab = useMemo(() => {
-    let ret: TabKey = "scenes";
-    if (sceneCount == 0) {
-      if (galleryCount != 0) {
-        ret = "galleries";
-      } else if (imageCount != 0) {
-        ret = "images";
-      } else if (performerCount != 0) {
-        ret = "performers";
-      } else if (groupCount != 0) {
+    let ret: TabKey = "performers";
+    if (performerCount == 0) {
+      if (groupCount != 0) {
         ret = "groups";
       } else if (studio.child_studios.length != 0) {
         ret = "childstudios";
@@ -114,14 +96,7 @@ const StudioTabs: React.FC<{
     }
 
     return ret;
-  }, [
-    sceneCount,
-    galleryCount,
-    imageCount,
-    performerCount,
-    groupCount,
-    studio,
-  ]);
+  }, [performerCount, groupCount, studio]);
 
   const { setTabKey } = useTabKey({
     tabKey,
@@ -156,57 +131,6 @@ const StudioTabs: React.FC<{
       activeKey={tabKey}
       onSelect={setTabKey}
     >
-      <Tab
-        eventKey="scenes"
-        title={
-          <TabTitleCounter
-            messageID="scenes"
-            count={sceneCount}
-            abbreviateCounter={abbreviateCounter}
-          />
-        }
-      >
-        {contentSwitch}
-        <StudioScenesPanel
-          active={tabKey === "scenes"}
-          studio={studio}
-          showChildStudioContent={showAllDetails}
-        />
-      </Tab>
-      <Tab
-        eventKey="galleries"
-        title={
-          <TabTitleCounter
-            messageID="galleries"
-            count={galleryCount}
-            abbreviateCounter={abbreviateCounter}
-          />
-        }
-      >
-        {contentSwitch}
-        <StudioGalleriesPanel
-          active={tabKey === "galleries"}
-          studio={studio}
-          showChildStudioContent={showAllDetails}
-        />
-      </Tab>
-      <Tab
-        eventKey="images"
-        title={
-          <TabTitleCounter
-            messageID="images"
-            count={imageCount}
-            abbreviateCounter={abbreviateCounter}
-          />
-        }
-      >
-        {contentSwitch}
-        <StudioImagesPanel
-          active={tabKey === "images"}
-          studio={studio}
-          showChildStudioContent={showAllDetails}
-        />
-      </Tab>
       <Tab
         eventKey="performers"
         title={

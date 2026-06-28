@@ -12,9 +12,6 @@ type PerformerGetter interface {
 // PerformerFinder provides methods to find performers.
 type PerformerFinder interface {
 	PerformerGetter
-	FindBySceneID(ctx context.Context, sceneID int) ([]*Performer, error)
-	FindByImageID(ctx context.Context, imageID int) ([]*Performer, error)
-	FindByGalleryID(ctx context.Context, galleryID int) ([]*Performer, error)
 	FindByStashID(ctx context.Context, stashID StashID) ([]*Performer, error)
 	FindByStashIDStatus(ctx context.Context, hasStashID bool, stashboxEndpoint string) ([]*Performer, error)
 	FindByNames(ctx context.Context, names []string, nocase bool) ([]*Performer, error)

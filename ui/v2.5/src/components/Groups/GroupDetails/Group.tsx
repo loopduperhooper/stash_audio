@@ -15,7 +15,6 @@ import { ErrorMessage } from "src/components/Shared/ErrorMessage";
 import { LoadingIndicator } from "src/components/Shared/LoadingIndicator";
 import { ModalComponent } from "src/components/Shared/Modal";
 import { useToast } from "src/hooks/Toast";
-import { GroupScenesPanel } from "./GroupScenesPanel";
 import {
   CompressedGroupDetailsPanel,
   GroupDetailsPanel,
@@ -42,10 +41,11 @@ import {
 import { Button, Tab, Tabs } from "react-bootstrap";
 import { GroupSubGroupsPanel } from "./GroupSubGroupsPanel";
 import { GroupPerformersPanel } from "./GroupPerformersPanel";
+import { GroupAudiosPanel } from "./GroupAudiosPanel";
 import { Icon } from "src/components/Shared/Icon";
 import { goBackOrReplace } from "src/utils/history";
 
-const validTabs = ["default", "scenes", "performers", "subgroups"] as const;
+const validTabs = ["default", "performers", "subgroups", "audios"] as const;
 type TabKey = (typeof validTabs)[number];
 
 function isTabKey(tab: string): tab is TabKey {
@@ -58,22 +58,17 @@ const GroupTabs: React.FC<{
   abbreviateCounter: boolean;
 }> = ({ tabKey, group, abbreviateCounter }) => {
   const {
-    scene_count: sceneCount,
     performer_count: performerCount,
     sub_group_count: groupCount,
   } = group;
+  const audioCount = group.audios.length;
 
   const populatedDefaultTab = useMemo(() => {
-    if (sceneCount == 0) {
-      if (performerCount != 0) {
-        return "performers";
-      } else if (groupCount !== 0) {
-        return "subgroups";
-      }
-    }
-
-    return "scenes";
-  }, [sceneCount, performerCount, groupCount]);
+    if (audioCount > 0) return "audios";
+    if (performerCount !== 0) return "performers";
+    if (groupCount !== 0) return "subgroups";
+    return "performers";
+  }, [audioCount, performerCount, groupCount]);
 
   const { setTabKey } = useTabKey({
     tabKey,
@@ -90,18 +85,6 @@ const GroupTabs: React.FC<{
       activeKey={tabKey}
       onSelect={setTabKey}
     >
-      <Tab
-        eventKey="scenes"
-        title={
-          <TabTitleCounter
-            messageID="scenes"
-            count={sceneCount}
-            abbreviateCounter={abbreviateCounter}
-          />
-        }
-      >
-        <GroupScenesPanel active={tabKey === "scenes"} group={group} />
-      </Tab>
       <Tab
         eventKey="performers"
         title={
@@ -125,6 +108,18 @@ const GroupTabs: React.FC<{
         }
       >
         <GroupSubGroupsPanel active={tabKey === "subgroups"} group={group} />
+      </Tab>
+      <Tab
+        eventKey="audios"
+        title={
+          <TabTitleCounter
+            messageID="audios"
+            count={audioCount}
+            abbreviateCounter={abbreviateCounter}
+          />
+        }
+      >
+        <GroupAudiosPanel group={group} />
       </Tab>
     </Tabs>
   );

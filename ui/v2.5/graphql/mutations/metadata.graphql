@@ -38,10 +38,6 @@ mutation MetadataCleanGenerated($input: CleanGeneratedInput!) {
   metadataCleanGenerated(input: $input)
 }
 
-mutation MigrateHashNaming {
-  migrateHashNaming
-}
-
 mutation BackupDatabase($input: BackupDatabaseInput!) {
   backupDatabase(input: $input)
 }

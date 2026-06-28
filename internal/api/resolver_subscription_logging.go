@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 
-	"github.com/stashapp/stash/internal/log"
-	"github.com/stashapp/stash/internal/manager"
+	"github.com/stashapp/stash_audio/internal/log"
+	"github.com/stashapp/stash_audio/internal/manager"
 )
 
 func getLogLevel(logType string) LogLevel {

@@ -1,5 +1,3 @@
-import { getPlayer } from "src/components/ScenePlayer/util";
-import type { VideoJsPlayer } from "video.js";
 import * as GQL from "src/core/generated-graphql";
 
 export interface IDeviceSettings {
@@ -38,14 +36,12 @@ export interface IInteractiveClient {
 }
 
 export interface IInteractiveUtils {
-  getPlayer: () => VideoJsPlayer | undefined;
+  getPlayer: () => undefined;
   interactiveClientProvider: IInteractiveClientProvider | undefined;
 }
-const InteractiveUtils = {
-  // hook to allow to customize the interactive client
+const InteractiveUtils: IInteractiveUtils = {
   interactiveClientProvider: undefined,
-  // returns the active player
-  getPlayer,
+  getPlayer: () => undefined,
 };
 
 export default InteractiveUtils;

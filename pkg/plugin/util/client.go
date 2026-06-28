@@ -10,7 +10,7 @@ import (
 
 	graphql "github.com/hasura/go-graphql-client"
 
-	"github.com/stashapp/stash/pkg/plugin/common"
+	"github.com/stashapp/stash_audio/pkg/plugin/common"
 )
 
 // NewClient creates a graphql Client connecting to the stash server using

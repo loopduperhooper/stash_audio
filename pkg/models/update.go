@@ -5,8 +5,8 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/stashapp/stash/pkg/sliceutil"
-	"github.com/stashapp/stash/pkg/sliceutil/intslice"
+	"github.com/stashapp/stash_audio/pkg/sliceutil"
+	"github.com/stashapp/stash_audio/pkg/sliceutil/intslice"
 )
 
 type RelationshipUpdateMode string

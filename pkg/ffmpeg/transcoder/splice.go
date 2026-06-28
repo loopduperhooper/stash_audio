@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/stashapp/stash/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
 )
 
 type SpliceOptions struct {

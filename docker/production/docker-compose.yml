@@ -1,8 +1,8 @@
-# APPNICENAME=Stash
-# APPDESCRIPTION=An organizer for your porn, written in Go
+# APPNICENAME=Stash Audio
+# APPDESCRIPTION=An audio organizer, written in Go
 services:
-  stash:
-    image: stashapp/stash:latest
+  stash_audio:
+    image: stashapp/stash_audio:latest
     container_name: stash
     restart: unless-stopped
     ## the container's port must be the same with the STASH_PORT in the environment section
@@ -37,7 +37,7 @@ services:
       - ./metadata:/metadata
       ## Any other cache content.
       - ./cache:/cache
-      ## Where to store binary blob data (scene covers, images)
+      ## Where to store binary blob data (audio covers)
       - ./blobs:/blobs
-      ## Where to store generated content (screenshots,previews,transcodes,sprites)
+      ## Where to store generated content (transcodes,sprites)
       - ./generated:/generated

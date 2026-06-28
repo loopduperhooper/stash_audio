@@ -10,11 +10,11 @@ import (
 	"os"
 	"time"
 
-	exampleCommon "github.com/stashapp/stash/pkg/plugin/examples/common"
+	exampleCommon "github.com/stashapp/stash_audio/pkg/plugin/examples/common"
 
-	"github.com/stashapp/stash/pkg/plugin/common"
-	"github.com/stashapp/stash/pkg/plugin/common/log"
-	"github.com/stashapp/stash/pkg/plugin/util"
+	"github.com/stashapp/stash_audio/pkg/plugin/common"
+	"github.com/stashapp/stash_audio/pkg/plugin/common/log"
+	"github.com/stashapp/stash_audio/pkg/plugin/util"
 )
 
 // raw plugins may accept the plugin input from stdin, or they can elect

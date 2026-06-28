@@ -23,12 +23,9 @@ type FolderFilterType struct {
 	ParentFolder *HierarchicalMultiCriterionInput `json:"parent_folder,omitempty"`
 	ZipFile      *MultiCriterionInput             `json:"zip_file,omitempty"`
 	// Filter by modification time
-	ModTime      *TimestampCriterionInput `json:"mod_time,omitempty"`
-	GalleryCount *IntCriterionInput       `json:"gallery_count,omitempty"`
+	ModTime *TimestampCriterionInput `json:"mod_time,omitempty"`
 	// Filter by files that meet this criteria
 	FilesFilter *FileFilterType `json:"files_filter,omitempty"`
-	// Filter by related galleries that meet this criteria
-	GalleriesFilter *GalleryFilterType `json:"galleries_filter,omitempty"`
 	// Filter by creation time
 	CreatedAt *TimestampCriterionInput `json:"created_at,omitempty"`
 	// Filter by last update time

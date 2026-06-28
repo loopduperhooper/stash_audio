@@ -10,8 +10,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/models"
 	"gopkg.in/guregu/null.v4"
 	"gopkg.in/guregu/null.v4/zero"
 )
@@ -178,10 +177,6 @@ type performerRepositoryType struct {
 
 	tags     joinRepository
 	stashIDs stashIDRepository
-
-	scenes    joinRepository
-	images    joinRepository
-	galleries joinRepository
 }
 
 var (
@@ -204,30 +199,6 @@ var (
 				tableName: "performer_stash_ids",
 				idColumn:  performerIDColumn,
 			},
-		},
-		scenes: joinRepository{
-			repository: repository{
-				tableName: performersScenesTable,
-				idColumn:  performerIDColumn,
-			},
-			fkColumn:     sceneIDColumn,
-			foreignTable: sceneTable,
-		},
-		images: joinRepository{
-			repository: repository{
-				tableName: performersImagesTable,
-				idColumn:  performerIDColumn,
-			},
-			fkColumn:     imageIDColumn,
-			foreignTable: imageTable,
-		},
-		galleries: joinRepository{
-			repository: repository{
-				tableName: performersGalleriesTable,
-				idColumn:  performerIDColumn,
-			},
-			fkColumn:     galleryIDColumn,
-			foreignTable: galleryTable,
 		},
 	}
 )
@@ -500,44 +471,6 @@ func (qb *PerformerStore) getMany(ctx context.Context, q *goqu.SelectDataset) ([
 	return ret, nil
 }
 
-func (qb *PerformerStore) FindBySceneID(ctx context.Context, sceneID int) ([]*models.Performer, error) {
-	sq := dialect.From(scenesPerformersJoinTable).Select(scenesPerformersJoinTable.Col(performerIDColumn)).Where(
-		scenesPerformersJoinTable.Col(sceneIDColumn).Eq(sceneID),
-	)
-	ret, err := qb.findBySubquery(ctx, sq)
-
-	if err != nil {
-		return nil, fmt.Errorf("getting performers for scene %d: %w", sceneID, err)
-	}
-
-	return ret, nil
-}
-
-func (qb *PerformerStore) FindByImageID(ctx context.Context, imageID int) ([]*models.Performer, error) {
-	sq := dialect.From(performersImagesJoinTable).Select(performersImagesJoinTable.Col(performerIDColumn)).Where(
-		performersImagesJoinTable.Col(imageIDColumn).Eq(imageID),
-	)
-	ret, err := qb.findBySubquery(ctx, sq)
-
-	if err != nil {
-		return nil, fmt.Errorf("getting performers for image %d: %w", imageID, err)
-	}
-
-	return ret, nil
-}
-
-func (qb *PerformerStore) FindByGalleryID(ctx context.Context, galleryID int) ([]*models.Performer, error) {
-	sq := dialect.From(performersGalleriesJoinTable).Select(performersGalleriesJoinTable.Col(performerIDColumn)).Where(
-		performersGalleriesJoinTable.Col(galleryIDColumn).Eq(galleryID),
-	)
-	ret, err := qb.findBySubquery(ctx, sq)
-
-	if err != nil {
-		return nil, fmt.Errorf("getting performers for gallery %d: %w", galleryID, err)
-	}
-
-	return ret, nil
-}
 
 func (qb *PerformerStore) FindByNames(ctx context.Context, names []string, nocase bool) ([]*models.Performer, error) {
 	clause := "name "
@@ -676,106 +609,14 @@ func (qb *PerformerStore) QueryCount(ctx context.Context, performerFilter *model
 	return query.executeCount(ctx)
 }
 
-func (qb *PerformerStore) sortByOCounter(direction string) string {
-	// need to sum the o_counter from scenes and images
-	return " ORDER BY (" + selectPerformerOCountSQL + ") " + direction
-}
-
-func (qb *PerformerStore) sortByPlayCount(direction string) string {
-	// need to sum the o_counter from scenes and images
-	return " ORDER BY (" + selectPerformerPlayCountSQL + ") " + direction
-}
-
-// used for sorting on performer last o_date
-var selectPerformerLastOAtSQL = utils.StrFormat(
-	"SELECT MAX(o_date) FROM ("+
-		"SELECT {o_date} FROM {performers_scenes} s "+
-		"LEFT JOIN {scenes} ON {scenes}.id = s.{scene_id} "+
-		"LEFT JOIN {scenes_o_dates} ON {scenes_o_dates}.{scene_id} = {scenes}.id "+
-		"WHERE s.{performer_id} = {performers}.id"+
-		")",
-	map[string]interface{}{
-		"performer_id":      performerIDColumn,
-		"performers":        performerTable,
-		"performers_scenes": performersScenesTable,
-		"scenes":            sceneTable,
-		"scene_id":          sceneIDColumn,
-		"scenes_o_dates":    scenesODatesTable,
-		"o_date":            sceneODateColumn,
-	},
-)
-
-func (qb *PerformerStore) sortByLastOAt(direction string) string {
-	// need to get the o_dates from scenes
-	return " ORDER BY (" + selectPerformerLastOAtSQL + ") " + direction
-}
-
-// used for sorting on performer latest scene
-var selectPerformerLatestSceneSQL = utils.StrFormat(
-	"SELECT MAX(date) FROM ("+
-		"SELECT {date} FROM {performers_scenes} s "+
-		"LEFT JOIN {scenes} ON {scenes}.id = s.{scene_id} "+
-		"WHERE s.{performer_id} = {performers}.id"+
-		")",
-	map[string]interface{}{
-		"performer_id":      performerIDColumn,
-		"performers":        performerTable,
-		"performers_scenes": performersScenesTable,
-		"scenes":            sceneTable,
-		"scene_id":          sceneIDColumn,
-		"date":              sceneDateColumn,
-	},
-)
-
-func (qb *PerformerStore) sortByLatestScene(direction string) string {
-	// need to get the latest date from scenes
-	return " ORDER BY (" + selectPerformerLatestSceneSQL + ") " + direction
-}
-
-// used for sorting on performer last view_date
-var selectPerformerLastPlayedAtSQL = utils.StrFormat(
-	"SELECT MAX(view_date) FROM ("+
-		"SELECT {view_date} FROM {performers_scenes} s "+
-		"LEFT JOIN {scenes} ON {scenes}.id = s.{scene_id} "+
-		"LEFT JOIN {scenes_view_dates} ON {scenes_view_dates}.{scene_id} = {scenes}.id "+
-		"WHERE s.{performer_id} = {performers}.id"+
-		")",
-	map[string]interface{}{
-		"performer_id":      performerIDColumn,
-		"performers":        performerTable,
-		"performers_scenes": performersScenesTable,
-		"scenes":            sceneTable,
-		"scene_id":          sceneIDColumn,
-		"scenes_view_dates": scenesViewDatesTable,
-		"view_date":         sceneViewDateColumn,
-	},
-)
-
-func (qb *PerformerStore) sortByLastPlayedAt(direction string) string {
-	// need to get the view_dates from scenes
-	return " ORDER BY (" + selectPerformerLastPlayedAtSQL + ") " + direction
-}
-
-// used for sorting by total scene duration
-var selectPerformerScenesDurationSQL = utils.StrFormat(
-	"SELECT COALESCE(SUM(video_files.duration), 0) FROM {performers_scenes} s "+
-		"LEFT JOIN {scenes} ON {scenes}.id = s.{scene_id} "+
-		"LEFT JOIN {scenes_files} ON {scenes_files}.{scene_id} = {scenes}.id "+
-		"LEFT JOIN video_files ON video_files.file_id = {scenes_files}.file_id "+
-		"WHERE s.{performer_id} = {performers}.id",
-	map[string]interface{}{
-		"performer_id":      performerIDColumn,
-		"performers":        performerTable,
-		"performers_scenes": performersScenesTable,
-		"scenes":            sceneTable,
-		"scene_id":          sceneIDColumn,
-		"scenes_files":      scenesFilesTable,
-	},
-)
-
-func (qb *PerformerStore) sortByScenesDuration(direction string) string {
-	// need to sum duration from all scenes for this performer
-	return " ORDER BY (" + selectPerformerScenesDurationSQL + ") " + direction
+func (qb *PerformerStore) sortByAudioDuration(direction string) string {
+	const sql = `SELECT COALESCE(SUM(audio_files.duration), 0)
+		FROM performers_audios pa
+		LEFT JOIN audios ON audios.id = pa.audio_id
+		LEFT JOIN audios_files ON audios_files.audio_id = audios.id
+		LEFT JOIN audio_files ON audio_files.file_id = audios_files.file_id
+		WHERE pa.performer_id = performers.id`
+	return " ORDER BY (" + sql + ") " + direction
 }
 
 var performerSortOptions = sortOptions{
@@ -783,22 +624,16 @@ var performerSortOptions = sortOptions{
 	"career_start",
 	"career_end",
 	"created_at",
-	"galleries_count",
 	"height",
 	"id",
-	"images_count",
-	"last_o_at",
-	"last_played_at",
-	"latest_scene",
 	"measurements",
 	"name",
-	"o_counter",
 	"penis_length",
-	"play_count",
 	"random",
 	"rating",
-	"scenes_count",
-	"scenes_duration",
+	"audios_count",
+	"audios_duration",
+	"groups_count",
 	"tag_count",
 	"updated_at",
 	"weight",
@@ -824,24 +659,12 @@ func (qb *PerformerStore) getPerformerSort(findFilter *models.FindFilterType) (s
 	switch sort {
 	case "tag_count":
 		sortQuery += getCountSort(performerTable, performersTagsTable, performerIDColumn, direction)
-	case "scenes_count":
-		sortQuery += getCountSort(performerTable, performersScenesTable, performerIDColumn, direction)
-	case "scenes_duration":
-		sortQuery += qb.sortByScenesDuration(direction)
-	case "images_count":
-		sortQuery += getCountSort(performerTable, performersImagesTable, performerIDColumn, direction)
-	case "galleries_count":
-		sortQuery += getCountSort(performerTable, performersGalleriesTable, performerIDColumn, direction)
-	case "play_count":
-		sortQuery += qb.sortByPlayCount(direction)
-	case "o_counter":
-		sortQuery += qb.sortByOCounter(direction)
-	case "last_played_at":
-		sortQuery += qb.sortByLastPlayedAt(direction)
-	case "last_o_at":
-		sortQuery += qb.sortByLastOAt(direction)
-	case "latest_scene":
-		sortQuery += qb.sortByLatestScene(direction)
+	case "audios_count":
+		sortQuery += getCountSort(performerTable, performersAudiosTable, performerIDColumn, direction)
+	case "audios_duration":
+		sortQuery += qb.sortByAudioDuration(direction)
+	case "groups_count":
+		sortQuery += getCountSort(performerTable, performersGroupsTable, performerIDColumn, direction)
 	default:
 		sortQuery += getSort(sort, direction, "performers")
 	}
@@ -943,10 +766,8 @@ func (qb *PerformerStore) Merge(ctx context.Context, source []int, destination i
 	args = append(args, srcArgs...)
 
 	performerTables := map[string]string{
-		performersScenesTable:    sceneIDColumn,
-		performersGalleriesTable: galleryIDColumn,
-		performersImagesTable:    imageIDColumn,
-		performersTagsTable:      tagIDColumn,
+		performersAudiosTable: audioIDColumn,
+		performersTagsTable:   tagIDColumn,
 	}
 
 	args = append(args, destination)

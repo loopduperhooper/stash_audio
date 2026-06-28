@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 
-	"github.com/stashapp/stash/internal/manager"
-	"github.com/stashapp/stash/pkg/job"
+	"github.com/stashapp/stash_audio/internal/manager"
+	"github.com/stashapp/stash_audio/pkg/job"
 )
 
 func makeJobStatusUpdate(t JobStatusUpdateType, j job.Job) *JobStatusUpdate {

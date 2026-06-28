@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/stashapp/stash/pkg/job"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/txn"
+	"github.com/stashapp/stash_audio/pkg/job"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/txn"
 )
 
 type BlobStoreMigrator interface {

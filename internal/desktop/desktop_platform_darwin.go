@@ -9,7 +9,7 @@ import (
 	"os/exec"
 
 	gosxnotifier "github.com/kermieisinthehouse/gosx-notifier"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 func isService() bool {

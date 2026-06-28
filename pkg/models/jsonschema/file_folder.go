@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
-	"github.com/stashapp/stash/pkg/hash/md5"
-	"github.com/stashapp/stash/pkg/models/json"
+	"github.com/stashapp/stash_audio/pkg/hash/md5"
+	"github.com/stashapp/stash_audio/pkg/models/json"
 )
 
 const (

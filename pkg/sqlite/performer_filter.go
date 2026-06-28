@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 type performerFilterHandler struct {
@@ -194,53 +194,12 @@ func (qb *performerFilterHandler) criterionHandler() criterionHandler {
 		qb.appearsWithCriterionHandler(filter.Performers),
 
 		qb.tagCountCriterionHandler(filter.TagCount),
-		qb.sceneCountCriterionHandler(filter.SceneCount),
-		qb.markerCountCriterionHandler(filter.MarkerCount),
-		qb.imageCountCriterionHandler(filter.ImageCount),
-		qb.galleryCountCriterionHandler(filter.GalleryCount),
-		qb.playCounterCriterionHandler(filter.PlayCount),
-		qb.oCounterCriterionHandler(filter.OCounter),
+		qb.audioCountCriterionHandler(filter.AudioCount),
+		qb.groupCountCriterionHandler(filter.GroupCount),
 		&dateCriterionHandler{filter.Birthdate, tableName + ".birthdate", nil},
 		&dateCriterionHandler{filter.DeathDate, tableName + ".death_date", nil},
 		&timestampCriterionHandler{filter.CreatedAt, tableName + ".created_at", nil},
 		&timestampCriterionHandler{filter.UpdatedAt, tableName + ".updated_at", nil},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "scene_markers.id",
-			relatedRepo:    sceneMarkerRepository.repository,
-			relatedHandler: &sceneMarkerFilterHandler{filter.MarkersFilter},
-			joinFn: func(f *filterBuilder) {
-				performerRepository.scenes.innerJoin(f, "", "performers.id")
-				f.addInnerJoin(sceneMarkerTable, "", "scene_markers.scene_id = performers_scenes.scene_id")
-			},
-		},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "performers_scenes.scene_id",
-			relatedRepo:    sceneRepository.repository,
-			relatedHandler: &sceneFilterHandler{filter.ScenesFilter},
-			joinFn: func(f *filterBuilder) {
-				performerRepository.scenes.innerJoin(f, "", "performers.id")
-			},
-		},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "performers_images.image_id",
-			relatedRepo:    imageRepository.repository,
-			relatedHandler: &imageFilterHandler{filter.ImagesFilter},
-			joinFn: func(f *filterBuilder) {
-				performerRepository.images.innerJoin(f, "", "performers.id")
-			},
-		},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "performers_galleries.gallery_id",
-			relatedRepo:    galleryRepository.repository,
-			relatedHandler: &galleryFilterHandler{filter.GalleriesFilter},
-			joinFn: func(f *filterBuilder) {
-				performerRepository.galleries.innerJoin(f, "", "performers.id")
-			},
-		},
 
 		&relatedFilterHandler{
 			relatedIDCol:   "performer_tag.tag_id",
@@ -305,9 +264,6 @@ func (qb *performerFilterHandler) performerIsMissingCriterionHandler(isMissing *
 			case "url":
 				performersURLsTableMgr.join(f, "", "performers.id")
 				f.addWhere("performer_urls.url IS NULL")
-			case "scenes": // Deprecated: use `scene_count == 0` filter instead
-				f.addLeftJoin(performersScenesTable, "scenes_join", "scenes_join.performer_id = performers.id")
-				f.addWhere("scenes_join.scene_id IS NULL")
 			case "image":
 				f.addWhere("performers.image_blob IS NULL")
 			case "stash_id":
@@ -400,395 +356,183 @@ func (qb *performerFilterHandler) tagCountCriterionHandler(count *models.IntCrit
 	return h.handler(count)
 }
 
-func (qb *performerFilterHandler) sceneCountCriterionHandler(count *models.IntCriterionInput) criterionHandlerFunc {
+func (qb *performerFilterHandler) audioCountCriterionHandler(count *models.IntCriterionInput) criterionHandlerFunc {
 	h := countCriterionHandlerBuilder{
 		primaryTable: performerTable,
-		joinTable:    performersScenesTable,
+		joinTable:    performersAudiosTable,
 		primaryFK:    performerIDColumn,
 	}
-
 	return h.handler(count)
 }
 
-func (qb *performerFilterHandler) markerCountCriterionHandler(count *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if count != nil {
-			performerRepository.scenes.innerJoin(f, "", "performers.id")
-
-			const query = `(SELECT COUNT(*) FROM scene_markers 
-  INNER JOIN scenes ON scene_markers.scene_id = scenes.id
-  INNER JOIN performers_scenes ON performers_scenes.scene_id = scenes.id
-  WHERE performers_scenes.performer_id = performers.id)`
-
-			clause, args := getIntCriterionWhereClause(query, *count)
-			f.addWhere(clause, args...)
-		}
-	}
-}
-
-func (qb *performerFilterHandler) imageCountCriterionHandler(count *models.IntCriterionInput) criterionHandlerFunc {
+func (qb *performerFilterHandler) groupCountCriterionHandler(count *models.IntCriterionInput) criterionHandlerFunc {
 	h := countCriterionHandlerBuilder{
 		primaryTable: performerTable,
-		joinTable:    performersImagesTable,
+		joinTable:    performersGroupsTable,
 		primaryFK:    performerIDColumn,
 	}
-
 	return h.handler(count)
-}
-
-func (qb *performerFilterHandler) galleryCountCriterionHandler(count *models.IntCriterionInput) criterionHandlerFunc {
-	h := countCriterionHandlerBuilder{
-		primaryTable: performerTable,
-		joinTable:    performersGalleriesTable,
-		primaryFK:    performerIDColumn,
-	}
-
-	return h.handler(count)
-}
-
-// used for sorting and filtering on performer o-count
-var selectPerformerOCountSQL = utils.StrFormat(
-	"SELECT SUM(o_counter) "+
-		"FROM ("+
-		"SELECT SUM(o_counter) as o_counter from {performers_images} s "+
-		"LEFT JOIN {images} ON {images}.id = s.{images_id} "+
-		"WHERE s.{performer_id} = {performers}.id "+
-		"UNION ALL "+
-		"SELECT COUNT({scenes_o_dates}.{o_date}) as o_counter from {performers_scenes} s "+
-		"LEFT JOIN {scenes} ON {scenes}.id = s.{scene_id} "+
-		"LEFT JOIN {scenes_o_dates} ON {scenes_o_dates}.{scene_id} = {scenes}.id "+
-		"WHERE s.{performer_id} = {performers}.id "+
-		")",
-	map[string]interface{}{
-		"performers_images": performersImagesTable,
-		"images":            imageTable,
-		"performer_id":      performerIDColumn,
-		"images_id":         imageIDColumn,
-		"performers":        performerTable,
-		"performers_scenes": performersScenesTable,
-		"scenes":            sceneTable,
-		"scene_id":          sceneIDColumn,
-		"scenes_o_dates":    scenesODatesTable,
-		"o_date":            sceneODateColumn,
-	},
-)
-
-// used for sorting and filtering play count on performer view count
-var selectPerformerPlayCountSQL = utils.StrFormat(
-	"SELECT COUNT(DISTINCT {view_date}) FROM ("+
-		"SELECT {view_date} FROM {performers_scenes} s "+
-		"LEFT JOIN {scenes} ON {scenes}.id = s.{scene_id} "+
-		"LEFT JOIN {scenes_view_dates} ON {scenes_view_dates}.{scene_id} = {scenes}.id "+
-		"WHERE s.{performer_id} = {performers}.id"+
-		")",
-	map[string]interface{}{
-		"performer_id":      performerIDColumn,
-		"performers":        performerTable,
-		"performers_scenes": performersScenesTable,
-		"scenes":            sceneTable,
-		"scene_id":          sceneIDColumn,
-		"scenes_view_dates": scenesViewDatesTable,
-		"view_date":         sceneViewDateColumn,
-	},
-)
-
-func (qb *performerFilterHandler) oCounterCriterionHandler(count *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if count == nil {
-			return
-		}
-
-		lhs := "(" + selectPerformerOCountSQL + ")"
-		clause, args := getIntCriterionWhereClause(lhs, *count)
-
-		f.addWhere(clause, args...)
-	}
-}
-
-func (qb *performerFilterHandler) playCounterCriterionHandler(count *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if count == nil {
-			return
-		}
-
-		lhs := "(" + selectPerformerPlayCountSQL + ")"
-		clause, args := getIntCriterionWhereClause(lhs, *count)
-
-		f.addWhere(clause, args...)
-	}
 }
 
 func (qb *performerFilterHandler) studiosCriterionHandler(studios *models.HierarchicalMultiCriterionInput) criterionHandlerFunc {
 	return func(ctx context.Context, f *filterBuilder) {
-		if studios != nil {
-			formatMaps := []utils.StrFormatMap{
-				{
-					"primaryTable": sceneTable,
-					"joinTable":    performersScenesTable,
-					"primaryFK":    sceneIDColumn,
-				},
-				{
-					"primaryTable": imageTable,
-					"joinTable":    performersImagesTable,
-					"primaryFK":    imageIDColumn,
-				},
-				{
-					"primaryTable": galleryTable,
-					"joinTable":    performersGalleriesTable,
-					"primaryFK":    galleryIDColumn,
-				},
+		if studios == nil {
+			return
+		}
+
+		if studios.Modifier == models.CriterionModifierIsNull || studios.Modifier == models.CriterionModifierNotNull {
+			var notClause string
+			if studios.Modifier == models.CriterionModifierNotNull {
+				notClause = "NOT"
 			}
+			f.addLeftJoin(performersAudiosTable, "pa_studio", "pa_studio.performer_id = performers.id")
+			f.addLeftJoin(audioTable, "a_studio", "pa_studio.audio_id = a_studio.id")
+			f.addWhere(fmt.Sprintf("%s a_studio.studio_id IS NULL", notClause))
+			return
+		}
 
-			if studios.Modifier == models.CriterionModifierIsNull || studios.Modifier == models.CriterionModifierNotNull {
-				var notClause string
-				if studios.Modifier == models.CriterionModifierNotNull {
-					notClause = "NOT"
-				}
+		if len(studios.Value) == 0 && len(studios.Excludes) == 0 {
+			return
+		}
 
-				var conditions []string
-				for _, c := range formatMaps {
-					f.addLeftJoin(c["joinTable"].(string), "", fmt.Sprintf("%s.performer_id = performers.id", c["joinTable"]))
-					f.addLeftJoin(c["primaryTable"].(string), "", fmt.Sprintf("%s.%s = %s.id", c["joinTable"], c["primaryFK"], c["primaryTable"]))
+		var clauseCondition string
+		switch studios.Modifier {
+		case models.CriterionModifierIncludes:
+			clauseCondition = "NOT"
+		case models.CriterionModifierExcludes:
+			clauseCondition = ""
+		default:
+			return
+		}
 
-					conditions = append(conditions, fmt.Sprintf("%s.studio_id IS NULL", c["primaryTable"]))
-				}
-
-				f.addWhere(fmt.Sprintf("%s (%s)", notClause, strings.Join(conditions, " AND ")))
+		if len(studios.Value) > 0 {
+			const derivedPerformerStudioTable = "performer_studio"
+			valuesClause, err := getHierarchicalValues(ctx, studios.Value, studioTable, "", "parent_id", "child_id", studios.Depth)
+			if err != nil {
+				f.setError(err)
 				return
 			}
+			f.addWith("studio(root_id, item_id) AS (" + valuesClause + ")")
+			f.addWith(fmt.Sprintf(`%s AS (
+				SELECT performer_id FROM %s
+				INNER JOIN %s ON %s.id = %s.audio_id
+				INNER JOIN studio ON %s.studio_id = studio.item_id
+			)`, derivedPerformerStudioTable, performersAudiosTable, audioTable, audioTable, performersAudiosTable, audioTable))
+			f.addLeftJoin(derivedPerformerStudioTable, "", fmt.Sprintf("performers.id = %s.performer_id", derivedPerformerStudioTable))
+			f.addWhere(fmt.Sprintf("%s.performer_id IS %s NULL", derivedPerformerStudioTable, clauseCondition))
+		}
 
-			if len(studios.Value) == 0 && len(studios.Excludes) == 0 {
+		if len(studios.Excludes) > 0 {
+			excludeValuesClause, err := getHierarchicalValues(ctx, studios.Excludes, studioTable, "", "parent_id", "child_id", studios.Depth)
+			if err != nil {
+				f.setError(err)
 				return
 			}
-
-			var clauseCondition string
-
-			switch studios.Modifier {
-			case models.CriterionModifierIncludes:
-				// return performers who appear in scenes/images/galleries with any of the given studios
-				clauseCondition = "NOT"
-			case models.CriterionModifierExcludes:
-				// exclude performers who appear in scenes/images/galleries with any of the given studios
-				clauseCondition = ""
-			default:
-				return
-			}
-
-			if len(studios.Value) > 0 {
-				const derivedPerformerStudioTable = "performer_studio"
-				valuesClause, err := getHierarchicalValues(ctx, studios.Value, studioTable, "", "parent_id", "child_id", studios.Depth)
-				if err != nil {
-					f.setError(err)
-					return
-				}
-				f.addWith("studio(root_id, item_id) AS (" + valuesClause + ")")
-
-				templStr := `SELECT performer_id FROM {primaryTable}
-		INNER JOIN {joinTable} ON {primaryTable}.id = {joinTable}.{primaryFK}
-		INNER JOIN studio ON {primaryTable}.studio_id = studio.item_id`
-
-				var unions []string
-				for _, c := range formatMaps {
-					unions = append(unions, utils.StrFormat(templStr, c))
-				}
-
-				f.addWith(fmt.Sprintf("%s AS (%s)", derivedPerformerStudioTable, strings.Join(unions, " UNION ")))
-
-				f.addLeftJoin(derivedPerformerStudioTable, "", fmt.Sprintf("performers.id = %s.performer_id", derivedPerformerStudioTable))
-				f.addWhere(fmt.Sprintf("%s.performer_id IS %s NULL", derivedPerformerStudioTable, clauseCondition))
-			}
-
-			// #6412 - handle excludes as well
-			if len(studios.Excludes) > 0 {
-				excludeValuesClause, err := getHierarchicalValues(ctx, studios.Excludes, studioTable, "", "parent_id", "child_id", studios.Depth)
-				if err != nil {
-					f.setError(err)
-					return
-				}
-				f.addWith("exclude_studio(root_id, item_id) AS (" + excludeValuesClause + ")")
-
-				excludeTemplStr := `SELECT performer_id FROM {primaryTable}
-	INNER JOIN {joinTable} ON {primaryTable}.id = {joinTable}.{primaryFK}
-	INNER JOIN exclude_studio ON {primaryTable}.studio_id = exclude_studio.item_id`
-
-				var unions []string
-				for _, c := range formatMaps {
-					unions = append(unions, utils.StrFormat(excludeTemplStr, c))
-				}
-
-				const excludePerformerStudioTable = "performer_studio_exclude"
-				f.addWith(fmt.Sprintf("%s AS (%s)", excludePerformerStudioTable, strings.Join(unions, " UNION ")))
-
-				f.addLeftJoin(excludePerformerStudioTable, "", fmt.Sprintf("performers.id = %s.performer_id", excludePerformerStudioTable))
-				f.addWhere(fmt.Sprintf("%s.performer_id IS NULL", excludePerformerStudioTable))
-			}
+			f.addWith("exclude_studio(root_id, item_id) AS (" + excludeValuesClause + ")")
+			const excludePerformerStudioTable = "performer_studio_exclude"
+			f.addWith(fmt.Sprintf(`%s AS (
+				SELECT performer_id FROM %s
+				INNER JOIN %s ON %s.id = %s.audio_id
+				INNER JOIN exclude_studio ON %s.studio_id = exclude_studio.item_id
+			)`, excludePerformerStudioTable, performersAudiosTable, audioTable, audioTable, performersAudiosTable, audioTable))
+			f.addLeftJoin(excludePerformerStudioTable, "", fmt.Sprintf("performers.id = %s.performer_id", excludePerformerStudioTable))
+			f.addWhere(fmt.Sprintf("%s.performer_id IS NULL", excludePerformerStudioTable))
 		}
 	}
 }
 
 func (qb *performerFilterHandler) groupsCriterionHandler(groups *models.HierarchicalMultiCriterionInput) criterionHandlerFunc {
 	return func(ctx context.Context, f *filterBuilder) {
-		if groups != nil {
-			if groups.Modifier == models.CriterionModifierIsNull || groups.Modifier == models.CriterionModifierNotNull {
-				var notClause string
-				if groups.Modifier == models.CriterionModifierNotNull {
-					notClause = "NOT"
-				}
+		if groups == nil {
+			return
+		}
 
-				f.addLeftJoin(performersScenesTable, "", "performers_scenes.performer_id = performers.id")
-				f.addLeftJoin(groupsScenesTable, "", "performers_scenes.scene_id = groups_scenes.scene_id")
-
-				f.addWhere(fmt.Sprintf("%s groups_scenes.group_id IS NULL", notClause))
-				return
+		if groups.Modifier == models.CriterionModifierIsNull || groups.Modifier == models.CriterionModifierNotNull {
+			var notClause string
+			if groups.Modifier == models.CriterionModifierNotNull {
+				notClause = "NOT"
 			}
+			f.addLeftJoin(performersGroupsTable, "pg_null", "pg_null.performer_id = performers.id")
+			f.addWhere(fmt.Sprintf("%s pg_null.group_id IS NULL", notClause))
+			return
+		}
 
-			if len(groups.Value) == 0 {
-				return
+		if len(groups.Value) == 0 {
+			return
+		}
+
+		var clauseCondition string
+		switch groups.Modifier {
+		case models.CriterionModifierIncludes:
+			clauseCondition = "NOT"
+		case models.CriterionModifierExcludes:
+			clauseCondition = ""
+		default:
+			return
+		}
+
+		const derivedPerformerGroupTable = "performer_group"
+
+		var args []interface{}
+		for _, val := range groups.Value {
+			args = append(args, val)
+		}
+
+		depthVal := 0
+		if groups.Depth != nil {
+			depthVal = *groups.Depth
+		}
+
+		if depthVal == 0 {
+			f.addWith(fmt.Sprintf("group_values(id) AS (VALUES %s)", strings.Repeat("(?),", len(groups.Value)-1)+"(?)"), args...)
+			f.addWith(fmt.Sprintf(`%s AS (
+				SELECT performer_id FROM %s
+				INNER JOIN group_values ON %s.group_id = group_values.id
+			)`, derivedPerformerGroupTable, performersGroupsTable, performersGroupsTable))
+		} else {
+			var depthCondition string
+			if depthVal != -1 {
+				depthCondition = fmt.Sprintf("WHERE depth < %d", depthVal)
 			}
-
-			var clauseCondition string
-
-			switch groups.Modifier {
-			case models.CriterionModifierIncludes:
-				// return performers who appear in scenes with any of the given groups
-				clauseCondition = "NOT"
-			case models.CriterionModifierExcludes:
-				// exclude performers who appear in scenes with any of the given groups
-				clauseCondition = ""
-			default:
-				return
-			}
-
-			const derivedPerformerGroupTable = "performer_group"
-
-			// Simplified approach: direct group-scene-performer relationship without hierarchy
-			var args []interface{}
-			for _, val := range groups.Value {
-				args = append(args, val)
-			}
-
-			// If depth is specified and not 0, we need hierarchy, otherwise use simple approach
-			depthVal := 0
-			if groups.Depth != nil {
-				depthVal = *groups.Depth
-			}
-
-			if depthVal == 0 {
-				// Simple case: no hierarchy, direct group relationship
-				f.addWith(fmt.Sprintf("group_values(id) AS (VALUES %s)", strings.Repeat("(?),", len(groups.Value)-1)+"(?)"), args...)
-
-				templStr := `SELECT performer_id FROM {joinTable}
-	INNER JOIN {primaryTable} ON {joinTable}.scene_id = {primaryTable}.scene_id
-	INNER JOIN group_values ON {primaryTable}.{groupFK} = group_values.id`
-
-				formatMaps := []utils.StrFormatMap{
-					{
-						"primaryTable": groupsScenesTable,
-						"joinTable":    performersScenesTable,
-						"primaryFK":    sceneIDColumn,
-						"groupFK":      groupIDColumn,
-					},
-				}
-
-				var unions []string
-				for _, c := range formatMaps {
-					unions = append(unions, utils.StrFormat(templStr, c))
-				}
-
-				f.addWith(fmt.Sprintf("%s AS (%s)", derivedPerformerGroupTable, strings.Join(unions, " UNION ")))
-			} else {
-				// Complex case: with hierarchy
-				var depthCondition string
-				if depthVal != -1 {
-					depthCondition = fmt.Sprintf("WHERE depth < %d", depthVal)
-				}
-
-				// Build recursive CTE for group hierarchy
-				hierarchyQuery := fmt.Sprintf(`group_hierarchy AS (
+			hierarchyQuery := fmt.Sprintf(`group_hierarchy AS (
 SELECT sub_id AS root_id, sub_id AS item_id, 0 AS depth FROM groups_relations WHERE sub_id IN%s
 UNION
 SELECT root_id, sub_id, depth + 1 FROM groups_relations INNER JOIN group_hierarchy ON item_id = containing_id %s
 )`, getInBinding(len(groups.Value)), depthCondition)
-
-				f.addRecursiveWith(hierarchyQuery, args...)
-
-				templStr := `SELECT performer_id FROM {joinTable}
-	INNER JOIN {primaryTable} ON {joinTable}.scene_id = {primaryTable}.scene_id
-	INNER JOIN group_hierarchy ON {primaryTable}.{groupFK} = group_hierarchy.item_id`
-
-				formatMaps := []utils.StrFormatMap{
-					{
-						"primaryTable": groupsScenesTable,
-						"joinTable":    performersScenesTable,
-						"primaryFK":    sceneIDColumn,
-						"groupFK":      groupIDColumn,
-					},
-				}
-
-				var unions []string
-				for _, c := range formatMaps {
-					unions = append(unions, utils.StrFormat(templStr, c))
-				}
-
-				f.addWith(fmt.Sprintf("%s AS (%s)", derivedPerformerGroupTable, strings.Join(unions, " UNION ")))
-			}
-
-			f.addLeftJoin(derivedPerformerGroupTable, "", fmt.Sprintf("performers.id = %s.performer_id", derivedPerformerGroupTable))
-			f.addWhere(fmt.Sprintf("%s.performer_id IS %s NULL", derivedPerformerGroupTable, clauseCondition))
+			f.addRecursiveWith(hierarchyQuery, args...)
+			f.addWith(fmt.Sprintf(`%s AS (
+				SELECT performer_id FROM %s
+				INNER JOIN group_hierarchy ON %s.group_id = group_hierarchy.item_id
+			)`, derivedPerformerGroupTable, performersGroupsTable, performersGroupsTable))
 		}
+
+		f.addLeftJoin(derivedPerformerGroupTable, "", fmt.Sprintf("performers.id = %s.performer_id", derivedPerformerGroupTable))
+		f.addWhere(fmt.Sprintf("%s.performer_id IS %s NULL", derivedPerformerGroupTable, clauseCondition))
 	}
 }
 
 func (qb *performerFilterHandler) appearsWithCriterionHandler(performers *models.MultiCriterionInput) criterionHandlerFunc {
 	return func(ctx context.Context, f *filterBuilder) {
-		if performers != nil {
-			formatMaps := []utils.StrFormatMap{
-				{
-					"primaryTable": performersScenesTable,
-					"joinTable":    performersScenesTable,
-					"primaryFK":    sceneIDColumn,
-				},
-				{
-					"primaryTable": performersImagesTable,
-					"joinTable":    performersImagesTable,
-					"primaryFK":    imageIDColumn,
-				},
-				{
-					"primaryTable": performersGalleriesTable,
-					"joinTable":    performersGalleriesTable,
-					"primaryFK":    galleryIDColumn,
-				},
-			}
-
-			if len(performers.Value) == '0' {
-				return
-			}
-
-			const derivedPerformerPerformersTable = "performer_performers"
-
-			valuesClause := strings.Join(performers.Value, "),(")
-
-			f.addWith("performer(id) AS (VALUES(" + valuesClause + "))")
-
-			templStr := `SELECT {primaryTable}2.performer_id FROM {primaryTable}
-			INNER JOIN {primaryTable} AS {primaryTable}2 ON {primaryTable}.{primaryFK} = {primaryTable}2.{primaryFK}
-			INNER JOIN performer ON {primaryTable}.performer_id = performer.id
-			WHERE {primaryTable}2.performer_id != performer.id`
-
-			if performers.Modifier == models.CriterionModifierIncludesAll && len(performers.Value) > 1 {
-				templStr += `
-							GROUP BY {primaryTable}2.performer_id
-							HAVING(count(distinct {primaryTable}.performer_id) IS ` + strconv.Itoa(len(performers.Value)) + `)`
-			}
-
-			var unions []string
-			for _, c := range formatMaps {
-				unions = append(unions, utils.StrFormat(templStr, c))
-			}
-
-			f.addWith(fmt.Sprintf("%s AS (%s)", derivedPerformerPerformersTable, strings.Join(unions, " UNION ")))
-
-			f.addInnerJoin(derivedPerformerPerformersTable, "", fmt.Sprintf("performers.id = %s.performer_id", derivedPerformerPerformersTable))
+		if performers == nil || len(performers.Value) == 0 {
+			return
 		}
+
+		const derivedPerformerPerformersTable = "performer_performers"
+		valuesClause := strings.Join(performers.Value, "),(")
+		f.addWith("performer(id) AS (VALUES(" + valuesClause + "))")
+
+		templStr := `SELECT pa2.performer_id FROM ` + performersAudiosTable + ` pa
+			INNER JOIN ` + performersAudiosTable + ` pa2 ON pa.audio_id = pa2.audio_id
+			INNER JOIN performer ON pa.performer_id = performer.id
+			WHERE pa2.performer_id != performer.id`
+
+		if performers.Modifier == models.CriterionModifierIncludesAll && len(performers.Value) > 1 {
+			templStr += `
+				GROUP BY pa2.performer_id
+				HAVING(count(distinct pa.performer_id) IS ` + strconv.Itoa(len(performers.Value)) + `)`
+		}
+
+		f.addWith(fmt.Sprintf("%s AS (%s)", derivedPerformerPerformersTable, templStr))
+		f.addInnerJoin(derivedPerformerPerformersTable, "", fmt.Sprintf("performers.id = %s.performer_id", derivedPerformerPerformersTable))
 	}
 }

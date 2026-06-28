@@ -18,8 +18,7 @@ type Movie {
 
   front_image_path: String # Resolver
   back_image_path: String # Resolver
-  scene_count(depth: Int): Int! # Resolver
-  scenes: [Scene!]!
+  audio_count(depth: Int): Int! # Resolver
 }
 
 input MovieCreateInput {

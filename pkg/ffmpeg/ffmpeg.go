@@ -12,9 +12,9 @@ import (
 	"strings"
 	"sync"
 
-	stashExec "github.com/stashapp/stash/pkg/exec"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/logger"
+	stashExec "github.com/stashapp/stash_audio/pkg/exec"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 func ffmpegHelp(ffmpegPath string) (string, error) {

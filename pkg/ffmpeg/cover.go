@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 
-	stashExec "github.com/stashapp/stash/pkg/exec"
+	stashExec "github.com/stashapp/stash_audio/pkg/exec"
 )
 
 // ExtractEmbeddedCover extracts the first attached picture stream from a media

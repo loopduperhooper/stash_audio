@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func (r *queryResolver) FindTag(ctx context.Context, id string) (ret *models.Tag, err error) {

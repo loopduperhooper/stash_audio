@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/sessions"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 type key int

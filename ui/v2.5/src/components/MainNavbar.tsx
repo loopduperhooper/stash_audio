@@ -27,11 +27,7 @@ import {
   faChartColumn,
   faFilm,
   faHeart,
-  faImage,
-  faImages,
-  faMapMarkerAlt,
   faMusic,
-  faPlayCircle,
   faQuestionCircle,
   faSignOutAlt,
   faTag,
@@ -55,21 +51,9 @@ const messages = defineMessages({
     id: "audios",
     defaultMessage: "Audio",
   },
-  scenes: {
-    id: "scenes",
-    defaultMessage: "Scenes",
-  },
-  images: {
-    id: "images",
-    defaultMessage: "Images",
-  },
   groups: {
     id: "groups",
     defaultMessage: "Groups",
-  },
-  markers: {
-    id: "markers",
-    defaultMessage: "Markers",
   },
   performers: {
     id: "performers",
@@ -83,14 +67,6 @@ const messages = defineMessages({
     id: "tags",
     defaultMessage: "Tags",
   },
-  galleries: {
-    id: "galleries",
-    defaultMessage: "Galleries",
-  },
-  sceneTagger: {
-    id: "sceneTagger",
-    defaultMessage: "Scene Tagger",
-  },
   donate: {
     id: "donate",
     defaultMessage: "Donate",
@@ -102,21 +78,6 @@ const messages = defineMessages({
 });
 
 const allMenuItems: IMenuItem[] = [
-  {
-    name: "scenes",
-    message: messages.scenes,
-    href: "/scenes",
-    icon: faPlayCircle,
-    hotkey: "g s",
-    userCreatable: true,
-  },
-  {
-    name: "images",
-    message: messages.images,
-    href: "/images",
-    icon: faImage,
-    hotkey: "g i",
-  },
   {
     name: "audios",
     message: messages.audios,
@@ -130,21 +91,6 @@ const allMenuItems: IMenuItem[] = [
     href: "/groups",
     icon: faFilm,
     hotkey: "g v",
-    userCreatable: true,
-  },
-  {
-    name: "markers",
-    message: messages.markers,
-    href: "/scenes/markers",
-    icon: faMapMarkerAlt,
-    hotkey: "g k",
-  },
-  {
-    name: "galleries",
-    message: messages.galleries,
-    href: "/galleries",
-    icon: faImages,
-    hotkey: "g l",
     userCreatable: true,
   },
   {

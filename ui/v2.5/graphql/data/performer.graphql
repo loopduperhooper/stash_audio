@@ -21,12 +21,9 @@ fragment PerformerData on Performer {
   favorite
   ignore_auto_tag
   image_path
-  scene_count
-  image_count
-  gallery_count
+  audio_count
   group_count
   performer_count
-  o_counter
 
   tags {
     ...SlimTagData

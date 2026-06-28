@@ -1,8 +1,8 @@
 package jsonschema
 
 import (
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 type SavedFilter struct {

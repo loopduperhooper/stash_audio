@@ -9,9 +9,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/stashapp/stash/pkg/plugin/hook"
-	"github.com/stashapp/stash/pkg/python"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/plugin/hook"
+	"github.com/stashapp/stash_audio/pkg/python"
+	"github.com/stashapp/stash_audio/pkg/utils"
 	"gopkg.in/yaml.v2"
 )
 

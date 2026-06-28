@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/sliceutil/stringslice"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/sliceutil/stringslice"
 )
 
 func (r *queryResolver) FindFile(ctx context.Context, id *string, path *string) (BaseFile, error) {

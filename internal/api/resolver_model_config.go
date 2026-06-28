@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 
-	"github.com/stashapp/stash/internal/manager/config"
+	"github.com/stashapp/stash_audio/internal/manager/config"
 )
 
 func (r *configResultResolver) Plugins(ctx context.Context, obj *ConfigResult, include []string) (map[string]map[string]interface{}, error) {

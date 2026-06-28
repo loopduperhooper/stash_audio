@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 
-	"github.com/stashapp/stash/pkg/sliceutil"
+	"github.com/stashapp/stash_audio/pkg/sliceutil"
 )
 
 type SceneIDLoader interface {
@@ -24,6 +24,14 @@ type PerformerIDLoader interface {
 
 type TagIDLoader interface {
 	GetTagIDs(ctx context.Context, relatedID int) ([]int, error)
+}
+
+type AudioIDLoader interface {
+	GetAudioIDs(ctx context.Context, relatedID int) ([]int, error)
+}
+
+type GroupIDLoader interface {
+	GetGroupIDs(ctx context.Context, relatedID int) ([]int, error)
 }
 
 type TagRelationLoader interface {

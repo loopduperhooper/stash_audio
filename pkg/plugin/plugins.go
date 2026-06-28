@@ -15,17 +15,15 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strconv"
 	"strings"
 
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/plugin/common"
-	"github.com/stashapp/stash/pkg/plugin/hook"
-	"github.com/stashapp/stash/pkg/session"
-	"github.com/stashapp/stash/pkg/txn"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/plugin/common"
+	"github.com/stashapp/stash_audio/pkg/plugin/hook"
+	"github.com/stashapp/stash_audio/pkg/session"
+	"github.com/stashapp/stash_audio/pkg/txn"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 type Plugin struct {
@@ -374,14 +372,6 @@ func (c Cache) RegisterPostHooks(ctx context.Context, id int, hookType hook.Trig
 	})
 }
 
-func (c Cache) ExecuteSceneUpdatePostHooks(ctx context.Context, input models.SceneUpdateInput, inputFields []string) {
-	id, err := strconv.Atoi(input.ID)
-	if err != nil {
-		logger.Errorf("error converting id in SceneUpdatePostHooks: %v", err)
-		return
-	}
-	c.ExecutePostHooks(ctx, id, hook.SceneUpdatePost, input, inputFields)
-}
 
 // maxCyclicLoopDepth is the maximum number of identical plugin hook calls that
 // can be made before a cyclic loop is detected. It is set to an arbitrary value

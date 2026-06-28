@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stashapp/stash/pkg/hash"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/hash"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 // DownloadStore manages single-use generated files for the UI to download.

@@ -3,7 +3,7 @@ package paths
 import (
 	"path/filepath"
 
-	"github.com/stashapp/stash/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
 )
 
 type scenePaths struct {

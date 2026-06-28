@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 var ErrInvalidInsertIndex = errors.New("invalid insert index")

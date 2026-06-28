@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	graphql "github.com/hasura/go-graphql-client"
-	"github.com/stashapp/stash/pkg/plugin/common/log"
+	"github.com/stashapp/stash_audio/pkg/plugin/common/log"
 )
 
 const tagName = "Hawwwwt"

@@ -13,7 +13,7 @@ import (
 	"gopkg.in/guregu/null.v4"
 	"gopkg.in/guregu/null.v4/zero"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 const (
@@ -23,7 +23,9 @@ const (
 	groupFrontImageBlobColumn = "front_image_blob"
 	groupBackImageBlobColumn  = "back_image_blob"
 
-	groupsTagsTable = "groups_tags"
+	groupsTagsTable       = "groups_tags"
+	groupsAudiosTable     = "groups_audios"
+	performersGroupsTable = "performers_groups"
 
 	groupURLsTable = "group_urls"
 	groupURLColumn = "url"
@@ -103,8 +105,7 @@ func (r *groupRowRecord) fromPartial(o models.GroupPartial) {
 
 type groupRepositoryType struct {
 	repository
-	scenes repository
-	tags   joinRepository
+	tags joinRepository
 }
 
 var (
@@ -112,10 +113,6 @@ var (
 		repository: repository{
 			tableName: groupTable,
 			idColumn:  idColumn,
-		},
-		scenes: repository{
-			tableName: groupsScenesTable,
-			idColumn:  groupIDColumn,
 		},
 		tags: joinRepository{
 			repository: repository{
@@ -134,6 +131,8 @@ type GroupStore struct {
 	customFieldsStore
 	tagRelationshipStore
 	groupRelationshipStore
+	audioRelationshipStore     idRelationshipStore
+	performerRelationshipStore idRelationshipStore
 
 	tableMgr *table
 }
@@ -155,6 +154,12 @@ func NewGroupStore(blobStore *BlobStore) *GroupStore {
 		},
 		groupRelationshipStore: groupRelationshipStore{
 			table: groupRelationshipTableMgr,
+		},
+		audioRelationshipStore: idRelationshipStore{
+			joinTable: groupsAudiosTableMgr,
+		},
+		performerRelationshipStore: idRelationshipStore{
+			joinTable: performersGroupsTableMgr,
 		},
 
 		tableMgr: groupTableMgr,
@@ -186,6 +191,14 @@ func (qb *GroupStore) Create(ctx context.Context, newObject *models.Group) error
 	}
 
 	if err := qb.tagRelationshipStore.createRelationships(ctx, id, newObject.TagIDs); err != nil {
+		return err
+	}
+
+	if err := qb.audioRelationshipStore.createRelationships(ctx, id, newObject.AudioIDs); err != nil {
+		return err
+	}
+
+	if err := qb.performerRelationshipStore.createRelationships(ctx, id, newObject.PerformerIDs); err != nil {
 		return err
 	}
 
@@ -232,6 +245,14 @@ func (qb *GroupStore) UpdatePartial(ctx context.Context, id int, partial models.
 		return nil, err
 	}
 
+	if err := qb.audioRelationshipStore.modifyRelationships(ctx, id, partial.AudioIDs); err != nil {
+		return nil, err
+	}
+
+	if err := qb.performerRelationshipStore.modifyRelationships(ctx, id, partial.PerformerIDs); err != nil {
+		return nil, err
+	}
+
 	if err := qb.groupRelationshipStore.modifyContainingRelationships(ctx, id, partial.ContainingGroups); err != nil {
 		return nil, err
 	}
@@ -262,6 +283,14 @@ func (qb *GroupStore) Update(ctx context.Context, updatedObject *models.Group) e
 	}
 
 	if err := qb.tagRelationshipStore.replaceRelationships(ctx, updatedObject.ID, updatedObject.TagIDs); err != nil {
+		return err
+	}
+
+	if err := qb.audioRelationshipStore.replaceRelationships(ctx, updatedObject.ID, updatedObject.AudioIDs); err != nil {
+		return err
+	}
+
+	if err := qb.performerRelationshipStore.replaceRelationships(ctx, updatedObject.ID, updatedObject.PerformerIDs); err != nil {
 		return err
 	}
 
@@ -603,21 +632,19 @@ func (qb *GroupStore) HasBackImage(ctx context.Context, groupID int) (bool, erro
 }
 
 func (qb *GroupStore) FindByPerformerID(ctx context.Context, performerID int) ([]*models.Group, error) {
-	query := `SELECT DISTINCT groups.*
+	query := `SELECT groups.*
 FROM groups
-INNER JOIN groups_scenes ON groups.id = groups_scenes.group_id
-INNER JOIN performers_scenes ON performers_scenes.scene_id = groups_scenes.scene_id
-WHERE performers_scenes.performer_id = ?
+INNER JOIN performers_groups ON performers_groups.group_id = groups.id
+WHERE performers_groups.performer_id = ?
 `
 	args := []interface{}{performerID}
 	return qb.queryGroups(ctx, query, args)
 }
 
 func (qb *GroupStore) CountByPerformerID(ctx context.Context, performerID int) (int, error) {
-	query := `SELECT COUNT(DISTINCT groups_scenes.group_id) AS count
-FROM groups_scenes
-INNER JOIN performers_scenes ON performers_scenes.scene_id = groups_scenes.scene_id
-WHERE performers_scenes.performer_id = ?
+	query := `SELECT COUNT(DISTINCT performers_groups.group_id) AS count
+FROM performers_groups
+WHERE performers_groups.performer_id = ?
 `
 	args := []interface{}{performerID}
 	return groupRepository.runCountQuery(ctx, query, args)
@@ -643,6 +670,14 @@ WHERE groups.studio_id = ?
 
 func (qb *GroupStore) GetURLs(ctx context.Context, groupID int) ([]string, error) {
 	return groupsURLsTableMgr.get(ctx, groupID)
+}
+
+func (qb *GroupStore) GetAudioIDs(ctx context.Context, groupID int) ([]int, error) {
+	return groupsAudiosTableMgr.get(ctx, groupID)
+}
+
+func (qb *GroupStore) GetPerformerIDs(ctx context.Context, groupID int) ([]int, error) {
+	return performersGroupsTableMgr.get(ctx, groupID)
 }
 
 // FindSubGroupIDs returns a list of group IDs where a group in the ids list is a sub-group of the parent group
@@ -717,6 +752,5 @@ func (qb *GroupStore) FindInAncestors(ctx context.Context, ascestorIDs []int, id
 }
 
 func (qb *GroupStore) sortByOCounter(direction string) string {
-	// need to sum the o_counter from scenes and images
-	return " ORDER BY (" + selectGroupOCountSQL + ") " + direction
+	return " ORDER BY 0 " + direction
 }

@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/pkg/hash/md5"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/sqlite"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/pkg/hash/md5"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/sqlite"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 type schema45Migrator struct {

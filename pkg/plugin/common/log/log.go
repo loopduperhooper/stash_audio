@@ -18,7 +18,7 @@ package log
 import (
 	"math"
 
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 // Level represents a logging level for plugin outputs.

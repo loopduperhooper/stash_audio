@@ -3,15 +3,12 @@ package api
 import (
 	"context"
 
-	"github.com/stashapp/stash/internal/api/loaders"
-	"github.com/stashapp/stash/internal/api/urlbuilders"
-	"github.com/stashapp/stash/pkg/gallery"
-	"github.com/stashapp/stash/pkg/group"
-	"github.com/stashapp/stash/pkg/image"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/performer"
-	"github.com/stashapp/stash/pkg/scene"
-	"github.com/stashapp/stash/pkg/studio"
+	"github.com/stashapp/stash_audio/internal/api/loaders"
+	"github.com/stashapp/stash_audio/internal/api/urlbuilders"
+	"github.com/stashapp/stash_audio/pkg/group"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/performer"
+	"github.com/stashapp/stash_audio/pkg/studio"
 )
 
 func (r *tagResolver) Parents(ctx context.Context, obj *models.Tag) (ret []*models.Tag, err error) {
@@ -64,49 +61,6 @@ func (r *tagResolver) StashIds(ctx context.Context, obj *models.Tag) ([]*models.
 	return stashIDsSliceToPtrSlice(obj.StashIDs.List()), nil
 }
 
-func (r *tagResolver) SceneCount(ctx context.Context, obj *models.Tag, depth *int) (ret int, err error) {
-	if err := r.withReadTxn(ctx, func(ctx context.Context) error {
-		ret, err = scene.CountByTagID(ctx, r.repository.Scene, obj.ID, depth)
-		return err
-	}); err != nil {
-		return 0, err
-	}
-
-	return ret, nil
-}
-
-func (r *tagResolver) SceneMarkerCount(ctx context.Context, obj *models.Tag, depth *int) (ret int, err error) {
-	if err := r.withReadTxn(ctx, func(ctx context.Context) error {
-		ret, err = scene.MarkerCountByTagID(ctx, r.repository.SceneMarker, obj.ID, depth)
-		return err
-	}); err != nil {
-		return 0, err
-	}
-
-	return ret, nil
-}
-
-func (r *tagResolver) ImageCount(ctx context.Context, obj *models.Tag, depth *int) (ret int, err error) {
-	if err := r.withReadTxn(ctx, func(ctx context.Context) error {
-		ret, err = image.CountByTagID(ctx, r.repository.Image, obj.ID, depth)
-		return err
-	}); err != nil {
-		return 0, err
-	}
-
-	return ret, nil
-}
-
-func (r *tagResolver) GalleryCount(ctx context.Context, obj *models.Tag, depth *int) (ret int, err error) {
-	if err := r.withReadTxn(ctx, func(ctx context.Context) error {
-		ret, err = gallery.CountByTagID(ctx, r.repository.Gallery, obj.ID, depth)
-		return err
-	}); err != nil {
-		return 0, err
-	}
-
-	return ret, nil
-}
 
 func (r *tagResolver) PerformerCount(ctx context.Context, obj *models.Tag, depth *int) (ret int, err error) {
 	if err := r.withReadTxn(ctx, func(ctx context.Context) error {

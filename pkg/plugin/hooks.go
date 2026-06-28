@@ -1,8 +1,7 @@
 package plugin
 
 import (
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/plugin/common"
+	"github.com/stashapp/stash_audio/pkg/plugin/common"
 )
 
 type PluginHook struct {
@@ -16,35 +15,15 @@ func addHookContext(argsMap common.ArgsMap, hookContext common.HookContext) {
 	argsMap[common.HookContextKey] = hookContext
 }
 
-// types for destroy hooks, to provide a little more information
-type SceneDestroyInput struct {
-	models.SceneDestroyInput
-	Checksum string `json:"checksum"`
-	OSHash   string `json:"oshash"`
-	Path     string `json:"path"`
+// AudioDestroyInput is the hook input for audio destroy events and the GraphQL mutation input.
+type AudioDestroyInput struct {
+	ID              string `json:"id"`
+	DeleteFile      *bool  `json:"delete_file"`
+	DeleteGenerated *bool  `json:"delete_generated"`
 }
 
-type ScenesDestroyInput struct {
-	models.ScenesDestroyInput
-	Checksum string `json:"checksum"`
-	OSHash   string `json:"oshash"`
-	Path     string `json:"path"`
-}
-
+// GalleryDestroyInput is kept as a stub so existing hook references compile.
 type GalleryDestroyInput struct {
-	models.GalleryDestroyInput
-	Checksum string `json:"checksum"`
-	Path     string `json:"path"`
-}
-
-type ImageDestroyInput struct {
-	models.ImageDestroyInput
-	Checksum string `json:"checksum"`
-	Path     string `json:"path"`
-}
-
-type ImagesDestroyInput struct {
-	models.ImagesDestroyInput
 	Checksum string `json:"checksum"`
 	Path     string `json:"path"`
 }

@@ -14,7 +14,6 @@ import { ListFilterModel } from "src/models/list-filter/filter";
 import { DisplayMode } from "src/models/list-filter/types";
 import { ExportDialog } from "../Shared/ExportDialog";
 import { DeleteEntityDialog } from "../Shared/DeleteEntityDialog";
-import { StudioTagger } from "../Tagger/studios/StudioTagger";
 import { StudioCardGrid } from "./StudioCardGrid";
 import { View } from "../List/views";
 import { EditStudiosDialog } from "./EditStudiosDialog";
@@ -77,10 +76,6 @@ const StudioList: React.FC<{
     if (filter.displayMode === DisplayMode.Wall) {
       return <h1>TODO</h1>;
     }
-    if (filter.displayMode === DisplayMode.Tagger) {
-      return <StudioTagger studios={studios} />;
-    }
-
     return null;
   }
 );
