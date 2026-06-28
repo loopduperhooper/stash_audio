@@ -30,6 +30,7 @@ import { DetailImage } from "src/components/Shared/DetailImage";
 import { useLoadStickyHeader } from "src/hooks/detailsPanel";
 import { useScrollToTopOnMount } from "src/hooks/scrollToTop";
 import { TagGroupsPanel } from "./TagGroupsPanel";
+import { TagAudiosPanel } from "./TagAudiosPanel";
 import { BackgroundImage } from "src/components/Shared/DetailsPage/BackgroundImage";
 import {
   TabTitleCounter,
@@ -54,6 +55,7 @@ interface ITagParams {
 
 const validTabs = [
   "default",
+  "audios",
   "groups",
   "performers",
   "studios",
@@ -74,6 +76,8 @@ const TagTabs: React.FC<{
     showAllCounts && tag.children.length > 0
   );
 
+  const audioCount =
+    (showAllDetails ? tag.audio_count_all : tag.audio_count) ?? 0;
   const groupCount =
     (showAllDetails ? tag.group_count_all : tag.group_count) ?? 0;
   const performerCount =
@@ -82,17 +86,20 @@ const TagTabs: React.FC<{
     (showAllDetails ? tag.studio_count_all : tag.studio_count) ?? 0;
 
   const populatedDefaultTab = useMemo(() => {
-    let ret: TabKey = "groups";
-    if (groupCount == 0) {
-      if (performerCount != 0) {
-        ret = "performers";
-      } else if (studioCount != 0) {
-        ret = "studios";
+    let ret: TabKey = "audios";
+    if (audioCount == 0) {
+      ret = "groups";
+      if (groupCount == 0) {
+        if (performerCount != 0) {
+          ret = "performers";
+        } else if (studioCount != 0) {
+          ret = "studios";
+        }
       }
     }
 
     return ret;
-  }, [groupCount, performerCount, studioCount]);
+  }, [audioCount, groupCount, performerCount, studioCount]);
 
   const { setTabKey } = useTabKey({
     tabKey,
@@ -127,6 +134,23 @@ const TagTabs: React.FC<{
       activeKey={tabKey}
       onSelect={setTabKey}
     >
+      <Tab
+        eventKey="audios"
+        title={
+          <TabTitleCounter
+            messageID="audios"
+            count={audioCount}
+            abbreviateCounter={abbreviateCounter}
+          />
+        }
+      >
+        {contentSwitch}
+        <TagAudiosPanel
+          active={tabKey === "audios"}
+          tag={tag}
+          showSubTagContent={showAllDetails}
+        />
+      </Tab>
       <Tab
         eventKey="groups"
         title={
