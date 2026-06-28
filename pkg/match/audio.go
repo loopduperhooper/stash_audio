@@ -64,7 +64,7 @@ func PathToAudiosFn(ctx context.Context, name string, paths []string, audioReade
 		const useUnicode = true
 		r := nameToRegexp(name, useUnicode)
 		for _, a := range audios {
-			if regexpMatchesPath(r, a.Path) > 0 {
+			if regexpMatchesPath(r, a.Path) != -1 {
 				if err := fn(ctx, a); err != nil {
 					return err
 				}

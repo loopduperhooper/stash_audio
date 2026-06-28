@@ -127,6 +127,7 @@ func (j *autoTagJob) autoTagPerformers(ctx context.Context, progress *job.Progre
 	for _, performerId := range performerIds {
 		var performers []*models.Performer
 
+		// Read phase: load performers using the read-only DB.
 		if err := r.WithDB(ctx, func(ctx context.Context) error {
 			performerQuery := r.Performer
 			ignoreAutoTag := false
@@ -168,21 +169,25 @@ func (j *autoTagJob) autoTagPerformers(ctx context.Context, progress *job.Progre
 				performers = append(performers, performer)
 			}
 
-			for _, performer := range performers {
-				if job.IsCancelled(ctx) {
-					return nil
-				}
-
-				if err := tagger.PerformerAudios(ctx, performer, paths, r.Audio); err != nil {
-					return fmt.Errorf("tagging performer '%s': %w", performer.Name, err)
-				}
-
-				progress.Increment()
-			}
-
 			return nil
 		}); err != nil {
 			logger.Errorf("auto-tag error: %v", err)
+		}
+
+		// Write phase: tag audios inside a writable transaction.
+		for _, performer := range performers {
+			if job.IsCancelled(ctx) {
+				logger.Info("Stopping performer auto-tag due to user request")
+				return
+			}
+
+			if err := r.WithTxn(ctx, func(ctx context.Context) error {
+				return tagger.PerformerAudios(ctx, performer, paths, r.Audio)
+			}); err != nil {
+				logger.Errorf("auto-tag error tagging performer '%s': %v", performer.Name, err)
+			}
+
+			progress.Increment()
 		}
 
 		if job.IsCancelled(ctx) {
@@ -206,6 +211,7 @@ func (j *autoTagJob) autoTagStudios(ctx context.Context, progress *job.Progress,
 	for _, studioId := range studioIds {
 		var studios []*models.Studio
 
+		// Read phase: load studios using the read-only DB.
 		if err := r.WithDB(ctx, func(ctx context.Context) error {
 			studioQuery := r.Studio
 			ignoreAutoTag := false
@@ -243,26 +249,29 @@ func (j *autoTagJob) autoTagStudios(ctx context.Context, progress *job.Progress,
 				studios = append(studios, studio)
 			}
 
-			for _, studio := range studios {
-				if job.IsCancelled(ctx) {
-					return nil
-				}
+			return nil
+		}); err != nil {
+			logger.Errorf("auto-tag error: %v", err)
+		}
 
+		// Write phase: tag audios inside a writable transaction.
+		for _, studio := range studios {
+			if job.IsCancelled(ctx) {
+				logger.Info("Stopping studio auto-tag due to user request")
+				return
+			}
+
+			if err := r.WithTxn(ctx, func(ctx context.Context) error {
 				aliases, err := r.Studio.GetAliases(ctx, studio.ID)
 				if err != nil {
 					return fmt.Errorf("getting studio aliases: %w", err)
 				}
-
-				if err := tagger.StudioAudios(ctx, studio, paths, aliases, r.Audio); err != nil {
-					return fmt.Errorf("tagging studio '%s': %w", studio.Name, err)
-				}
-
-				progress.Increment()
+				return tagger.StudioAudios(ctx, studio, paths, aliases, r.Audio)
+			}); err != nil {
+				logger.Errorf("auto-tag error tagging studio '%s': %v", studio.Name, err)
 			}
 
-			return nil
-		}); err != nil {
-			logger.Errorf("auto-tag error: %v", err)
+			progress.Increment()
 		}
 
 		if job.IsCancelled(ctx) {
@@ -285,6 +294,8 @@ func (j *autoTagJob) autoTagTags(ctx context.Context, progress *job.Progress, pa
 
 	for _, tagId := range tagIds {
 		var tags []*models.Tag
+
+		// Read phase: load tags using the read-only DB.
 		if err := r.WithDB(ctx, func(ctx context.Context) error {
 			tagQuery := r.Tag
 			ignoreAutoTag := false
@@ -322,26 +333,29 @@ func (j *autoTagJob) autoTagTags(ctx context.Context, progress *job.Progress, pa
 				tags = append(tags, tag)
 			}
 
-			for _, tag := range tags {
-				if job.IsCancelled(ctx) {
-					return nil
-				}
+			return nil
+		}); err != nil {
+			logger.Errorf("auto-tag error: %v", err)
+		}
 
+		// Write phase: tag audios inside a writable transaction.
+		for _, tag := range tags {
+			if job.IsCancelled(ctx) {
+				logger.Info("Stopping tag auto-tag due to user request")
+				return
+			}
+
+			if err := r.WithTxn(ctx, func(ctx context.Context) error {
 				aliases, err := r.Tag.GetAliases(ctx, tag.ID)
 				if err != nil {
 					return fmt.Errorf("getting tag aliases: %w", err)
 				}
-
-				if err := tagger.TagAudios(ctx, tag, paths, aliases, r.Audio); err != nil {
-					return fmt.Errorf("tagging tag '%s': %w", tag.Name, err)
-				}
-
-				progress.Increment()
+				return tagger.TagAudios(ctx, tag, paths, aliases, r.Audio)
+			}); err != nil {
+				logger.Errorf("auto-tag error tagging tag '%s': %v", tag.Name, err)
 			}
 
-			return nil
-		}); err != nil {
-			logger.Errorf("auto-tag error: %v", err)
+			progress.Increment()
 		}
 
 		if job.IsCancelled(ctx) {
