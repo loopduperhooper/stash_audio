@@ -3,7 +3,7 @@ package urlbuilders
 import (
 	"strconv"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 type AudioURLBuilder struct {
@@ -30,4 +30,8 @@ func (b AudioURLBuilder) GetStreamURL() string {
 
 func (b AudioURLBuilder) GetVTTURL() string {
 	return b.BaseURL + "/audio/" + b.AudioID + "/vtt/chapter"
+}
+
+func (b AudioURLBuilder) GetFunscriptURL() string {
+	return b.BaseURL + "/audio/" + b.AudioID + "/funscript"
 }

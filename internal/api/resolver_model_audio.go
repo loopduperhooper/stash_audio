@@ -3,9 +3,9 @@ package api
 import (
 	"context"
 
-	"github.com/stashapp/stash/internal/api/loaders"
-	"github.com/stashapp/stash/internal/api/urlbuilders"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/internal/api/loaders"
+	"github.com/stashapp/stash_audio/internal/api/urlbuilders"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func (r *audioResolver) getFiles(ctx context.Context, obj *models.Audio) ([]models.File, error) {
@@ -53,10 +53,12 @@ func (r *audioResolver) Paths(ctx context.Context, obj *models.Audio) (*AudioPat
 	coverPath := builder.GetCoverURL()
 	streamPath := builder.GetStreamURL()
 	vttPath := builder.GetVTTURL()
+	funscriptPath := builder.GetFunscriptURL()
 	return &AudioPathsType{
-		Cover:  &coverPath,
-		Stream: &streamPath,
-		Vtt:    &vttPath,
+		Cover:     &coverPath,
+		Stream:    &streamPath,
+		Vtt:       &vttPath,
+		Funscript: &funscriptPath,
 	}, nil
 }
 
@@ -78,6 +80,20 @@ func (r *audioResolver) Tags(ctx context.Context, obj *models.Audio) (ret []*mod
 
 	var errs []error
 	ret, errs = loaders.From(ctx).TagByID.LoadAll(obj.TagIDs.List())
+	return ret, firstError(errs)
+}
+
+func (r *audioResolver) Groups(ctx context.Context, obj *models.Audio) (ret []*models.Group, err error) {
+	if !obj.GroupIDs.Loaded() {
+		if err := r.withReadTxn(ctx, func(ctx context.Context) error {
+			return obj.LoadGroupIDs(ctx, r.repository.Audio)
+		}); err != nil {
+			return nil, err
+		}
+	}
+
+	var errs []error
+	ret, errs = loaders.From(ctx).GroupByID.LoadAll(obj.GroupIDs.List())
 	return ret, firstError(errs)
 }
 

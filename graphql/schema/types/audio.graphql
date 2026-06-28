@@ -17,6 +17,7 @@ type Audio {
   studio: Studio
   tags: [Tag!]!
   performers: [Performer!]!
+  groups: [Group!]!
   urls: [String!]!
   stash_ids: [StashID!]!
 
@@ -28,6 +29,7 @@ type AudioPathsType {
   cover: String # Resolver
   stream: String # Resolver
   vtt: String # Resolver
+  funscript: String # Resolver
 }
 
 type FindAudiosResultType {
@@ -49,6 +51,7 @@ input AudioCreateInput {
   studio_id: ID
   tag_ids: [ID!]
   performer_ids: [ID!]
+  group_ids: [ID!]
   urls: [String!]
   stash_ids: [StashIDInput!]
   cover_image: String
@@ -67,6 +70,7 @@ input AudioUpdateInput {
   studio_id: ID
   tag_ids: [ID!]
   performer_ids: [ID!]
+  group_ids: [ID!]
   urls: [String!]
   stash_ids: [StashIDInput!]
   cover_image: String

@@ -18,6 +18,7 @@ fragment AudioData on Audio {
     cover
     stream
     vtt
+    funscript
   }
 
   studio {
@@ -30,6 +31,10 @@ fragment AudioData on Audio {
 
   performers {
     ...PerformerData
+  }
+
+  groups {
+    ...ListGroupData
   }
 
   stash_ids {
