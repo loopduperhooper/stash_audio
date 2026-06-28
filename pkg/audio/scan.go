@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
-	"github.com/stashapp/stash/pkg/ffmpeg"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/plugin"
-	"github.com/stashapp/stash/pkg/plugin/hook"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/plugin"
+	"github.com/stashapp/stash_audio/pkg/plugin/hook"
 )
 
 var ErrNotAudioFile = errors.New("not an audio file")
@@ -140,9 +143,10 @@ func (h *ScanHandler) associateExisting(ctx context.Context, existing []*models.
 	return nil
 }
 
-// extractCoverIfMissing extracts embedded cover art from filePath and stores
-// it for audioID, but only when no cover is already set. Errors are logged
-// and not propagated so cover extraction never aborts a scan.
+// extractCoverIfMissing finds cover art for audioID and stores it, but only
+// when no cover is already set. It checks sidecar image files first (same
+// directory, common cover names), then falls back to embedded art via ffmpeg.
+// Errors are logged and not propagated so cover extraction never aborts a scan.
 func (h *ScanHandler) extractCoverIfMissing(ctx context.Context, audioID int, filePath string) {
 	if h.CoverUpdater == nil {
 		return
@@ -157,6 +161,15 @@ func (h *ScanHandler) extractCoverIfMissing(ctx context.Context, audioID int, fi
 		return
 	}
 
+	// 1. Look for sidecar image files.
+	if cover := findSidecarCover(filePath); len(cover) > 0 {
+		if err := h.CoverUpdater.UpdateCover(ctx, audioID, cover); err != nil {
+			logger.Warnf("storing sidecar cover for audio %d: %v", audioID, err)
+		}
+		return
+	}
+
+	// 2. Fall back to embedded art.
 	if h.FFMpeg == nil {
 		return
 	}
@@ -171,6 +184,38 @@ func (h *ScanHandler) extractCoverIfMissing(ctx context.Context, audioID int, fi
 	}
 
 	if err := h.CoverUpdater.UpdateCover(ctx, audioID, cover); err != nil {
-		logger.Warnf("storing cover for audio %d: %v", audioID, err)
+		logger.Warnf("storing embedded cover for audio %d: %v", audioID, err)
 	}
+}
+
+// sidecarCoverNames lists candidate filenames to check, in priority order.
+// Also checks <audio-basename>.<ext> for each ext.
+var sidecarCoverExts = []string{".jpg", ".jpeg", ".png", ".webp"}
+var sidecarCoverNames = []string{"cover", "folder", "artwork", "front"}
+
+func findSidecarCover(audioPath string) []byte {
+	dir := filepath.Dir(audioPath)
+	base := strings.TrimSuffix(filepath.Base(audioPath), filepath.Ext(audioPath))
+
+	// Priority 1: same basename as audio file
+	for _, ext := range sidecarCoverExts {
+		candidate := filepath.Join(dir, base+ext)
+		if data, err := os.ReadFile(candidate); err == nil {
+			logger.Debugf("Using sidecar cover: %s", candidate)
+			return data
+		}
+	}
+
+	// Priority 2: common cover filenames in the same directory
+	for _, name := range sidecarCoverNames {
+		for _, ext := range sidecarCoverExts {
+			candidate := filepath.Join(dir, name+ext)
+			if data, err := os.ReadFile(candidate); err == nil {
+				logger.Debugf("Using sidecar cover: %s", candidate)
+				return data
+			}
+		}
+	}
+
+	return nil
 }
