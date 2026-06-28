@@ -2668,10 +2668,6 @@ export const useLoggingSubscribe = () => GQL.useLoggingSubscribeSubscription();
 export const scraperMutationImpactedQueries = [
   GQL.ListGroupScrapersDocument,
   GQL.ListPerformerScrapersDocument,
-  GQL.ListSceneScrapersDocument,
-  GQL.ListImageScrapersDocument,
-  GQL.InstalledScraperPackagesDocument,
-  GQL.InstalledScraperPackagesStatusDocument,
 ];
 
 export const mutateReloadScrapers = () =>

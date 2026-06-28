@@ -13,7 +13,6 @@ import Select, {
 import CreatableSelect from "react-select/creatable";
 
 import * as GQL from "src/core/generated-graphql";
-import { useMarkerStrings } from "src/core/StashService";
 import { SelectComponents } from "react-select/dist/declarations/src/components";
 import { useConfigurationContext } from "src/hooks/Config";
 import { objectTitle } from "src/core/files";
@@ -25,9 +24,7 @@ import { Icon } from "./Icon";
 import { faTableColumns } from "@fortawesome/free-solid-svg-icons";
 import { TagIDSelect } from "../Tags/TagSelect";
 import { StudioIDSelect } from "../Studios/StudioSelect";
-import { GalleryIDSelect } from "../Galleries/GallerySelect";
 import { GroupIDSelect } from "../Groups/GroupSelect";
-import { SceneIDSelect } from "../Scenes/SceneSelect";
 
 export type SelectObject = {
   id: string;
@@ -43,9 +40,7 @@ interface ITypeProps {
     | "tags"
     | "scene_tags"
     | "performer_tags"
-    | "scenes"
-    | "groups"
-    | "galleries";
+    | "groups";
 }
 interface IFilterProps {
   ids?: string[];
@@ -250,75 +245,13 @@ const SelectComponent = <T extends boolean>({
   );
 };
 
-export const GallerySelect: React.FC<
-  IFilterProps & { excludeIds?: string[] }
-> = (props) => {
-  return <GalleryIDSelect {...props} />;
-};
-
-export const SceneSelect: React.FC<IFilterProps & { excludeIds?: string[] }> = (
-  props
-) => {
-  return <SceneIDSelect {...props} />;
-};
-
-export const ImageSelect: React.FC<ITitledSelect> = (props) => {
-  const [query, setQuery] = useState<string>("");
-  const { data, loading } = GQL.useFindImagesQuery({
-    skip: query === "",
-    variables: {
-      filter: {
-        q: query,
-      },
-    },
-  });
-
-  const images = data?.findImages.images ?? [];
-  const items = images.map((s) => ({
-    label: objectTitle(s),
-    value: s.id,
-  }));
-
-  const onInputChange = useDebounce(setQuery, 500);
-
-  const onChange = (selectedItems: OnChangeValue<Option, boolean>) => {
-    const selected = getSelectedItems(selectedItems);
-    props.onSelect(
-      (selected ?? []).map((s) => ({
-        id: s.value,
-        title: s.label,
-      }))
-    );
-  };
-
-  const options = props.selected.map((s) => ({
-    value: s.id,
-    label: s.title,
-  }));
-
-  return (
-    <SelectComponent
-      onChange={onChange}
-      onInputChange={onInputChange}
-      isLoading={loading}
-      items={items}
-      selectedOptions={options}
-      isMulti={props.isMulti ?? false}
-      placeholder="Search for image..."
-      noOptionsMessage={query === "" ? null : "No images found."}
-      showDropdown={false}
-      isDisabled={props.disabled}
-    />
-  );
-};
-
 interface IMarkerSuggestProps {
   initialMarkerTitle?: string;
   onChange: (title: string) => void;
 }
 export const MarkerTitleSuggest: React.FC<IMarkerSuggestProps> = (props) => {
-  const { data, loading } = useMarkerStrings();
-  const suggestions = data?.markerStrings ?? [];
+  const loading = false;
+  const suggestions: { title: string }[] = [];
 
   const onChange = (selectedItem: OnChangeValue<Option, false>) =>
     props.onChange(selectedItem?.value ?? "");
@@ -380,12 +313,8 @@ export const FilterSelect: React.FC<IFilterProps & ITypeProps> = (props) => {
       return <PerformerSelect {...props} creatable={false} />;
     case "studios":
       return <StudioSelect {...props} creatable={false} />;
-    case "scenes":
-      return <SceneSelect {...props} creatable={false} />;
     case "groups":
       return <GroupSelect {...props} creatable={false} />;
-    case "galleries":
-      return <GallerySelect {...props} creatable={false} />;
     default:
       return <TagSelect {...props} creatable={false} />;
   }

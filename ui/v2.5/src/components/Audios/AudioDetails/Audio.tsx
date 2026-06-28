@@ -21,7 +21,7 @@ import {
   OCounterButton,
   ViewCountButton,
 } from "src/components/Shared/CountButton";
-import { OrganizedButton } from "src/components/Scenes/SceneDetails/OrganizedButton";
+import { OrganizedButton } from "src/components/Shared/OrganizedButton";
 import { objectTitle } from "src/core/files";
 import { useRatingKeybinds } from "src/hooks/keybinds";
 import { lazyComponent } from "src/utils/lazyComponent";
@@ -40,6 +40,7 @@ import { AudioPlayer } from "./AudioPlayer";
 const AudioDetailPanel = lazyComponent(() => import("./AudioDetailPanel"));
 const AudioFileInfoPanel = lazyComponent(() => import("./AudioFileInfoPanel"));
 const AudioEditPanel = lazyComponent(() => import("./AudioEditPanel"));
+const AudioGroupPanel = lazyComponent(() => import("./AudioGroupPanel"));
 const DeleteAudiosDialog = lazyComponent(
   () => import("../DeleteAudiosDialog")
 );
@@ -173,6 +174,16 @@ const AudioPage: React.FC<IAudioPageProps> = ({
               <FormattedMessage id="file_info" />
             </Nav.Link>
           </Nav.Item>
+          {audio.groups.length > 0 && (
+            <Nav.Item>
+              <Nav.Link eventKey="audio-groups-panel">
+                <FormattedMessage
+                  id="countables.groups"
+                  values={{ count: audio.groups.length }}
+                />
+              </Nav.Link>
+            </Nav.Item>
+          )}
         </Nav>
       </div>
       <Tab.Content>
@@ -190,6 +201,9 @@ const AudioPage: React.FC<IAudioPageProps> = ({
         <Tab.Pane className="file-info-panel" eventKey="audio-file-info-panel">
           <AudioFileInfoPanel audio={audio} />
         </Tab.Pane>
+        <Tab.Pane eventKey="audio-groups-panel">
+          <AudioGroupPanel audio={audio} />
+        </Tab.Pane>
       </Tab.Content>
     </Tab.Container>
   );
@@ -206,7 +220,7 @@ const AudioPage: React.FC<IAudioPageProps> = ({
         />
       )}
       <div
-        className={`scene-tabs order-xl-first order-last${
+        className={`details-tab order-xl-first order-last${
           collapsed ? " collapsed" : ""
         }`}
       >
@@ -275,7 +289,7 @@ const AudioPage: React.FC<IAudioPageProps> = ({
         {renderTabs()}
       </div>
 
-      <div className="scene-divider d-none d-xl-block">
+      <div className="details-divider d-none d-xl-block">
         <Button onClick={() => setCollapsed(!collapsed)}>
           <Icon
             className="fa-fw"
@@ -323,7 +337,7 @@ const AudioLoader: React.FC<RouteComponentProps<IAudioParams>> = ({
         setCollapsed={setCollapsed}
         onDelete={onDelete}
       />
-      <div className={`scene-player-container audio-player-container${collapsed ? " expanded" : ""}`}>
+      <div className={`content-container audio-player-container${collapsed ? " expanded" : ""}`}>
         <AudioPlayer audio={audio} />
       </div>
     </div>

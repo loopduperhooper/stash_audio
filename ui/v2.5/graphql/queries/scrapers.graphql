@@ -1,0 +1,24 @@
+fragment ScraperData on Scraper {
+  id
+  name
+  performer {
+    urls
+    supported_scrapes
+  }
+  group {
+    urls
+    supported_scrapes
+  }
+}
+
+query ListPerformerScrapers {
+  listScrapers(types: [PERFORMER]) {
+    ...ScraperData
+  }
+}
+
+query ListGroupScrapers {
+  listScrapers(types: [GROUP]) {
+    ...ScraperData
+  }
+}
