@@ -434,6 +434,16 @@ var (
 		fkColumn: groupsAudiosJoinTable.Col(audioIDColumn),
 	}
 
+	// audiosGroupsTableMgr is the audio-centric inverse of groupsAudiosTableMgr.
+	// Use this when the primary key is an audio ID (e.g. in AudioStore).
+	audiosGroupsTableMgr = &joinTable{
+		table: table{
+			table:    groupsAudiosJoinTable,
+			idColumn: groupsAudiosJoinTable.Col(audioIDColumn),
+		},
+		fkColumn: groupsAudiosJoinTable.Col(groupIDColumn),
+	}
+
 	performersGroupsTableMgr = &joinTable{
 		table: table{
 			table:    performersGroupsJoinTable,
