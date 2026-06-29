@@ -304,15 +304,17 @@ func newExtensionConfig(c *config.Config) extensionConfig {
 	}
 }
 
-type fileCounter interface {
+type audioFileQuerier interface {
 	CountByFileID(ctx context.Context, fileID models.FileID) (int, error)
+	FindByFileID(ctx context.Context, fileID models.FileID) ([]*models.Audio, error)
+	GetGroupIDs(ctx context.Context, id int) ([]int, error)
 }
 
 // handlerRequiredFilter returns true if a File's handler needs to be executed despite the file not being updated.
 type handlerRequiredFilter struct {
 	extensionConfig
 	txnManager  txn.Manager
-	AudioFinder fileCounter
+	AudioFinder audioFileQuerier
 
 	FolderCache *lru.LRU[bool]
 }
@@ -336,12 +338,28 @@ func (f *handlerRequiredFilter) Accept(ctx context.Context, ff models.File) bool
 		return false
 	}
 
-	n, err := f.AudioFinder.CountByFileID(ctx, ff.Base().ID)
+	audios, err := f.AudioFinder.FindByFileID(ctx, ff.Base().ID)
 	if err != nil {
 		return false
 	}
 
-	return n == 0
+	// New file — handler must run to create the audio record.
+	if len(audios) == 0 {
+		return true
+	}
+
+	// Existing file — run handler if any audio has no group assigned yet.
+	for _, a := range audios {
+		groupIDs, err := f.AudioFinder.GetGroupIDs(ctx, a.ID)
+		if err != nil {
+			continue
+		}
+		if len(groupIDs) == 0 {
+			return true
+		}
+	}
+
+	return false
 }
 
 type scanFilter struct {
