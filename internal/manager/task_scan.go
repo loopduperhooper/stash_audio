@@ -432,6 +432,8 @@ func getScanHandlers(options ScanMetadataInput, taskQueue *job.TaskQueue, progre
 				CoverUpdater:   r.Audio,
 				FFMpeg:         mgr.FFMpeg,
 				PluginCache:    pluginCache,
+				GroupAssigner:  r.Group,
+				LibraryPaths:   mgr.Config.GetStashPaths().Paths(),
 			},
 		},
 	}
