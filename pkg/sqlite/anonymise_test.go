@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stashapp/stash/pkg/sqlite"
+	"github.com/stashapp/stash_audio/pkg/sqlite"
 )
 
 func TestAnonymiser_Anonymise(t *testing.T) {

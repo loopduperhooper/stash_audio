@@ -1,5 +1,6 @@
 import { FilterMode } from "src/core/generated-graphql";
 import { ListFilterOptions } from "./filter-options";
+import { AudioListFilterOptions } from "./audios";
 import { GalleryListFilterOptions } from "./galleries";
 import { ImageListFilterOptions } from "./images";
 import { GroupListFilterOptions } from "./groups";
@@ -11,6 +12,8 @@ import { TagListFilterOptions } from "./tags";
 
 export function getFilterOptions(mode: FilterMode): ListFilterOptions {
   switch (mode) {
+    case FilterMode.Audios:
+      return AudioListFilterOptions;
     case FilterMode.Scenes:
       return SceneListFilterOptions;
     case FilterMode.Performers:

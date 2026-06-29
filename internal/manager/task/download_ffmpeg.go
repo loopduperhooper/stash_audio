@@ -11,10 +11,10 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/stashapp/stash/pkg/ffmpeg"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/job"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/job"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 type DownloadFFmpegJob struct {

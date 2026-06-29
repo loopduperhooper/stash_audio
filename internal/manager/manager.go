@@ -13,31 +13,28 @@ import (
 	"time"
 
 	"github.com/remeh/sizedwaitgroup"
-	"github.com/stashapp/stash/internal/dlna"
-	"github.com/stashapp/stash/internal/log"
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/pkg/ffmpeg"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/job"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/models/paths"
-	"github.com/stashapp/stash/pkg/pkg"
-	"github.com/stashapp/stash/pkg/plugin"
-	"github.com/stashapp/stash/pkg/scraper"
-	"github.com/stashapp/stash/pkg/session"
-	"github.com/stashapp/stash/pkg/sqlite"
+	"github.com/stashapp/stash_audio/internal/log"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/job"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models/paths"
+	"github.com/stashapp/stash_audio/pkg/pkg"
+	"github.com/stashapp/stash_audio/pkg/plugin"
+	"github.com/stashapp/stash_audio/pkg/session"
+	"github.com/stashapp/stash_audio/pkg/sqlite"
 
 	// register custom migrations
-	_ "github.com/stashapp/stash/pkg/sqlite/migrations"
+	_ "github.com/stashapp/stash_audio/pkg/sqlite/migrations"
 )
 
 type Manager struct {
 	Config *config.Config
 	Logger *log.Logger
 
-	// ImageThumbnailGenerateWaitGroup is the global wait group image thumbnail generation
-	// It uses the parallel tasks setting from the configuration.
+	// ImageThumbnailGenerateWaitGroup is the global wait group for cover art generation
 	ImageThumbnailGenerateWaitGroup sizedwaitgroup.SizedWaitGroup
 
 	Paths *paths.Paths
@@ -52,21 +49,14 @@ type Manager struct {
 	DownloadStore *DownloadStore
 	SessionStore  *session.Store
 
-	PluginCache  *plugin.Cache
-	ScraperCache *scraper.Cache
+	PluginCache *plugin.Cache
 
-	PluginPackageManager  *pkg.Manager
-	ScraperPackageManager *pkg.Manager
-
-	DLNAService *dlna.Service
+	PluginPackageManager *pkg.Manager
 
 	Database   *sqlite.Database
 	Repository models.Repository
 
-	SceneService   SceneService
-	ImageService   ImageService
-	GalleryService GalleryService
-	GroupService   GroupService
+	GroupService GroupService
 
 	scanSubs *subscriptionManager
 }
@@ -97,23 +87,8 @@ func (s *Manager) RefreshConfig() {
 	cfg := s.Config
 	*s.Paths = paths.NewPaths(cfg.GetGeneratedPath(), cfg.GetBlobsPath())
 	if cfg.Validate() == nil {
-		if err := fsutil.EnsureDir(s.Paths.Generated.Screenshots); err != nil {
-			logger.Warnf("could not create screenshots directory: %v", err)
-		}
-		if err := fsutil.EnsureDir(s.Paths.Generated.Vtt); err != nil {
-			logger.Warnf("could not create VTT directory: %v", err)
-		}
-		if err := fsutil.EnsureDir(s.Paths.Generated.Markers); err != nil {
-			logger.Warnf("could not create markers directory: %v", err)
-		}
-		if err := fsutil.EnsureDir(s.Paths.Generated.Transcodes); err != nil {
-			logger.Warnf("could not create transcodes directory: %v", err)
-		}
 		if err := fsutil.EnsureDir(s.Paths.Generated.Downloads); err != nil {
 			logger.Warnf("could not create downloads directory: %v", err)
-		}
-		if err := fsutil.EnsureDir(s.Paths.Generated.InteractiveHeatmap); err != nil {
-			logger.Warnf("could not create interactive heatmaps directory: %v", err)
 		}
 
 		s.ImageThumbnailGenerateWaitGroup.Size = cfg.GetParallelTasksWithAutoDetection()
@@ -124,12 +99,6 @@ func (s *Manager) RefreshConfig() {
 // Call this when the plugin configuration changes.
 func (s *Manager) RefreshPluginCache() {
 	s.PluginCache.ReloadPlugins()
-}
-
-// RefreshScraperCache refreshes the scraper cache.
-// Call this when the scraper configuration changes.
-func (s *Manager) RefreshScraperCache() {
-	s.ScraperCache.ReloadScrapers()
 }
 
 // RefreshStreamManager refreshes the stream manager.
@@ -144,19 +113,6 @@ func (s *Manager) RefreshStreamManager() {
 	cfg := s.Config
 	cacheDir := cfg.GetCachePath()
 	s.StreamManager = ffmpeg.NewStreamManager(cacheDir, s.FFMpeg, s.FFProbe, cfg, s.ReadLockManager)
-}
-
-// RefreshDLNA starts/stops the DLNA service as needed.
-func (s *Manager) RefreshDLNA() {
-	dlnaService := s.DLNAService
-	enabled := s.Config.GetDLNADefaultEnabled()
-	if !enabled && dlnaService.IsRunning() {
-		dlnaService.Stop(nil)
-	} else if enabled && !dlnaService.IsRunning() {
-		if err := dlnaService.Start(nil); err != nil {
-			logger.Warnf("error starting DLNA service: %v", err)
-		}
-	}
 }
 
 func createPackageManager(localPath string, srcPathGetter pkg.SourcePathGetter) *pkg.Manager {
@@ -178,17 +134,13 @@ func createPackageManager(localPath string, srcPathGetter pkg.SourcePathGetter) 
 	}
 }
 
-func (s *Manager) RefreshScraperSourceManager() {
-	s.ScraperPackageManager = createPackageManager(s.Config.GetScrapersPath(), s.Config.GetScraperPackagePathGetter())
-}
-
 func (s *Manager) RefreshPluginSourceManager() {
 	s.PluginPackageManager = createPackageManager(s.Config.GetPluginsPath(), s.Config.GetPluginPackagePathGetter())
 }
 
 func setSetupDefaults(input *SetupInput) {
 	if input.ConfigLocation == "" {
-		input.ConfigLocation = filepath.Join(fsutil.GetHomeDirectory(), ".stash", "config.yml")
+		input.ConfigLocation = filepath.Join(fsutil.GetHomeDirectory(), ".stash_audio", "config.yml")
 	}
 
 	configDir := filepath.Dir(input.ConfigLocation)
@@ -200,7 +152,7 @@ func setSetupDefaults(input *SetupInput) {
 	}
 
 	if input.DatabaseFile == "" {
-		input.DatabaseFile = filepath.Join(configDir, "stash-go.sqlite")
+		input.DatabaseFile = filepath.Join(configDir, "stash_audio.sqlite")
 	}
 
 	if input.BlobsLocation == "" {
@@ -215,14 +167,6 @@ func (s *Manager) Setup(ctx context.Context, input SetupInput) error {
 	// create the config directory if it does not exist
 	// don't do anything if config is already set in the environment
 	if !config.FileEnvSet() {
-		// #3304 - if config path is relative, it breaks the ffmpeg/ffprobe
-		// paths since they must not be relative. The config file property is
-		// resolved to an absolute path when stash is run normally, so convert
-		// relative paths to absolute paths during setup.
-		// #6287 - this should no longer be necessary since the ffmpeg code
-		// converts to absolute paths. Converting the config location to
-		// absolute means that scraper and plugin paths default to absolute
-		// which we don't want.
 		configFile := input.ConfigLocation
 		configDir := filepath.Dir(configFile)
 
@@ -240,7 +184,7 @@ func (s *Manager) Setup(ctx context.Context, input SetupInput) error {
 	}
 
 	if err := cfg.SetInitialConfig(); err != nil {
-		return fmt.Errorf("error setting initial configuration: %v", err)
+		return fmt.Errorf("error setting initial configuration: %w", err)
 	}
 
 	// create the generated directory if it does not exist
@@ -293,12 +237,12 @@ func (s *Manager) Setup(ctx context.Context, input SetupInput) error {
 	cfg.SetInterface(config.Stash, input.Stashes)
 
 	if err := cfg.Write(); err != nil {
-		return fmt.Errorf("error writing configuration file: %v", err)
+		return fmt.Errorf("error writing configuration file: %w", err)
 	}
 
 	// finish initialization
 	if err := s.postInit(ctx); err != nil {
-		return fmt.Errorf("error completing initialization: %v", err)
+		return fmt.Errorf("error completing initialization: %w", err)
 	}
 
 	cfg.FinalizeSetup()
@@ -392,8 +336,6 @@ func (s *Manager) GetSystemStatus() *SystemStatus {
 
 // Shutdown gracefully stops the manager
 func (s *Manager) Shutdown() {
-	// TODO: Each part of the manager needs to gracefully stop at some point
-
 	if s.StreamManager != nil {
 		s.StreamManager.Shutdown()
 		s.StreamManager = nil

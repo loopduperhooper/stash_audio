@@ -4,8 +4,8 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/stashapp/stash/internal/api/loaders"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/internal/api/loaders"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func (r *folderResolver) Basename(ctx context.Context, obj *models.Folder) (string, error) {

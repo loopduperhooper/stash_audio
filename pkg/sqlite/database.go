@@ -12,8 +12,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 const (
@@ -34,7 +34,7 @@ const (
 	cacheSizeEnv = "STASH_SQLITE_CACHE_SIZE"
 )
 
-var appSchemaVersion uint = 84
+var appSchemaVersion uint = 88
 
 //go:embed migrations/*.sql
 var migrationsBox embed.FS
@@ -66,19 +66,15 @@ func (e *MismatchedSchemaVersionError) Error() string {
 }
 
 type storeRepository struct {
-	Blobs          *BlobStore
-	File           *FileStore
-	Folder         *FolderStore
-	Image          *ImageStore
-	Gallery        *GalleryStore
-	GalleryChapter *GalleryChapterStore
-	Scene          *SceneStore
-	SceneMarker    *SceneMarkerStore
-	Performer      *PerformerStore
-	SavedFilter    *SavedFilterStore
-	Studio         *StudioStore
-	Tag            *TagStore
-	Group          *GroupStore
+	Blobs       *BlobStore
+	File        *FileStore
+	Folder      *FolderStore
+	Audio       *AudioStore
+	Performer   *PerformerStore
+	SavedFilter *SavedFilterStore
+	Studio      *StudioStore
+	Tag         *TagStore
+	Group       *GroupStore
 }
 
 type Database struct {
@@ -96,7 +92,6 @@ type Database struct {
 func NewDatabase() *Database {
 	fileStore := NewFileStore()
 	folderStore := NewFolderStore()
-	galleryStore := NewGalleryStore(fileStore, folderStore)
 	blobStore := NewBlobStore(BlobStoreOptions{})
 	performerStore := NewPerformerStore(blobStore)
 	studioStore := NewStudioStore(blobStore)
@@ -104,19 +99,15 @@ func NewDatabase() *Database {
 
 	r := &storeRepository{}
 	*r = storeRepository{
-		Blobs:          blobStore,
-		File:           fileStore,
-		Folder:         folderStore,
-		Scene:          NewSceneStore(r, blobStore),
-		SceneMarker:    NewSceneMarkerStore(),
-		Image:          NewImageStore(r),
-		Gallery:        galleryStore,
-		GalleryChapter: NewGalleryChapterStore(),
-		Performer:      performerStore,
-		Studio:         studioStore,
-		Tag:            tagStore,
-		Group:          NewGroupStore(blobStore),
-		SavedFilter:    NewSavedFilterStore(),
+		Blobs:       blobStore,
+		File:        fileStore,
+		Folder:      folderStore,
+		Audio:       NewAudioStore(r, blobStore),
+		Performer:   performerStore,
+		Studio:      studioStore,
+		Tag:         tagStore,
+		Group:       NewGroupStore(blobStore),
+		SavedFilter: NewSavedFilterStore(),
 	}
 
 	ret := &Database{

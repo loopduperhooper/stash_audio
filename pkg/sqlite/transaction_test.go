@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/txn"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/txn"
 )
 
 // this test is left commented out as it is not deterministic.

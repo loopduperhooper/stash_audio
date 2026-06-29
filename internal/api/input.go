@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	"github.com/stashapp/stash/pkg/sliceutil/stringslice"
+	"github.com/stashapp/stash_audio/pkg/sliceutil/stringslice"
 )
 
 // TODO - apply handleIDs to other resolvers that accept ID lists

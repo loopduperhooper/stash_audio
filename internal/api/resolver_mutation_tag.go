@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/plugin/hook"
-	"github.com/stashapp/stash/pkg/sliceutil/stringslice"
-	"github.com/stashapp/stash/pkg/tag"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/plugin/hook"
+	"github.com/stashapp/stash_audio/pkg/sliceutil/stringslice"
+	"github.com/stashapp/stash_audio/pkg/tag"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 func (r *mutationResolver) getTag(ctx context.Context, id int) (ret *models.Tag, err error) {

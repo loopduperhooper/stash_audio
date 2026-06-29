@@ -4,8 +4,8 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/stashapp/stash/internal/manager"
-	"github.com/stashapp/stash/pkg/job"
+	"github.com/stashapp/stash_audio/internal/manager"
+	"github.com/stashapp/stash_audio/pkg/job"
 )
 
 func (r *queryResolver) JobQueue(ctx context.Context) ([]*Job, error) {

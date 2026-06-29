@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 type groupFilterHandler struct {
@@ -74,8 +73,6 @@ func (qb *groupFilterHandler) criterionHandler() criterionHandler {
 		qb.performersCriterionHandler(groupFilter.Performers),
 		qb.tagsCriterionHandler(groupFilter.Tags),
 		qb.tagCountCriterionHandler(groupFilter.TagCount),
-		qb.groupOCounterCriterionHandler(groupFilter.OCounter),
-		qb.sceneCountCriterionHandler(groupFilter.SceneCount),
 		&dateCriterionHandler{groupFilter.Date, "groups.date", nil},
 		groupHierarchyHandler.ParentsCriterionHandler(groupFilter.ContainingGroups),
 		groupHierarchyHandler.ChildrenCriterionHandler(groupFilter.SubGroups),
@@ -89,15 +86,6 @@ func (qb *groupFilterHandler) criterionHandler() criterionHandler {
 			fkCol: groupIDColumn,
 			c:     groupFilter.CustomFields,
 			idCol: "groups.id",
-		},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "groups_scenes.scene_id",
-			relatedRepo:    sceneRepository.repository,
-			relatedHandler: &sceneFilterHandler{groupFilter.ScenesFilter},
-			joinFn: func(f *filterBuilder) {
-				groupRepository.scenes.innerJoin(f, "", "groups.id")
-			},
 		},
 
 		&relatedFilterHandler{
@@ -230,46 +218,4 @@ func (qb *groupFilterHandler) tagCountCriterionHandler(count *models.IntCriterio
 	return h.handler(count)
 }
 
-func (qb *groupFilterHandler) sceneCountCriterionHandler(count *models.IntCriterionInput) criterionHandlerFunc {
-	h := countCriterionHandlerBuilder{
-		primaryTable: groupTable,
-		joinTable:    groupsScenesTable,
-		primaryFK:    groupIDColumn,
-	}
 
-	return h.handler(count)
-}
-
-// used for sorting and filtering on group o-count
-var selectGroupOCountSQL = utils.StrFormat(
-	"SELECT SUM(o_counter) "+
-		"FROM ("+
-		"SELECT COUNT({scenes_o_dates}.{o_date}) as o_counter from {groups_scenes} s "+
-		"LEFT JOIN {scenes} ON {scenes}.id = s.{scene_id} "+
-		"LEFT JOIN {scenes_o_dates} ON {scenes_o_dates}.{scene_id} = {scenes}.id "+
-		"WHERE s.{group_id} = {group}.id "+
-		")",
-	map[string]interface{}{
-		"group":          groupTable,
-		"group_id":       groupIDColumn,
-		"groups_scenes":  groupsScenesTable,
-		"scenes":         sceneTable,
-		"scene_id":       sceneIDColumn,
-		"scenes_o_dates": scenesODatesTable,
-		"o_date":         sceneODateColumn,
-	},
-)
-
-func (qb *groupFilterHandler) groupOCounterCriterionHandler(count *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if count == nil {
-			return
-		}
-
-		lhs := "(" + selectGroupOCountSQL + ")"
-		clause, args := getIntCriterionWhereClause(lhs, *count)
-
-		f.addWhere(clause, args...)
-	}
-
-}

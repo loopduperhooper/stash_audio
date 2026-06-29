@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/stashapp/stash/internal/manager"
+	"github.com/stashapp/stash_audio/internal/manager"
 )
 
 func (r *mutationResolver) StopJob(ctx context.Context, jobID string) (bool, error) {

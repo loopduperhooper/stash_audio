@@ -1,0 +1,116 @@
+// Audio card grid
+.audio-card {
+  &-preview {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+    overflow: hidden;
+    position: relative;
+
+    &-image {
+      height: 100%;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    &-placeholder {
+      align-items: center;
+      background-color: #1a1a1a;
+      display: flex;
+      height: 100%;
+      justify-content: center;
+      width: 100%;
+    }
+  }
+}
+
+// Audio player container — fills the right side of the detail page
+.audio-player-container {
+  display: flex;
+  flex-direction: column;
+  background-color: #000;
+}
+
+.audio-player {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  flex: 1;
+  min-height: 300px;
+  position: relative;
+}
+
+.audio-player-cover {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.audio-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.audio-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  background-color: #1a1a1a;
+}
+
+.audio-player-element {
+  flex-shrink: 0;
+  width: 100%;
+  // Overlay the controls at the bottom of the cover
+  position: relative;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  padding: 1rem;
+}
+
+.audio-subtitle-display {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 0.4rem 1rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #fff;
+  pointer-events: none;
+  white-space: pre-wrap;
+
+  &.audio-subtitle-active {
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.audio-intiface-bar {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+}
+
+// At xl breakpoint, make the player fill the viewport height
+@media (min-width: 1200px) {
+  .audio-player-container {
+    height: calc(100vh - 4rem);
+    margin-top: -0.5rem;
+    overflow: hidden;
+  }
+
+  .audio-player {
+    height: 100%;
+    min-height: 0;
+  }
+}

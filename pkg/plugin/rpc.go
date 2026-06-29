@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/natefinch/pie"
-	"github.com/stashapp/stash/pkg/plugin/common"
+	"github.com/stashapp/stash_audio/pkg/plugin/common"
 )
 
 type rpcTaskBuilder struct{}

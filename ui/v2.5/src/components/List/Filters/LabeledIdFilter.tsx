@@ -625,6 +625,9 @@ export function setObjectFilter(
       }
       out.markers_filter = relatedFilterOutput as SceneMarkerFilterType;
       break;
+    case FilterMode.Audios:
+      // audios_filter cross-reference not yet implemented on related filter types
+      break;
     default:
       throw new Error("Invalid filter mode");
   }

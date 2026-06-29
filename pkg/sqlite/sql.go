@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func selectAll(tableName string) string {

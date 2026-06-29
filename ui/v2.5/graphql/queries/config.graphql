@@ -1,0 +1,15 @@
+query Configuration {
+  configuration {
+    ...ConfigData
+  }
+}
+
+query SystemStatus {
+  systemStatus {
+    databaseSchema
+    databasePath
+    configPath
+    appSchema
+    status
+  }
+}

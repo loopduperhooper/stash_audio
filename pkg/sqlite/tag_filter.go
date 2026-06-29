@@ -3,7 +3,7 @@ package sqlite
 import (
 	"context"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 type tagFilterHandler struct {
@@ -70,16 +70,11 @@ func (qb *tagFilterHandler) criterionHandler() criterionHandler {
 		boolCriterionHandler(tagFilter.IgnoreAutoTag, tagTable+".ignore_auto_tag", nil),
 
 		qb.isMissingCriterionHandler(tagFilter.IsMissing),
-		qb.sceneCountCriterionHandler(tagFilter.SceneCount),
-		qb.imageCountCriterionHandler(tagFilter.ImageCount),
-		qb.galleryCountCriterionHandler(tagFilter.GalleryCount),
 		qb.performerCountCriterionHandler(tagFilter.PerformerCount),
 		qb.studioCountCriterionHandler(tagFilter.StudioCount),
 
 		qb.groupCountCriterionHandler(tagFilter.GroupCount),
-		qb.groupCountCriterionHandler(tagFilter.MovieCount),
 
-		qb.markerCountCriterionHandler(tagFilter.MarkerCount),
 		tagHierarchyHandler.ParentsCriterionHandler(tagFilter.Parents),
 		tagHierarchyHandler.ChildrenCriterionHandler(tagFilter.Children),
 		tagHierarchyHandler.ParentCountCriterionHandler(tagFilter.ParentCount),
@@ -109,33 +104,6 @@ func (qb *tagFilterHandler) criterionHandler() criterionHandler {
 		},
 
 		&relatedFilterHandler{
-			relatedIDCol:   "scenes_tags.scene_id",
-			relatedRepo:    sceneRepository.repository,
-			relatedHandler: &sceneFilterHandler{tagFilter.ScenesFilter},
-			joinFn: func(f *filterBuilder) {
-				tagRepository.scenes.innerJoin(f, "", "tags.id")
-			},
-		},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "images_tags.image_id",
-			relatedRepo:    imageRepository.repository,
-			relatedHandler: &imageFilterHandler{tagFilter.ImagesFilter},
-			joinFn: func(f *filterBuilder) {
-				tagRepository.images.innerJoin(f, "", "tags.id")
-			},
-		},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "galleries_tags.gallery_id",
-			relatedRepo:    galleryRepository.repository,
-			relatedHandler: &galleryFilterHandler{tagFilter.GalleriesFilter},
-			joinFn: func(f *filterBuilder) {
-				tagRepository.galleries.innerJoin(f, "", "tags.id")
-			},
-		},
-
-		&relatedFilterHandler{
 			relatedIDCol:   "groups_tags.group_id",
 			relatedRepo:    groupRepository.repository,
 			relatedHandler: &groupFilterHandler{tagFilter.GroupsFilter},
@@ -162,19 +130,6 @@ func (qb *tagFilterHandler) criterionHandler() criterionHandler {
 			},
 		},
 
-		&relatedFilterHandler{
-			relatedIDCol:   "markers_tags.marker_id",
-			relatedRepo:    sceneMarkerRepository.repository,
-			relatedHandler: &sceneMarkerFilterHandler{tagFilter.MarkersFilter},
-			joinFn: func(f *filterBuilder) {
-				f.addWith(`markers_tags AS (
-				SELECT mt.scene_marker_id AS marker_id, mt.tag_id AS tag_id FROM scene_markers_tags mt
-				UNION
-				SELECT m.id, m.primary_tag_id FROM scene_markers m
-				)`)
-				f.addInnerJoin("markers_tags", "", "markers_tags.tag_id = tags.id")
-			},
-		},
 	}
 }
 
@@ -217,39 +172,6 @@ func (qb *tagFilterHandler) isMissingCriterionHandler(isMissing *string) criteri
 	}
 }
 
-func (qb *tagFilterHandler) sceneCountCriterionHandler(sceneCount *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if sceneCount != nil {
-			f.addLeftJoin("scenes_tags", "", "scenes_tags.tag_id = tags.id")
-			clause, args := getIntCriterionWhereClause("count(distinct scenes_tags.scene_id)", *sceneCount)
-
-			f.addHaving(clause, args...)
-		}
-	}
-}
-
-func (qb *tagFilterHandler) imageCountCriterionHandler(imageCount *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if imageCount != nil {
-			f.addLeftJoin("images_tags", "", "images_tags.tag_id = tags.id")
-			clause, args := getIntCriterionWhereClause("count(distinct images_tags.image_id)", *imageCount)
-
-			f.addHaving(clause, args...)
-		}
-	}
-}
-
-func (qb *tagFilterHandler) galleryCountCriterionHandler(galleryCount *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if galleryCount != nil {
-			f.addLeftJoin("galleries_tags", "", "galleries_tags.tag_id = tags.id")
-			clause, args := getIntCriterionWhereClause("count(distinct galleries_tags.gallery_id)", *galleryCount)
-
-			f.addHaving(clause, args...)
-		}
-	}
-}
-
 func (qb *tagFilterHandler) performerCountCriterionHandler(performerCount *models.IntCriterionInput) criterionHandlerFunc {
 	return func(ctx context.Context, f *filterBuilder) {
 		if performerCount != nil {
@@ -283,14 +205,3 @@ func (qb *tagFilterHandler) groupCountCriterionHandler(groupCount *models.IntCri
 	}
 }
 
-func (qb *tagFilterHandler) markerCountCriterionHandler(markerCount *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if markerCount != nil {
-			f.addLeftJoin("scene_markers_tags", "", "scene_markers_tags.tag_id = tags.id")
-			f.addLeftJoin("scene_markers", "", "scene_markers_tags.scene_marker_id = scene_markers.id OR scene_markers.primary_tag_id = tags.id")
-			clause, args := getIntCriterionWhereClause("count(distinct scene_markers.id)", *markerCount)
-
-			f.addHaving(clause, args...)
-		}
-	}
-}

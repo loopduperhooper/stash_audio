@@ -1,4 +1,5 @@
 export enum View {
+  Audios = "audios",
   Galleries = "galleries",
   Images = "images",
   Scenes = "scenes",
@@ -14,6 +15,7 @@ export enum View {
   TagImages = "tag_images",
   TagPerformers = "tag_performers",
   TagGroups = "tag_groups",
+  TagAudios = "tag_audios",
 
   PerformerScenes = "performer_scenes",
   PerformerGalleries = "performer_galleries",

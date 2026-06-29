@@ -21,7 +21,7 @@ import { FormattedMessage, useIntl } from "react-intl";
 import { LightboxImage } from "./LightboxImage";
 import { useConfigurationContext } from "../Config";
 import { Link } from "react-router-dom";
-import { OCounterButton } from "src/components/Scenes/SceneDetails/OCounterButton";
+import { OCounterButton } from "src/components/Shared/CountButton";
 import {
   mutateImageIncrementO,
   mutateImageDecrementO,

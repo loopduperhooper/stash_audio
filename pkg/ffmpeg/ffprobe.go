@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	stashExec "github.com/stashapp/stash/pkg/exec"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/logger"
+	stashExec "github.com/stashapp/stash_audio/pkg/exec"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 const minimumFFProbeVersion = 5
@@ -362,6 +362,17 @@ func isRotated(s *FFProbeStream) bool {
 		}
 	}
 
+	return false
+}
+
+// HasEmbeddedCover returns true if the file has an attached picture stream
+// (i.e. embedded cover art in an ID3/FLAC/MP4 tag).
+func (v *VideoFile) HasEmbeddedCover() bool {
+	for _, stream := range v.JSON.Streams {
+		if stream.Disposition.AttachedPic == 1 {
+			return true
+		}
+	}
 	return false
 }
 

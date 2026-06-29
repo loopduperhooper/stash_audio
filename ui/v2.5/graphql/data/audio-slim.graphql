@@ -1,0 +1,37 @@
+fragment SlimAudioData on Audio {
+  id
+  title
+  date
+  rating100
+  organized
+  o_counter
+  play_count
+
+  paths {
+    cover
+    stream
+  }
+
+  studio {
+    id
+    name
+    image_path
+  }
+
+  tags {
+    id
+    name
+  }
+
+  performers {
+    id
+    name
+    gender
+    favorite
+    image_path
+  }
+
+  files {
+    ...AudioFileData
+  }
+}

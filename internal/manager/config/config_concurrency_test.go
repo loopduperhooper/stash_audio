@@ -110,7 +110,6 @@ func TestConcurrentConfigAccess(t *testing.T) {
 				i.SetInterface(LogAccess, i.GetLogAccess())
 				i.SetInterface(MaxUploadSize, i.GetMaxUploadSize())
 				i.SetInterface(FunscriptOffset, i.GetFunscriptOffset())
-				i.SetInterface(DefaultIdentifySettings, i.GetDefaultIdentifySettings())
 				i.SetInterface(DeleteGeneratedDefault, i.GetDeleteGeneratedDefault())
 				i.SetInterface(DeleteFileDefault, i.GetDeleteFileDefault())
 				i.SetInterface(dangerousAllowPublicWithoutAuth, i.GetDangerousAllowPublicWithoutAuth())

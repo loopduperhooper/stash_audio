@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/stashapp/stash/internal/manager"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/pkg"
+	"github.com/stashapp/stash_audio/internal/manager"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/pkg"
 )
 
 var ErrInvalidPackageType = errors.New("invalid package type")
@@ -19,8 +19,6 @@ var ErrInvalidPackageType = errors.New("invalid package type")
 func getPackageManager(typeArg PackageType) (*pkg.Manager, error) {
 	var pm *pkg.Manager
 	switch typeArg {
-	case PackageTypeScraper:
-		pm = manager.GetInstance().ScraperPackageManager
 	case PackageTypePlugin:
 		pm = manager.GetInstance().PluginPackageManager
 	default:

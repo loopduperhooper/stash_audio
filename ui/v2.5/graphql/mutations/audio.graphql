@@ -1,0 +1,71 @@
+mutation AudioUpdate($input: AudioUpdateInput!) {
+  audioUpdate(input: $input) {
+    ...AudioData
+  }
+}
+
+mutation BulkAudioUpdate($input: BulkAudioUpdateInput!) {
+  bulkAudioUpdate(input: $input) {
+    ...SlimAudioData
+  }
+}
+
+mutation AudioIncrementO($id: ID!) {
+  audioIncrementO(id: $id)
+}
+
+mutation AudioDecrementO($id: ID!) {
+  audioDecrementO(id: $id)
+}
+
+mutation AudioResetO($id: ID!) {
+  audioResetO(id: $id)
+}
+
+mutation AudioSaveActivity(
+  $id: ID!
+  $resume_time: Float
+  $playDuration: Float
+) {
+  audioSaveActivity(
+    id: $id
+    resume_time: $resume_time
+    playDuration: $playDuration
+  )
+}
+
+mutation AudioIncrementPlayCount($id: ID!) {
+  audioIncrementPlayCount(id: $id)
+}
+
+mutation AudioDestroy(
+  $id: ID!
+  $delete_file: Boolean
+  $delete_generated: Boolean
+) {
+  audioDestroy(
+    input: {
+      id: $id
+      delete_file: $delete_file
+      delete_generated: $delete_generated
+    }
+  )
+}
+
+mutation AudiosDestroy(
+  $ids: [ID!]!
+  $delete_file: Boolean
+  $delete_generated: Boolean
+) {
+  audiosDestroy(
+    input: {
+      ids: $ids
+      delete_file: $delete_file
+      delete_generated: $delete_generated
+    }
+  )
+}
+
+mutation AudioAssignFile($input: AssignAudioFileInput!) {
+  audioAssignFile(input: $input)
+}

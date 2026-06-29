@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 var currentLocation = time.Now().Location()

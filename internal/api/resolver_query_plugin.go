@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 
-	"github.com/stashapp/stash/internal/manager"
-	"github.com/stashapp/stash/pkg/plugin"
+	"github.com/stashapp/stash_audio/internal/manager"
+	"github.com/stashapp/stash_audio/pkg/plugin"
 )
 
 func (r *queryResolver) Plugins(ctx context.Context) ([]*plugin.Plugin, error) {

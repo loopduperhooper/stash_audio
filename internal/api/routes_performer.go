@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 type PerformerFinder interface {
@@ -56,10 +56,6 @@ func (rs performerRoutes) Image(w http.ResponseWriter, r *http.Request) {
 		if readTxnErr != nil {
 			logger.Warnf("read transaction error on fetch performer image: %v", readTxnErr)
 		}
-	}
-
-	if len(image) == 0 {
-		image = getDefaultPerformerImage(performer.Name, performer.Gender, rs.sfwConfig.GetSFWContentMode())
 	}
 
 	utils.ServeImage(w, r, image)

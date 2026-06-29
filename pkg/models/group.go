@@ -23,8 +23,6 @@ type GroupFilterType struct {
 	TagCount *IntCriterionInput `json:"tag_count"`
 	// Filter by date
 	Date *DateCriterionInput `json:"date"`
-	// Filter by O counter
-	OCounter *IntCriterionInput `json:"o_counter"`
 	// Filter by containing groups
 	ContainingGroups *HierarchicalMultiCriterionInput `json:"containing_groups"`
 	// Filter by sub groups
@@ -33,10 +31,6 @@ type GroupFilterType struct {
 	ContainingGroupCount *IntCriterionInput `json:"containing_group_count"`
 	// Filter by number of sub-groups the group has
 	SubGroupCount *IntCriterionInput `json:"sub_group_count"`
-	// Filter by number of scenes the group has
-	SceneCount *IntCriterionInput `json:"scene_count"`
-	// Filter by related scenes that meet this criteria
-	ScenesFilter *SceneFilterType `json:"scenes_filter"`
 	// Filter by related studios that meet this criteria
 	StudiosFilter *StudioFilterType `json:"studios_filter"`
 	// Filter by created at

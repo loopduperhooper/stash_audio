@@ -7,8 +7,8 @@ import (
 
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/plugin/hook"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/plugin/hook"
 )
 
 type VisitedPluginHook struct {

@@ -20,14 +20,13 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 
-	"github.com/stashapp/stash/internal/identify"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/hash"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/models/paths"
-	"github.com/stashapp/stash/pkg/sliceutil"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/hash"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models/paths"
+	"github.com/stashapp/stash_audio/pkg/sliceutil"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 const (
@@ -61,6 +60,8 @@ const (
 	VideoExtensions            = "video_extensions"
 	ImageExtensions            = "image_extensions"
 	GalleryExtensions          = "gallery_extensions"
+	AudioExtensions            = "audio_extensions"
+	AudioExclude               = "audio_exclude"
 	CreateGalleriesFromFolders = "create_galleries_from_folders"
 
 	// CalculateMD5 is the config key used to determine if MD5 should be calculated
@@ -313,7 +314,8 @@ var (
 	defaultVideoExtensions   = []string{"m4v", "mp4", "mov", "wmv", "avi", "mpg", "mpeg", "rmvb", "rm", "flv", "asf", "mkv", "webm", "f4v"}
 	defaultImageExtensions   = []string{"png", "jpg", "jpeg", "gif", "webp", "avif"}
 	defaultGalleryExtensions = []string{"zip", "cbz"}
-	defaultMenuItems         = []string{"scenes", "images", "groups", "markers", "galleries", "performers", "studios", "tags"}
+	defaultAudioExtensions   = []string{"mp3", "ogg", "flac", "aac", "wav", "wma", "m4a", "opus", "aiff"}
+	defaultMenuItems         = []string{"audios", "groups", "performers", "studios", "tags"}
 )
 
 type MissingConfigError struct {
@@ -800,6 +802,18 @@ func (i *Config) GetGalleryExtensions() []string {
 		ret = defaultGalleryExtensions
 	}
 	return ret
+}
+
+func (i *Config) GetAudioExtensions() []string {
+	ret := i.getStringSlice(AudioExtensions)
+	if len(ret) == 0 {
+		ret = defaultAudioExtensions
+	}
+	return ret
+}
+
+func (i *Config) GetAudioExcludes() []string {
+	return i.getStringSlice(AudioExclude)
 }
 
 func (i *Config) GetCreateGalleriesFromFolders() bool {
@@ -1572,26 +1586,6 @@ func (i *Config) GetDeleteTrashPath() string {
 
 func (i *Config) SetDeleteTrashPath(value string) {
 	i.SetString(DeleteTrashPath, value)
-}
-
-// GetDefaultIdentifySettings returns the default Identify task settings.
-// Returns nil if the settings could not be unmarshalled, or if it
-// has not been set.
-func (i *Config) GetDefaultIdentifySettings() *identify.Options {
-	i.RLock()
-	defer i.RUnlock()
-	v := i.forKey(DefaultIdentifySettings)
-
-	if v.Exists(DefaultIdentifySettings) && v.Get(DefaultIdentifySettings) != nil {
-		var ret identify.Options
-
-		if err := v.Unmarshal(DefaultIdentifySettings, &ret); err != nil {
-			return nil
-		}
-		return &ret
-	}
-
-	return nil
 }
 
 // GetDefaultScanSettings returns the default Scan task settings.

@@ -8,9 +8,9 @@ import (
 	"sync"
 
 	"github.com/dop251/goja"
-	"github.com/stashapp/stash/pkg/javascript"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/plugin/common"
+	"github.com/stashapp/stash_audio/pkg/javascript"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/plugin/common"
 )
 
 var errStop = errors.New("stop")

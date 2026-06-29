@@ -11,13 +11,9 @@ model:
 struct_tag: gqlgen
 
 autobind:
-  - github.com/stashapp/stash/internal/api
-  - github.com/stashapp/stash/pkg/models
-  - github.com/stashapp/stash/pkg/plugin
-  - github.com/stashapp/stash/pkg/scraper
-  - github.com/stashapp/stash/internal/identify
-  - github.com/stashapp/stash/internal/dlna
-  - github.com/stashapp/stash/pkg/stashbox
+  - github.com/stashapp/stash_audio/internal/api
+  - github.com/stashapp/stash_audio/pkg/models
+  - github.com/stashapp/stash_audio/pkg/plugin
 
 models:
   # Scalars
@@ -25,18 +21,18 @@ models:
     model:
       - github.com/99designs/gqlgen/graphql.ID
       - github.com/99designs/gqlgen/graphql.IntID
-      - github.com/stashapp/stash/pkg/models.FileID
-      - github.com/stashapp/stash/pkg/models.FolderID
+      - github.com/stashapp/stash_audio/pkg/models.FileID
+      - github.com/stashapp/stash_audio/pkg/models.FolderID
   Int64:
     model: github.com/99designs/gqlgen/graphql.Int64
   Timestamp:
-    model: github.com/stashapp/stash/internal/api.Timestamp
+    model: github.com/stashapp/stash_audio/internal/api.Timestamp
   BoolMap:
-    model: github.com/stashapp/stash/internal/api.BoolMap
+    model: github.com/stashapp/stash_audio/internal/api.BoolMap
   PluginConfigMap:
-    model: github.com/stashapp/stash/internal/api.PluginConfigMap
+    model: github.com/stashapp/stash_audio/internal/api.PluginConfigMap
   File:
-    model: github.com/stashapp/stash/internal/api.File
+    model: github.com/stashapp/stash_audio/internal/api.File
   VideoFile:
     fields:
       # override float fields - #1572
@@ -44,97 +40,70 @@ models:
         fieldName: DurationFinite
       frame_rate:
         fieldName: FrameRateFinite
+  AudioFile:
+    fields:
+      # override float fields
+      duration:
+        fieldName: DurationFinite
+      bit_rate:
+        fieldName: BitRate
   # movie is group under the hood
   Movie:
-    model: github.com/stashapp/stash/pkg/models.Group
+    model: github.com/stashapp/stash_audio/pkg/models.Group
   MovieFilterType:
-    model: github.com/stashapp/stash/pkg/models.GroupFilterType
+    model: github.com/stashapp/stash_audio/pkg/models.GroupFilterType
   # autobind on config causes generation issues
   BlobsStorageType:
-    model: github.com/stashapp/stash/internal/manager/config.BlobsStorageType
+    model: github.com/stashapp/stash_audio/internal/manager/config.BlobsStorageType
   StashConfig:
-    model: github.com/stashapp/stash/internal/manager/config.StashConfig
+    model: github.com/stashapp/stash_audio/internal/manager/config.StashConfig
   StashConfigInput:
-    model: github.com/stashapp/stash/internal/manager/config.StashConfigInput
+    model: github.com/stashapp/stash_audio/internal/manager/config.StashConfigInput
   StashBoxInput:
-    model: github.com/stashapp/stash/internal/manager/config.StashBoxInput
+    model: github.com/stashapp/stash_audio/internal/manager/config.StashBoxInput
   ConfigImageLightboxResult:
-    model: github.com/stashapp/stash/internal/manager/config.ConfigImageLightboxResult
+    model: github.com/stashapp/stash_audio/internal/manager/config.ConfigImageLightboxResult
   ImageLightboxDisplayMode:
-    model: github.com/stashapp/stash/internal/manager/config.ImageLightboxDisplayMode
+    model: github.com/stashapp/stash_audio/internal/manager/config.ImageLightboxDisplayMode
   ImageLightboxScrollMode:
-    model: github.com/stashapp/stash/internal/manager/config.ImageLightboxScrollMode
+    model: github.com/stashapp/stash_audio/internal/manager/config.ImageLightboxScrollMode
   ConfigDisableDropdownCreate:
-    model: github.com/stashapp/stash/internal/manager/config.ConfigDisableDropdownCreate
+    model: github.com/stashapp/stash_audio/internal/manager/config.ConfigDisableDropdownCreate
   ScanMetadataOptions:
-    model:  github.com/stashapp/stash/internal/manager/config.ScanMetadataOptions
+    model:  github.com/stashapp/stash_audio/internal/manager/config.ScanMetadataOptions
   CleanGeneratedInput:
-    model: github.com/stashapp/stash/internal/manager/task.CleanGeneratedOptions
+    model: github.com/stashapp/stash_audio/internal/manager/task.CleanGeneratedOptions
   AutoTagMetadataOptions:
-    model: github.com/stashapp/stash/internal/manager/config.AutoTagMetadataOptions
+    model: github.com/stashapp/stash_audio/internal/manager/config.AutoTagMetadataOptions
   SystemStatus:
-    model: github.com/stashapp/stash/internal/manager.SystemStatus
+    model: github.com/stashapp/stash_audio/internal/manager.SystemStatus
   SystemStatusEnum:
-    model: github.com/stashapp/stash/internal/manager.SystemStatusEnum
+    model: github.com/stashapp/stash_audio/internal/manager.SystemStatusEnum
   ImportDuplicateEnum:
-    model: github.com/stashapp/stash/internal/manager.ImportDuplicateEnum
+    model: github.com/stashapp/stash_audio/internal/manager.ImportDuplicateEnum
   SetupInput:
-    model: github.com/stashapp/stash/internal/manager.SetupInput
+    model: github.com/stashapp/stash_audio/internal/manager.SetupInput
   MigrateInput:
-    model: github.com/stashapp/stash/internal/manager.MigrateInput
+    model: github.com/stashapp/stash_audio/internal/manager.MigrateInput
   ScanMetadataInput:
-    model: github.com/stashapp/stash/internal/manager.ScanMetadataInput
-  GenerateMetadataInput:
-    model: github.com/stashapp/stash/internal/manager.GenerateMetadataInput
-  GeneratePreviewOptionsInput:
-    model: github.com/stashapp/stash/internal/manager.GeneratePreviewOptionsInput
+    model: github.com/stashapp/stash_audio/internal/manager.ScanMetadataInput
   AutoTagMetadataInput:
-    model: github.com/stashapp/stash/internal/manager.AutoTagMetadataInput
+    model: github.com/stashapp/stash_audio/internal/manager.AutoTagMetadataInput
   CleanMetadataInput:
-    model: github.com/stashapp/stash/internal/manager.CleanMetadataInput
-  StashBoxBatchTagInput:
-    model: github.com/stashapp/stash/internal/manager.StashBoxBatchTagInput
-  SceneStreamEndpoint:
-    model: github.com/stashapp/stash/internal/manager.SceneStreamEndpoint
+    model: github.com/stashapp/stash_audio/internal/manager.CleanMetadataInput
   ExportObjectTypeInput:
-    model: github.com/stashapp/stash/internal/manager.ExportObjectTypeInput
+    model: github.com/stashapp/stash_audio/internal/manager.ExportObjectTypeInput
   ExportObjectsInput:
-    model: github.com/stashapp/stash/internal/manager.ExportObjectsInput
+    model: github.com/stashapp/stash_audio/internal/manager.ExportObjectsInput
   ImportObjectsInput:
-    model: github.com/stashapp/stash/internal/manager.ImportObjectsInput
+    model: github.com/stashapp/stash_audio/internal/manager.ImportObjectsInput
   ScanMetaDataFilterInput:
-    model: github.com/stashapp/stash/internal/manager.ScanMetaDataFilterInput
+    model: github.com/stashapp/stash_audio/internal/manager.ScanMetaDataFilterInput
   # renamed types
   BulkUpdateIdMode:
-    model: github.com/stashapp/stash/pkg/models.RelationshipUpdateMode
-  DLNAStatus:
-    model: github.com/stashapp/stash/internal/dlna.Status
-  DLNAIP:
-    model: github.com/stashapp/stash/internal/dlna.Dlnaip
-  IdentifySource:
-    model: github.com/stashapp/stash/internal/identify.Source
-  IdentifyMetadataTaskOptions:
-    model: github.com/stashapp/stash/internal/identify.Options
-  IdentifyMetadataInput:
-    model: github.com/stashapp/stash/internal/identify.Options
-  IdentifyMetadataOptions:
-    model: github.com/stashapp/stash/internal/identify.MetadataOptions
-  IdentifyFieldOptions:
-    model: github.com/stashapp/stash/internal/identify.FieldOptions
-  IdentifyFieldStrategy:
-    model: github.com/stashapp/stash/internal/identify.FieldStrategy
-  ScraperSource:
-    model: github.com/stashapp/stash/pkg/scraper.Source
-  IdentifySourceInput:
-    model: github.com/stashapp/stash/internal/identify.Source
-  IdentifyFieldOptionsInput:
-    model: github.com/stashapp/stash/internal/identify.FieldOptions
-  IdentifyMetadataOptionsInput:
-    model: github.com/stashapp/stash/internal/identify.MetadataOptions
-  ScraperSourceInput:
-    model: github.com/stashapp/stash/pkg/scraper.Source
+    model: github.com/stashapp/stash_audio/pkg/models.RelationshipUpdateMode
   SavedFindFilterType:
-    model: github.com/stashapp/stash/pkg/models.FindFilterType
+    model: github.com/stashapp/stash_audio/pkg/models.FindFilterType
   # force resolvers
   ConfigResult:
     fields:

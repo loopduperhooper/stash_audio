@@ -15,8 +15,8 @@ import (
 
 	"golang.org/x/sys/cpu"
 
-	"github.com/stashapp/stash/internal/build"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/internal/build"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 // we use the github REST V3 API as no login is required

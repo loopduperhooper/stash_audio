@@ -3,7 +3,7 @@ package transcoder
 import (
 	"errors"
 
-	"github.com/stashapp/stash/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
 )
 
 var ErrUnsupportedFormat = errors.New("unsupported image format")

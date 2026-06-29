@@ -156,18 +156,10 @@ type PerformerFilterType struct {
 	Tags *HierarchicalMultiCriterionInput `json:"tags"`
 	// Filter by tag count
 	TagCount *IntCriterionInput `json:"tag_count"`
-	// Filter by scene count
-	SceneCount *IntCriterionInput `json:"scene_count"`
-	// Filter by scene marker count (via scene)
-	MarkerCount *IntCriterionInput `json:"marker_count"`
-	// Filter by image count
-	ImageCount *IntCriterionInput `json:"image_count"`
-	// Filter by gallery count
-	GalleryCount *IntCriterionInput `json:"gallery_count"`
-	// Filter by play count
-	PlayCount *IntCriterionInput `json:"play_count"`
-	// Filter by O count
-	OCounter *IntCriterionInput `json:"o_counter"`
+	// Filter by audio count
+	AudioCount *IntCriterionInput `json:"audio_count"`
+	// Filter by group count
+	GroupCount *IntCriterionInput `json:"group_count"`
 	// Filter by StashID
 	StashID *StringCriterionInput `json:"stash_id"`
 	// Filter by StashID Endpoint
@@ -184,11 +176,11 @@ type PerformerFilterType struct {
 	Weight *IntCriterionInput `json:"weight"`
 	// Filter by death year
 	DeathYear *IntCriterionInput `json:"death_year"`
-	// Filter by studios where performer appears in scene/image/gallery
+	// Filter by studios where performer appears in audio
 	Studios *HierarchicalMultiCriterionInput `json:"studios"`
-	// Filter by groups where performer appears in scene
+	// Filter by groups the performer belongs to
 	Groups *HierarchicalMultiCriterionInput `json:"groups"`
-	// Filter by performers where performer appears with another performer in scene/image/gallery
+	// Filter by performers who appear together in audio
 	Performers *MultiCriterionInput `json:"performers"`
 	// Filter by autotag ignore value
 	IgnoreAutoTag *bool `json:"ignore_auto_tag"`
@@ -197,15 +189,11 @@ type PerformerFilterType struct {
 	// Filter by death date
 	DeathDate *DateCriterionInput `json:"death_date"`
 	// Filter by related scenes that meet this criteria
-	ScenesFilter *SceneFilterType `json:"scenes_filter"`
 	// Filter by related images that meet this criteria
-	ImagesFilter *ImageFilterType `json:"images_filter"`
 	// Filter by related galleries that meet this criteria
-	GalleriesFilter *GalleryFilterType `json:"galleries_filter"`
 	// Filter by related tags that meet this criteria
 	TagsFilter *TagFilterType `json:"tags_filter"`
 	// Filter by related scene markers (via scene) that meet this criteria
-	MarkersFilter *SceneMarkerFilterType `json:"markers_filter"`
 	// Filter by created at
 	CreatedAt *TimestampCriterionInput `json:"created_at"`
 	// Filter by updated at

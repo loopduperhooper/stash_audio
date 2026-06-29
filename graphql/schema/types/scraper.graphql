@@ -89,7 +89,6 @@ type ScrapedScene {
   "This should be a base64 encoded data URL"
   image: String
 
-  file: SceneFileType # Resolver
   studio: ScrapedStudio
   tags: [ScrapedTag!]
   performers: [ScrapedPerformer!]

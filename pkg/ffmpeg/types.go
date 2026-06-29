@@ -1,7 +1,7 @@
 package ffmpeg
 
 import (
-	"github.com/stashapp/stash/pkg/models/json"
+	"github.com/stashapp/stash_audio/pkg/models/json"
 )
 
 // FFProbeJSON is the JSON output of ffprobe.

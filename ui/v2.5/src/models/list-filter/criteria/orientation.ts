@@ -1,10 +1,7 @@
-import { orientationStrings, stringToOrientation } from "src/utils/orientation";
+import { orientationStrings, stringToOrientation, OrientationEnum } from "src/utils/orientation";
 import { CriterionType } from "../types";
 import { ModifierCriterionOption, MultiStringCriterion } from "./criterion";
-import {
-  OrientationCriterionInput,
-  OrientationEnum,
-} from "src/core/generated-graphql";
+type OrientationCriterionInput = { value: OrientationEnum[]; modifier?: string };
 
 export class OrientationCriterion extends MultiStringCriterion {
   public toCriterionInput(): OrientationCriterionInput {

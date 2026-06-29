@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 
-	"github.com/stashapp/stash/pkg/plugin"
+	"github.com/stashapp/stash_audio/pkg/plugin"
 )
 
 type pluginURLBuilder struct {

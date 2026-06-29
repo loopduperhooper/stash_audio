@@ -5,8 +5,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/sliceutil"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/sliceutil"
 )
 
 func (s *Service) validateCreate(ctx context.Context, group *models.Group) error {

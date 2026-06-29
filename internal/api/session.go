@@ -9,12 +9,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/stashapp/stash/internal/manager"
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/session"
-	"github.com/stashapp/stash/pkg/utils"
-	"github.com/stashapp/stash/ui"
+	"github.com/stashapp/stash_audio/internal/manager"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/session"
+	"github.com/stashapp/stash_audio/pkg/utils"
+	"github.com/stashapp/stash_audio/ui"
 )
 
 const (

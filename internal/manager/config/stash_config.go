@@ -3,7 +3,7 @@ package config
 import (
 	"path/filepath"
 
-	"github.com/stashapp/stash/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
 )
 
 // Stash configuration details
@@ -11,12 +11,14 @@ type StashConfigInput struct {
 	Path         string `json:"path"`
 	ExcludeVideo bool   `json:"excludeVideo"`
 	ExcludeImage bool   `json:"excludeImage"`
+	ExcludeAudio bool   `json:"excludeAudio"`
 }
 
 type StashConfig struct {
 	Path         string `json:"path"`
 	ExcludeVideo bool   `json:"excludeVideo"`
 	ExcludeImage bool   `json:"excludeImage"`
+	ExcludeAudio bool   `json:"excludeAudio"`
 }
 
 type StashConfigs []*StashConfig

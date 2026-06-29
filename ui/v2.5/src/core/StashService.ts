@@ -227,6 +227,59 @@ export const queryFindImages = (filter: ListFilterModel) =>
     },
   });
 
+export const useFindAudio = (id: string) =>
+  GQL.useFindAudioQuery({ variables: { id } });
+
+export const useFindAudios = (filter?: ListFilterModel) =>
+  GQL.useFindAudiosQuery({
+    skip: filter === undefined,
+    variables: {
+      filter: filter?.makeFindFilter(),
+      audio_filter: filter?.makeFilter(),
+    },
+  });
+
+export const useFindAudiosMetadata = (filter?: ListFilterModel) =>
+  GQL.useFindAudiosMetadataQuery({
+    skip: filter === undefined,
+    variables: {
+      filter: filter?.makeFindFilter(),
+      audio_filter: filter?.makeFilter(),
+    },
+  });
+
+export const queryFindAudios = (filter: ListFilterModel) =>
+  client.query<GQL.FindAudiosQuery>({
+    query: GQL.FindAudiosDocument,
+    variables: {
+      filter: filter.makeFindFilter(),
+      audio_filter: filter.makeFilter(),
+    },
+  });
+
+export const useAudioUpdate = () => GQL.useAudioUpdateMutation();
+
+export const useBulkAudioUpdate = () => GQL.useBulkAudioUpdateMutation();
+
+export const useAudioIncrementO = () => GQL.useAudioIncrementOMutation();
+export const useAudioDecrementO = () => GQL.useAudioDecrementOMutation();
+
+export const useAudioIncrementPlayCount = () =>
+  GQL.useAudioIncrementPlayCountMutation();
+
+export const useAudioSaveActivity = () => GQL.useAudioSaveActivityMutation();
+
+export const useAudioDestroy = () => GQL.useAudioDestroyMutation();
+
+export const useAudiosDestroy = (input: GQL.AudiosDestroyInput) =>
+  GQL.useAudiosDestroyMutation({
+    variables: {
+      ids: input.ids,
+      delete_file: input.delete_file,
+      delete_generated: input.delete_generated,
+    },
+  });
+
 export const useFindGroup = (id: string) => {
   const skip = id === "new" || id === "";
   return GQL.useFindGroupQuery({ variables: { id }, skip });
@@ -2615,10 +2668,6 @@ export const useLoggingSubscribe = () => GQL.useLoggingSubscribeSubscription();
 export const scraperMutationImpactedQueries = [
   GQL.ListGroupScrapersDocument,
   GQL.ListPerformerScrapersDocument,
-  GQL.ListSceneScrapersDocument,
-  GQL.ListImageScrapersDocument,
-  GQL.InstalledScraperPackagesDocument,
-  GQL.InstalledScraperPackagesStatusDocument,
 ];
 
 export const mutateReloadScrapers = () =>

@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/stashapp/stash/pkg/txn"
+	"github.com/stashapp/stash_audio/pkg/txn"
 )
 
 type routes struct {

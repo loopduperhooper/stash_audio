@@ -3,7 +3,7 @@ package sqlite
 import (
 	"gopkg.in/guregu/null.v4"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 // null package does not provide methods to convert null.Int to int pointer

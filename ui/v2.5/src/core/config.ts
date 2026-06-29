@@ -149,25 +149,20 @@ function recentlyAdded(
 
 export function generateDefaultFrontPageContent(intl: IntlShape) {
   return [
-    recentlyReleased(intl, FilterMode.Scenes, "scenes"),
+    recentlyAdded(intl, FilterMode.Audios, "audios"),
     recentlyAdded(intl, FilterMode.Studios, "studios"),
     recentlyReleased(intl, FilterMode.Groups, "groups"),
     recentlyAdded(intl, FilterMode.Performers, "performers"),
-    recentlyReleased(intl, FilterMode.Galleries, "galleries"),
   ];
 }
 
 export function generatePremadeFrontPageContent(intl: IntlShape) {
   return [
-    recentlyReleased(intl, FilterMode.Scenes, "scenes"),
-    recentlyAdded(intl, FilterMode.Scenes, "scenes"),
-    recentlyReleased(intl, FilterMode.Galleries, "galleries"),
-    recentlyAdded(intl, FilterMode.Galleries, "galleries"),
-    recentlyAdded(intl, FilterMode.Images, "images"),
+    recentlyAdded(intl, FilterMode.Audios, "audios"),
     recentlyReleased(intl, FilterMode.Groups, "groups"),
     recentlyAdded(intl, FilterMode.Groups, "groups"),
     recentlyAdded(intl, FilterMode.Studios, "studios"),
     recentlyAdded(intl, FilterMode.Performers, "performers"),
-    recentlyAdded(intl, FilterMode.SceneMarkers, "markers"),
+    recentlyAdded(intl, FilterMode.Tags, "tags"),
   ];
 }

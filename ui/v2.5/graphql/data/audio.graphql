@@ -1,0 +1,49 @@
+fragment AudioData on Audio {
+  id
+  title
+  details
+  date
+  rating100
+  organized
+  o_counter
+  play_count
+  play_duration
+  resume_time
+  last_played_at
+  created_at
+  updated_at
+  urls
+
+  paths {
+    cover
+    stream
+    vtt
+    funscript
+    subtitles
+  }
+
+  studio {
+    ...SlimStudioData
+  }
+
+  tags {
+    ...SlimTagData
+  }
+
+  performers {
+    ...PerformerData
+  }
+
+  groups {
+    ...ListGroupData
+  }
+
+  stash_ids {
+    endpoint
+    stash_id
+  }
+
+  files {
+    ...AudioFileData
+  }
+}

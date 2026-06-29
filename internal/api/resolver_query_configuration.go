@@ -2,13 +2,10 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"path/filepath"
-	"strings"
 
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
 	"golang.org/x/text/collate"
 )
 
@@ -128,6 +125,8 @@ func makeConfigGeneralResult() *ConfigGeneralResult {
 		CreateGalleriesFromFolders:    config.GetCreateGalleriesFromFolders(),
 		Excludes:                      config.GetExcludes(),
 		ImageExcludes:                 config.GetImageExcludes(),
+		AudioExtensions:               config.GetAudioExtensions(),
+		AudioExcludes:                 config.GetAudioExcludes(),
 		CustomPerformerImageLocation:  &customPerformerImageLocation,
 		StashBoxes:                    config.GetStashBoxes(),
 		PythonPath:                    config.GetPythonPath(),
@@ -235,7 +234,6 @@ func makeConfigDefaultsResult() *ConfigDefaultSettingsResult {
 	deleteGeneratedDefault := config.GetDeleteGeneratedDefault()
 
 	return &ConfigDefaultSettingsResult{
-		Identify:        config.GetDefaultIdentifySettings(),
 		Scan:            config.GetDefaultScanSettings(),
 		AutoTag:         config.GetDefaultAutoTagSettings(),
 		Generate:        config.GetDefaultGenerateSettings(),
@@ -249,39 +247,5 @@ func makeConfigUIResult() map[string]interface{} {
 }
 
 func (r *queryResolver) ValidateStashBoxCredentials(ctx context.Context, input config.StashBoxInput) (*StashBoxValidationResult, error) {
-	box := models.StashBox{Endpoint: input.Endpoint, APIKey: input.APIKey}
-	client := r.newStashBoxClient(box)
-
-	user, err := client.GetUser(ctx)
-
-	valid := user != nil && user.Me != nil
-	var status string
-	if valid {
-		status = fmt.Sprintf("Successfully authenticated as %s", user.Me.Name)
-	} else {
-		errorStr := strings.ToLower(err.Error())
-		switch {
-		case strings.Contains(errorStr, "doctype"):
-			// Index file returned rather than graphql
-			status = "Invalid endpoint"
-		case strings.Contains(errorStr, "request failed"):
-			status = "No response from server"
-		case strings.Contains(errorStr, "invalid character") ||
-			strings.Contains(errorStr, "illegal base64 data") ||
-			strings.Contains(errorStr, "unexpected end of json input") ||
-			strings.Contains(errorStr, "token contains an invalid number of segments"):
-			status = "Malformed API key."
-		case strings.Contains(errorStr, "signature is invalid"):
-			status = "Invalid or expired API key."
-		default:
-			status = fmt.Sprintf("Unknown error: %s", err)
-		}
-	}
-
-	result := StashBoxValidationResult{
-		Valid:  valid,
-		Status: status,
-	}
-
-	return &result, nil
+	return &StashBoxValidationResult{Valid: false, Status: "Stash-box not supported"}, nil
 }

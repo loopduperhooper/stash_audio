@@ -22,12 +22,6 @@ type StudioFilterType struct {
 	TagCount *IntCriterionInput `json:"tag_count"`
 	// Filter by favorite
 	Favorite *bool `json:"favorite"`
-	// Filter by scene count
-	SceneCount *IntCriterionInput `json:"scene_count"`
-	// Filter by image count
-	ImageCount *IntCriterionInput `json:"image_count"`
-	// Filter by gallery count
-	GalleryCount *IntCriterionInput `json:"gallery_count"`
 	// Filter by group count
 	GroupCount *IntCriterionInput `json:"group_count"`
 	// Filter by url
@@ -40,12 +34,6 @@ type StudioFilterType struct {
 	IgnoreAutoTag *bool `json:"ignore_auto_tag"`
 	// Filter by organized
 	Organized *bool `json:"organized"`
-	// Filter by related scenes that meet this criteria
-	ScenesFilter *SceneFilterType `json:"scenes_filter"`
-	// Filter by related images that meet this criteria
-	ImagesFilter *ImageFilterType `json:"images_filter"`
-	// Filter by related galleries that meet this criteria
-	GalleriesFilter *GalleryFilterType `json:"galleries_filter"`
 	// Filter by related groups that meet this criteria
 	GroupsFilter *GroupFilterType `json:"groups_filter"`
 	// Filter by created at

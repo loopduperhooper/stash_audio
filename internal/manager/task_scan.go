@@ -3,7 +3,6 @@ package manager
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/fs"
 	"path/filepath"
 	"regexp"
@@ -13,20 +12,15 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/remeh/sizedwaitgroup"
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/pkg/file"
-	"github.com/stashapp/stash/pkg/file/video"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/gallery"
-	"github.com/stashapp/stash/pkg/image"
-	"github.com/stashapp/stash/pkg/job"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/models/paths"
-	"github.com/stashapp/stash/pkg/scene"
-	"github.com/stashapp/stash/pkg/scene/generate"
-	"github.com/stashapp/stash/pkg/txn"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/pkg/audio"
+	"github.com/stashapp/stash_audio/pkg/file"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/job"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/txn"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 type ScanJob struct {
@@ -36,8 +30,6 @@ type ScanJob struct {
 
 	fileQueue chan file.ScannedFile
 	count     int
-
-	unmatchedCaptionFiles utils.MutexField[[]string]
 }
 
 func (j *ScanJob) Execute(ctx context.Context, progress *job.Progress) error {
@@ -177,22 +169,6 @@ func (j *ScanJob) queueFileFunc(ctx context.Context, f models.FS, zipFile *file.
 				return fs.SkipDir
 			}
 
-			// we don't include caption files in the file scan, but we do need
-			// to handle them
-			if fsutil.MatchExtension(path, video.CaptionExts) {
-				fileRepo := j.scanner.Repository.File
-				matched := video.AssociateCaptions(ctx, path, j.scanner.Repository.TxnManager, fileRepo, fileRepo)
-
-				if !matched {
-					logger.Debugf("No matching video file found for caption file %s", path)
-					j.unmatchedCaptionFiles.SetFunc(func(files []string) []string {
-						return append(files, path)
-					})
-				}
-
-				return nil
-			}
-
 			logger.Debugf("Skipping file %s", path)
 			return nil
 		}
@@ -230,21 +206,6 @@ func (j *ScanJob) queueFileFunc(ctx context.Context, f models.FS, zipFile *file.
 				// skip the directory since we won't be able to process the files anyway
 				return fs.SkipDir
 			}
-
-			return nil
-		}
-
-		// if zip file is present, we handle immediately
-		if zipFile != nil {
-			progress.ExecuteTask("Scanning "+path, func() {
-				// don't increment progress in zip files
-				if err := j.handleFile(ctx, ff, nil); err != nil {
-					if !errors.Is(err, context.Canceled) {
-						logger.Errorf("error processing %q: %v", path, err)
-					}
-					// don't return an error, just skip the file
-				}
-			})
 
 			return nil
 		}
@@ -325,105 +286,21 @@ func (j *ScanJob) handleFile(ctx context.Context, f file.ScannedFile, progress *
 		defer progress.Increment()
 	}
 
-	r, err := j.scanner.ScanFile(ctx, f)
+	_, err := j.scanner.ScanFile(ctx, f)
 	if err != nil {
 		return err
-	}
-
-	// if this is a new video file, match it with any unmatched caption files
-	if r.New && len(j.unmatchedCaptionFiles.Get()) > 0 {
-		videoFile, _ := r.File.(*models.VideoFile)
-
-		if videoFile != nil {
-			// try to match any unmatched caption files to this video file
-			for _, captionPath := range j.unmatchedCaptionFiles.Get() {
-				if video.MatchesCaption(videoFile.Path, captionPath) {
-					video.AssociateCaptions(ctx, captionPath, j.scanner.Repository.TxnManager, j.scanner.Repository.File, j.scanner.Repository.File)
-
-					// remove from the unmatched list
-					j.unmatchedCaptionFiles.SetFunc(func(files []string) []string {
-						newFiles := make([]string, 0, len(files)-1)
-						for _, f := range files {
-							if f != captionPath {
-								newFiles = append(newFiles, f)
-							}
-						}
-						return newFiles
-					})
-				}
-			}
-		}
-	}
-
-	// clean captions - scene handler handles this as well, but
-	// unchanged files aren't processed by the scene handler
-	if r.IsUnchanged() {
-		videoFile, _ := r.File.(*models.VideoFile)
-
-		if videoFile != nil {
-			txnMgr := j.scanner.Repository.TxnManager
-			fileRepo := j.scanner.Repository.File
-			if err := txn.WithDatabase(ctx, txnMgr, func(ctx context.Context) error {
-				return video.CleanCaptions(ctx, videoFile, txnMgr, fileRepo)
-			}); err != nil {
-				logger.Errorf("Error cleaning captions: %v", err)
-			}
-		}
-	}
-
-	// handle rename should have already handled the contents of the zip file
-	// so shouldn't need to scan it again.
-	// Only scan zip contents if the file is new, the fingerprint changed,
-	// or if a force rescan was requested.
-
-	if j.scanner.IsZipFile(f.Info.Name()) && (r.New || r.FingerprintChanged || j.scanner.Rescan) {
-		ff := r.File
-		f.BaseFile = ff.Base()
-
-		// scan zip files with a different context that is not cancellable
-		// cancelling while scanning zip file contents results in the scan
-		// contents being partially completed
-		zipCtx := context.WithoutCancel(ctx)
-
-		if err := j.scanZipFile(zipCtx, f, progress); err != nil {
-			logger.Errorf("Error scanning zip file %q: %v", f.Path, err)
-		}
-	} else if r.Updated && j.scanner.IsZipFile(f.Info.Name()) {
-		logger.Debugf("Skipping zip file scan for %q: fingerprint unchanged", f.Path)
 	}
 
 	return nil
 }
 
-func (j *ScanJob) scanZipFile(ctx context.Context, f file.ScannedFile, progress *job.Progress) error {
-	zipFS, err := f.FS.OpenZip(f.Path, f.Size)
-	if err != nil {
-		if errors.Is(err, file.ErrNotReaderAt) {
-			// can't walk the zip file
-			// just return
-			logger.Debugf("Skipping zip file %q as it cannot be opened for walking", f.Path)
-			return nil
-		}
-
-		return err
-	}
-
-	defer zipFS.Close()
-
-	return file.SymWalk(zipFS, f.Path, j.queueFileFunc(ctx, zipFS, &f, progress))
-}
-
 type extensionConfig struct {
-	vidExt []string
-	imgExt []string
-	zipExt []string
+	audioExt []string
 }
 
 func newExtensionConfig(c *config.Config) extensionConfig {
 	return extensionConfig{
-		vidExt: c.GetVideoExtensions(),
-		imgExt: c.GetImageExtensions(),
-		zipExt: c.GetGalleryExtensions(),
+		audioExt: c.GetAudioExtensions(),
 	}
 }
 
@@ -431,113 +308,40 @@ type fileCounter interface {
 	CountByFileID(ctx context.Context, fileID models.FileID) (int, error)
 }
 
-type galleryFinder interface {
-	fileCounter
-	FindByFolderID(ctx context.Context, folderID models.FolderID) ([]*models.Gallery, error)
-}
-
-type sceneFinder interface {
-	fileCounter
-	FindByPrimaryFileID(ctx context.Context, fileID models.FileID) ([]*models.Scene, error)
-}
-
 // handlerRequiredFilter returns true if a File's handler needs to be executed despite the file not being updated.
 type handlerRequiredFilter struct {
 	extensionConfig
-	txnManager    txn.Manager
-	SceneFinder   sceneFinder
-	ImageFinder   fileCounter
-	GalleryFinder galleryFinder
+	txnManager  txn.Manager
+	AudioFinder fileCounter
 
 	FolderCache *lru.LRU[bool]
-
-	videoFileNamingAlgorithm models.HashAlgorithm
 }
 
 func newHandlerRequiredFilter(c *config.Config, repo models.Repository) *handlerRequiredFilter {
 	processes := c.GetParallelTasksWithAutoDetection()
 
 	return &handlerRequiredFilter{
-		extensionConfig:          newExtensionConfig(c),
-		txnManager:               repo.TxnManager,
-		SceneFinder:              repo.Scene,
-		ImageFinder:              repo.Image,
-		GalleryFinder:            repo.Gallery,
-		FolderCache:              lru.New[bool](processes * 2),
-		videoFileNamingAlgorithm: c.GetVideoFileNamingAlgorithm(),
+		extensionConfig: newExtensionConfig(c),
+		txnManager:      repo.TxnManager,
+		AudioFinder:     repo.Audio,
+		FolderCache:     lru.New[bool](processes * 2),
 	}
 }
 
 func (f *handlerRequiredFilter) Accept(ctx context.Context, ff models.File) bool {
 	path := ff.Base().Path
-	isVideoFile := useAsVideo(path)
-	isImageFile := useAsImage(path)
-	isZipFile := fsutil.MatchExtension(path, f.zipExt)
+	isAudioFile := useAsAudio(path)
 
-	var counter fileCounter
-
-	switch {
-	case isVideoFile:
-		// return true if there are no scenes associated
-		counter = f.SceneFinder
-	case isImageFile:
-		counter = f.ImageFinder
-	case isZipFile:
-		counter = f.GalleryFinder
-	}
-
-	if counter == nil {
+	if !isAudioFile {
 		return false
 	}
 
-	n, err := counter.CountByFileID(ctx, ff.Base().ID)
+	n, err := f.AudioFinder.CountByFileID(ctx, ff.Base().ID)
 	if err != nil {
-		// just ignore
 		return false
 	}
 
-	// execute handler if there are no related objects
-	if n == 0 {
-		return true
-	}
-
-	// if create galleries from folder is enabled and the file is not in a zip
-	// file, then check if there is a folder-based gallery for the file's
-	// directory
-	// #4611 - also check for .forcegallery
-	if isImageFile && ff.Base().ZipFileID == nil {
-		// only do this for the first time it encounters the folder
-		// the first instance should create the gallery
-		_, found := f.FolderCache.Get(ctx, ff.Base().ParentFolderID.String())
-		if found {
-			// should already be handled
-			return false
-		}
-
-		f.FolderCache.Add(ctx, ff.Base().ParentFolderID.String(), true)
-
-		createGallery := instance.Config.GetCreateGalleriesFromFolders()
-		if !createGallery {
-			// check for presence of .forcegallery
-			forceGalleryPath := filepath.Join(filepath.Dir(path), ".forcegallery")
-			if exists, _ := fsutil.FileExists(forceGalleryPath); exists {
-				createGallery = true
-			}
-		}
-
-		if !createGallery {
-			return false
-		}
-
-		g, _ := f.GalleryFinder.FindByFolderID(ctx, ff.Base().ParentFolderID)
-
-		if len(g) == 0 {
-			// no folder gallery. Return true so that it creates one.
-			return true
-		}
-	}
-
-	return false
+	return n == 0
 }
 
 type scanFilter struct {
@@ -546,8 +350,7 @@ type scanFilter struct {
 
 	stashPaths        config.StashConfigs
 	generatedPath     string
-	videoExcludeRegex []*regexp.Regexp
-	imageExcludeRegex []*regexp.Regexp
+	audioExcludeRegex []*regexp.Regexp
 	minModTime        time.Time
 	stashIgnoreFilter *file.StashIgnoreFilter
 }
@@ -558,8 +361,7 @@ func newScanFilter(c *config.Config, repo models.Repository, minModTime time.Tim
 		txnManager:        repo.TxnManager,
 		stashPaths:        c.GetStashPaths(),
 		generatedPath:     c.GetGeneratedPath(),
-		videoExcludeRegex: generateRegexps(c.GetExcludes()),
-		imageExcludeRegex: generateRegexps(c.GetImageExcludes()),
+		audioExcludeRegex: generateRegexps(c.GetAudioExcludes()),
 		minModTime:        minModTime,
 		stashIgnoreFilter: file.NewStashIgnoreFilter(),
 	}
@@ -588,12 +390,10 @@ func (f *scanFilter) Accept(ctx context.Context, path string, info fs.FileInfo) 
 		return false
 	}
 
-	isVideoFile := useAsVideo(path)
-	isImageFile := useAsImage(path)
-	isZipFile := fsutil.MatchExtension(path, f.zipExt)
+	isAudioFile := useAsAudio(path)
 
-	if !info.IsDir() && !isVideoFile && !isImageFile && !isZipFile {
-		logger.Debugf("Skipping %s as it does not match any known file extensions", path)
+	if !info.IsDir() && !isAudioFile {
+		logger.Debugf("Skipping %s as it does not match any known audio file extensions", path)
 		return false
 	}
 
@@ -603,287 +403,39 @@ func (f *scanFilter) Accept(ctx context.Context, path string, info fs.FileInfo) 
 		return false
 	}
 
-	// shortcut: skip the directory entirely if it matches both exclusion patterns
-	// add a trailing separator so that it correctly matches against patterns like path/.*
-	pathExcludeTest := path + string(filepath.Separator)
-	if (matchFileRegex(pathExcludeTest, f.videoExcludeRegex)) && (s.ExcludeImage || matchFileRegex(pathExcludeTest, f.imageExcludeRegex)) {
-		logger.Debugf("Skipping directory %s as it matches video and image exclusion patterns", path)
-		return false
-	}
-
-	if isVideoFile && (s.ExcludeVideo || matchFileRegex(path, f.videoExcludeRegex)) {
-		logger.Debugf("Skipping %s as it matches video exclusion patterns", path)
-		return false
-	} else if (isImageFile || isZipFile) && (s.ExcludeImage || matchFileRegex(path, f.imageExcludeRegex)) {
-		logger.Debugf("Skipping %s as it matches image exclusion patterns", path)
+	if isAudioFile && (s.ExcludeAudio || matchFileRegex(path, f.audioExcludeRegex)) {
+		logger.Debugf("Skipping %s as it matches audio exclusion patterns", path)
 		return false
 	}
 
 	return true
 }
 
-type scanConfig struct {
-	isGenerateThumbnails   bool
-	isGenerateClipPreviews bool
-
-	createGalleriesFromFolders bool
-}
-
-func (c *scanConfig) GetCreateGalleriesFromFolders() bool {
-	return c.createGalleriesFromFolders
-}
-
-func videoFileFilter(ctx context.Context, f models.File) bool {
-	return useAsVideo(f.Base().Path)
-}
-
-func imageFileFilter(ctx context.Context, f models.File) bool {
-	return useAsImage(f.Base().Path)
-}
-
-func galleryFileFilter(ctx context.Context, f models.File) bool {
-	return isZip(f.Base().Basename)
+func audioFileFilter(ctx context.Context, f models.File) bool {
+	return isAudio(f.Base().Path)
 }
 
 func getScanHandlers(options ScanMetadataInput, taskQueue *job.TaskQueue, progress *job.Progress) []file.Handler {
 	mgr := GetInstance()
-	c := mgr.Config
 	r := mgr.Repository
 	pluginCache := mgr.PluginCache
 
+	_ = taskQueue
+	_ = progress
+	_ = options
+
 	return []file.Handler{
 		&file.FilteredHandler{
-			Filter: file.FilterFunc(imageFileFilter),
-			Handler: &image.ScanHandler{
-				CreatorUpdater: r.Image,
-				GalleryFinder:  r.Gallery,
-				ScanGenerator: &imageGenerators{
-					input:              options,
-					taskQueue:          taskQueue,
-					progress:           progress,
-					paths:              mgr.Paths,
-					sequentialScanning: c.GetSequentialScanning(),
-				},
-				ScanConfig: &scanConfig{
-					isGenerateThumbnails:       options.ScanGenerateThumbnails,
-					isGenerateClipPreviews:     options.ScanGenerateClipPreviews,
-					createGalleriesFromFolders: c.GetCreateGalleriesFromFolders(),
-				},
-				PluginCache: pluginCache,
-				Paths:       instance.Paths,
-			},
-		},
-		&file.FilteredHandler{
-			Filter: file.FilterFunc(galleryFileFilter),
-			Handler: &gallery.ScanHandler{
-				CreatorUpdater:     r.Gallery,
-				SceneFinderUpdater: r.Scene,
-				ImageFinderUpdater: r.Image,
-				PluginCache:        pluginCache,
-			},
-		},
-		&file.FilteredHandler{
-			Filter: file.FilterFunc(videoFileFilter),
-			Handler: &scene.ScanHandler{
-				CreatorUpdater: r.Scene,
-				CaptionUpdater: r.File,
+			Filter: file.FilterFunc(audioFileFilter),
+			Handler: &audio.ScanHandler{
+				CreatorUpdater: r.Audio,
+				CoverUpdater:   r.Audio,
+				FFMpeg:         mgr.FFMpeg,
 				PluginCache:    pluginCache,
-				ScanGenerator: &sceneGenerators{
-					input:               options,
-					taskQueue:           taskQueue,
-					progress:            progress,
-					paths:               mgr.Paths,
-					fileNamingAlgorithm: c.GetVideoFileNamingAlgorithm(),
-					sequentialScanning:  c.GetSequentialScanning(),
-				},
-				FileNamingAlgorithm: c.GetVideoFileNamingAlgorithm(),
-				Paths:               mgr.Paths,
 			},
 		},
 	}
 }
 
-type imageGenerators struct {
-	input     ScanMetadataInput
-	taskQueue *job.TaskQueue
-	progress  *job.Progress
-
-	paths              *paths.Paths
-	sequentialScanning bool
-}
-
-func (g *imageGenerators) Generate(ctx context.Context, i *models.Image, f models.File) error {
-	const overwrite = false
-
-	progress := g.progress
-	t := g.input
-	path := f.Base().Path
-
-	// this is a bit of a hack: the task requires files to be loaded, but
-	// we don't really need to since we already have the file
-	ii := *i
-	ii.Files = models.NewRelatedFiles([]models.File{f})
-
-	if t.ScanGenerateThumbnails {
-		// this should be quick, so always generate sequentially
-		taskThumbnail := GenerateImageThumbnailTask{
-			Image:     ii,
-			Overwrite: overwrite,
-		}
-
-		taskThumbnail.Start(ctx)
-	}
-
-	// avoid adding a task if the file isn't a video file
-	_, isVideo := f.(*models.VideoFile)
-	if isVideo && t.ScanGenerateClipPreviews {
-		progress.AddTotal(1)
-		previewsFn := func(ctx context.Context) {
-			taskPreview := GenerateClipPreviewTask{
-				Image:     ii,
-				Overwrite: overwrite,
-			}
-
-			taskPreview.Start(ctx)
-			progress.Increment()
-		}
-
-		if g.sequentialScanning {
-			previewsFn(ctx)
-		} else {
-			g.taskQueue.Add(fmt.Sprintf("Generating preview for %s", path), previewsFn)
-		}
-	}
-
-	if t.ScanGenerateImagePhashes {
-		progress.AddTotal(1)
-		phashFn := func(ctx context.Context) {
-			mgr := GetInstance()
-			// Only generate phash for image files, not video files
-			if imageFile, ok := f.(*models.ImageFile); ok {
-				taskPhash := GenerateImagePhashTask{
-					repository: mgr.Repository,
-					File:       imageFile,
-					Overwrite:  overwrite,
-				}
-				taskPhash.Start(ctx)
-			}
-			progress.Increment()
-		}
-
-		if g.sequentialScanning {
-			phashFn(ctx)
-		} else {
-			g.taskQueue.Add(fmt.Sprintf("Generating phash for %s", path), phashFn)
-		}
-	}
-
-	return nil
-}
-
-type sceneGenerators struct {
-	input     ScanMetadataInput
-	taskQueue *job.TaskQueue
-	progress  *job.Progress
-
-	paths               *paths.Paths
-	fileNamingAlgorithm models.HashAlgorithm
-	sequentialScanning  bool
-}
-
-func (g *sceneGenerators) Generate(ctx context.Context, s *models.Scene, f *models.VideoFile) error {
-	const overwrite = false
-
-	progress := g.progress
-	t := g.input
-	path := f.Path
-
-	mgr := GetInstance()
-
-	if t.ScanGenerateSprites {
-		progress.AddTotal(1)
-		spriteFn := func(ctx context.Context) {
-			taskSprite := GenerateSpriteTask{
-				Scene:               *s,
-				Overwrite:           overwrite,
-				fileNamingAlgorithm: g.fileNamingAlgorithm,
-			}
-			taskSprite.Start(ctx)
-			progress.Increment()
-		}
-
-		if g.sequentialScanning {
-			spriteFn(ctx)
-		} else {
-			g.taskQueue.Add(fmt.Sprintf("Generating sprites for %s", path), spriteFn)
-		}
-	}
-
-	if t.ScanGeneratePhashes {
-		progress.AddTotal(1)
-		phashFn := func(ctx context.Context) {
-			taskPhash := GeneratePhashTask{
-				repository:          mgr.Repository,
-				File:                f,
-				Overwrite:           overwrite,
-				fileNamingAlgorithm: g.fileNamingAlgorithm,
-			}
-			taskPhash.Start(ctx)
-			progress.Increment()
-		}
-
-		if g.sequentialScanning {
-			phashFn(ctx)
-		} else {
-			g.taskQueue.Add(fmt.Sprintf("Generating phash for %s", path), phashFn)
-		}
-	}
-
-	if t.ScanGeneratePreviews {
-		progress.AddTotal(1)
-		previewsFn := func(ctx context.Context) {
-			options := getGeneratePreviewOptions(GeneratePreviewOptionsInput{})
-
-			generator := &generate.Generator{
-				Encoder:      mgr.FFMpeg,
-				FFMpegConfig: mgr.Config,
-				LockManager:  mgr.ReadLockManager,
-				MarkerPaths:  g.paths.SceneMarkers,
-				ScenePaths:   g.paths.Scene,
-				Overwrite:    overwrite,
-			}
-
-			taskPreview := GeneratePreviewTask{
-				Scene:               *s,
-				ImagePreview:        t.ScanGenerateImagePreviews,
-				Options:             options,
-				Overwrite:           overwrite,
-				fileNamingAlgorithm: g.fileNamingAlgorithm,
-				generator:           generator,
-			}
-			taskPreview.Start(ctx)
-			progress.Increment()
-		}
-
-		if g.sequentialScanning {
-			previewsFn(ctx)
-		} else {
-			g.taskQueue.Add(fmt.Sprintf("Generating preview for %s", path), previewsFn)
-		}
-	}
-
-	if t.ScanGenerateCovers {
-		progress.AddTotal(1)
-		g.taskQueue.Add(fmt.Sprintf("Generating cover for %s", path), func(ctx context.Context) {
-			taskCover := GenerateCoverTask{
-				repository: mgr.Repository,
-				Scene:      *s,
-				Overwrite:  overwrite,
-			}
-			taskCover.Start(ctx)
-			progress.Increment()
-		})
-	}
-
-	return nil
-}
+// keep utils import used by scanFilter
+var _ = utils.Timeout

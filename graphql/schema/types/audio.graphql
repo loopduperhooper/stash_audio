@@ -1,0 +1,184 @@
+type Audio {
+  id: ID!
+  title: String
+  details: String
+  date: String
+  # rating expressed as 1-100
+  rating100: Int
+  o_counter: Int!
+  organized: Boolean!
+  play_count: Int!
+  play_duration: Float!
+  resume_time: Float!
+  last_played_at: Time
+  created_at: Time!
+  updated_at: Time!
+
+  studio: Studio
+  tags: [Tag!]!
+  performers: [Performer!]!
+  groups: [Group!]!
+  urls: [String!]!
+  stash_ids: [StashID!]!
+
+  files: [AudioFile!]!
+  paths: AudioPathsType! # Resolver
+}
+
+type AudioPathsType {
+  cover: String # Resolver
+  stream: String # Resolver
+  vtt: String # Resolver
+  funscript: String # Resolver
+}
+
+type FindAudiosResultType {
+  count: Int!
+  "Total duration in seconds"
+  duration: Float!
+  "Total file size in bytes"
+  filesize: Float!
+  audios: [Audio!]!
+}
+
+input AudioCreateInput {
+  title: String
+  details: String
+  date: String
+  # rating expressed as 1-100
+  rating100: Int
+  organized: Boolean
+  studio_id: ID
+  tag_ids: [ID!]
+  performer_ids: [ID!]
+  group_ids: [ID!]
+  urls: [String!]
+  stash_ids: [StashIDInput!]
+  cover_image: String
+  file_ids: [ID!]
+}
+
+input AudioUpdateInput {
+  clientMutationId: String
+  id: ID!
+  title: String
+  details: String
+  date: String
+  # rating expressed as 1-100
+  rating100: Int
+  organized: Boolean
+  studio_id: ID
+  tag_ids: [ID!]
+  performer_ids: [ID!]
+  group_ids: [ID!]
+  urls: [String!]
+  stash_ids: [StashIDInput!]
+  cover_image: String
+  primary_file_id: ID
+}
+
+input BulkAudioUpdateInput {
+  clientMutationId: String
+  ids: [ID!]
+  title: String
+  details: String
+  date: String
+  # rating expressed as 1-100
+  rating100: Int
+  organized: Boolean
+  studio_id: ID
+  tag_ids: BulkUpdateIds
+  performer_ids: BulkUpdateIds
+  urls: BulkUpdateStrings
+}
+
+input AudioDestroyInput {
+  id: ID!
+  delete_file: Boolean
+  delete_generated: Boolean
+}
+
+input AudiosDestroyInput {
+  ids: [ID!]!
+  delete_file: Boolean
+  delete_generated: Boolean
+}
+
+input AssignAudioFileInput {
+  audio_id: ID!
+  file_id: ID!
+}
+
+input AudioFilterType {
+  AND: AudioFilterType
+  OR: AudioFilterType
+  NOT: AudioFilterType
+
+  id: IntCriterionInput
+  title: StringCriterionInput
+  details: StringCriterionInput
+  "Filter by file checksum"
+  checksum: StringCriterionInput
+  "Filter by path"
+  path: StringCriterionInput
+  "Filter by file count"
+  file_count: IntCriterionInput
+  "Filter by rating expressed as 1-100"
+  rating100: IntCriterionInput
+  "Filter by organized"
+  organized: Boolean
+  "Filter by o-counter"
+  o_counter: IntCriterionInput
+  "Filter by bit rate"
+  bitrate: IntCriterionInput
+  "Filter by audio codec"
+  audio_codec: StringCriterionInput
+  "Filter by duration (in seconds)"
+  duration: IntCriterionInput
+  "Filter to only include audios which have markers. `true` or `false`"
+  has_markers: String
+  "Filter to only include audios missing this property"
+  is_missing: String
+  "Filter to only include audios with this studio"
+  studios: HierarchicalMultiCriterionInput
+  "Filter to only include audios with these tags"
+  tags: HierarchicalMultiCriterionInput
+  "Filter by tag count"
+  tag_count: IntCriterionInput
+  "Filter to only include audios with performers with these tags"
+  performer_tags: HierarchicalMultiCriterionInput
+  "Filter audios that have performers that have been favorited"
+  performer_favorite: Boolean
+  "Filter to only include audios with these performers"
+  performers: MultiCriterionInput
+  "Filter by performer count"
+  performer_count: IntCriterionInput
+  "Filter by StashID"
+  stash_id: StringCriterionInput
+  "Filter by StashID Endpoint"
+  stash_id_endpoint: StashIDCriterionInput
+  "Filter by url"
+  url: StringCriterionInput
+  "Filter by resume time"
+  resume_time: IntCriterionInput
+  "Filter by play count"
+  play_count: IntCriterionInput
+  "Filter by play duration (in seconds)"
+  play_duration: IntCriterionInput
+  "Filter by last played at"
+  last_played_at: TimestampCriterionInput
+  "Filter by date"
+  date: DateCriterionInput
+  "Filter by related performers that meet this criteria"
+  performers_filter: PerformerFilterType
+  "Filter by related studios that meet this criteria"
+  studios_filter: StudioFilterType
+  "Filter by related tags that meet this criteria"
+  tags_filter: TagFilterType
+  "Filter by related files that meet this criteria"
+  files_filter: FileFilterType
+  "Filter by created at"
+  created_at: TimestampCriterionInput
+  "Filter by updated at"
+  updated_at: TimestampCriterionInput
+}
