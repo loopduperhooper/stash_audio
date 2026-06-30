@@ -123,6 +123,7 @@ func (rs audioRoutes) Subtitles(w http.ResponseWriter, r *http.Request) {
 	for _, ext := range []string{".vtt", ".srt"} {
 		candidate := base + ext
 		if _, err := os.Stat(candidate); err == nil {
+			w.Header().Set("Cache-Control", "no-cache")
 			http.ServeFile(w, r, candidate)
 			return
 		}
