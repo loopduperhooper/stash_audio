@@ -10254,3 +10254,88 @@ export function useScanCompleteSubscribeSubscription(baseOptions?: Apollo.Subscr
       }
 export type ScanCompleteSubscribeSubscriptionHookResult = ReturnType<typeof useScanCompleteSubscribeSubscription>;
 export type ScanCompleteSubscribeSubscriptionResult = Apollo.SubscriptionResult<ScanCompleteSubscribeSubscription>;
+
+// ---- DLNA operations ----
+
+export type DlnaStatusQueryVariables = Exact<{ [key: string]: never; }>;
+export type DlnaStatusQuery = { __typename?: 'Query', dlnaStatus: { __typename?: 'DLNAStatus', running: boolean, until?: string | null, recentIPAddresses: Array<string>, allowedIPAddresses: Array<{ __typename?: 'DLNAIP', ipAddress: string, until?: string | null }> } };
+
+export const DlnaStatusDocument = gql`
+    query DLNAStatus {
+  dlnaStatus {
+    running
+    until
+    recentIPAddresses
+    allowedIPAddresses {
+      ipAddress
+      until
+    }
+  }
+}
+    `;
+export function useDlnaStatusQuery(baseOptions?: Apollo.QueryHookOptions<DlnaStatusQuery, DlnaStatusQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DlnaStatusQuery, DlnaStatusQueryVariables>(DlnaStatusDocument, options);
+      }
+export type DlnaStatusQueryHookResult = ReturnType<typeof useDlnaStatusQuery>;
+export type DlnaStatusQueryResult = Apollo.QueryResult<DlnaStatusQuery, DlnaStatusQueryVariables>;
+
+export type EnableDlnaMutationVariables = Exact<{ input: EnableDlnaInput; }>;
+export type EnableDlnaMutation = { __typename?: 'Mutation', enableDLNA: boolean };
+export const EnableDlnaDocument = gql`
+    mutation EnableDLNA($input: EnableDLNAInput!) {
+  enableDLNA(input: $input)
+}
+    `;
+export type EnableDlnaMutationFn = Apollo.MutationFunction<EnableDlnaMutation, EnableDlnaMutationVariables>;
+export function useEnableDlnaMutation(baseOptions?: Apollo.MutationHookOptions<EnableDlnaMutation, EnableDlnaMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<EnableDlnaMutation, EnableDlnaMutationVariables>(EnableDlnaDocument, options);
+      }
+export type EnableDlnaMutationHookResult = ReturnType<typeof useEnableDlnaMutation>;
+export type EnableDlnaMutationResult = Apollo.MutationResult<EnableDlnaMutation>;
+
+export type DisableDlnaMutationVariables = Exact<{ input: DisableDlnaInput; }>;
+export type DisableDlnaMutation = { __typename?: 'Mutation', disableDLNA: boolean };
+export const DisableDlnaDocument = gql`
+    mutation DisableDLNA($input: DisableDLNAInput!) {
+  disableDLNA(input: $input)
+}
+    `;
+export type DisableDlnaMutationFn = Apollo.MutationFunction<DisableDlnaMutation, DisableDlnaMutationVariables>;
+export function useDisableDlnaMutation(baseOptions?: Apollo.MutationHookOptions<DisableDlnaMutation, DisableDlnaMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DisableDlnaMutation, DisableDlnaMutationVariables>(DisableDlnaDocument, options);
+      }
+export type DisableDlnaMutationHookResult = ReturnType<typeof useDisableDlnaMutation>;
+export type DisableDlnaMutationResult = Apollo.MutationResult<DisableDlnaMutation>;
+
+export type AddTempDlnaipMutationVariables = Exact<{ input: AddTempDlnaipInput; }>;
+export type AddTempDlnaipMutation = { __typename?: 'Mutation', addTempDLNAIP: boolean };
+export const AddTempDlnaipDocument = gql`
+    mutation AddTempDLNAIP($input: AddTempDLNAIPInput!) {
+  addTempDLNAIP(input: $input)
+}
+    `;
+export type AddTempDlnaipMutationFn = Apollo.MutationFunction<AddTempDlnaipMutation, AddTempDlnaipMutationVariables>;
+export function useAddTempDlnaipMutation(baseOptions?: Apollo.MutationHookOptions<AddTempDlnaipMutation, AddTempDlnaipMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddTempDlnaipMutation, AddTempDlnaipMutationVariables>(AddTempDlnaipDocument, options);
+      }
+export type AddTempDlnaipMutationHookResult = ReturnType<typeof useAddTempDlnaipMutation>;
+export type AddTempDlnaipMutationResult = Apollo.MutationResult<AddTempDlnaipMutation>;
+
+export type RemoveTempDlnaipMutationVariables = Exact<{ input: RemoveTempDlnaipInput; }>;
+export type RemoveTempDlnaipMutation = { __typename?: 'Mutation', removeTempDLNAIP: boolean };
+export const RemoveTempDlnaipDocument = gql`
+    mutation RemoveTempDLNAIP($input: RemoveTempDLNAIPInput!) {
+  removeTempDLNAIP(input: $input)
+}
+    `;
+export type RemoveTempDlnaipMutationFn = Apollo.MutationFunction<RemoveTempDlnaipMutation, RemoveTempDlnaipMutationVariables>;
+export function useRemoveTempDlnaipMutation(baseOptions?: Apollo.MutationHookOptions<RemoveTempDlnaipMutation, RemoveTempDlnaipMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveTempDlnaipMutation, RemoveTempDlnaipMutationVariables>(RemoveTempDlnaipDocument, options);
+      }
+export type RemoveTempDlnaipMutationHookResult = ReturnType<typeof useRemoveTempDlnaipMutation>;
+export type RemoveTempDlnaipMutationResult = Apollo.MutationResult<RemoveTempDlnaipMutation>;
