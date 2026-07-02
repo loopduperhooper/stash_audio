@@ -1008,18 +1008,6 @@ declare namespace PluginApi {
   }
   namespace hooks {
     function useLoadComponents(toLoad: (() => Promise<unknown>)[]): boolean;
-    function useSpriteInfo(vttPath: string | undefined):
-      | {
-          url: string;
-          start: number;
-          end: number;
-          x: number;
-          y: number;
-          w: number;
-          h: number;
-        }
-      | undefined;
-
     function useToast(): {
       toast: any;
       success(message: JSX.Element | string): void;
