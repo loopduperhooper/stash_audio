@@ -37,6 +37,7 @@ export default defineConfig(() => {
     },
     optimizeDeps: {
       entries: "src/index.tsx",
+      include: ["videojs-vtt.js"],
     },
     server: {
       port: 3000,
