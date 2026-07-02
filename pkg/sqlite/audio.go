@@ -135,6 +135,7 @@ type audioRepositoryType struct {
 	repository
 	tags       joinRepository
 	performers joinRepository
+	groups     joinRepository
 	files      filesRepository
 	stashIDs   stashIDRepository
 }
@@ -160,6 +161,13 @@ var (
 				idColumn:  audioIDColumn,
 			},
 			fkColumn: performerIDColumn,
+		},
+		groups: joinRepository{
+			repository: repository{
+				tableName: groupsAudiosTable,
+				idColumn:  audioIDColumn,
+			},
+			fkColumn: groupIDColumn,
 		},
 		files: filesRepository{
 			repository: repository{
@@ -271,6 +279,12 @@ func (qb *AudioStore) Create(ctx context.Context, newObject *models.Audio, fileI
 		}
 	}
 
+	if newObject.GroupIDs.Loaded() {
+		if err := groupsAudiosTableMgr.insertJoins(ctx, id, newObject.GroupIDs.List()); err != nil {
+			return err
+		}
+	}
+
 	if newObject.StashIDs.Loaded() {
 		if err := audiosStashIDsTableMgr.insertJoins(ctx, id, newObject.StashIDs.List()); err != nil {
 			return err
@@ -317,6 +331,11 @@ func (qb *AudioStore) UpdatePartial(ctx context.Context, id int, partial models.
 			return nil, err
 		}
 	}
+	if partial.GroupIDs != nil {
+		if err := groupsAudiosTableMgr.modifyJoins(ctx, id, partial.GroupIDs.IDs, partial.GroupIDs.Mode); err != nil {
+			return nil, err
+		}
+	}
 	if partial.StashIDs != nil {
 		if err := audiosStashIDsTableMgr.modifyJoins(ctx, id, partial.StashIDs.StashIDs, partial.StashIDs.Mode); err != nil {
 			return nil, err
@@ -353,6 +372,12 @@ func (qb *AudioStore) Update(ctx context.Context, updatedObject *models.Audio) e
 
 	if updatedObject.TagIDs.Loaded() {
 		if err := audiosTagsTableMgr.replaceJoins(ctx, updatedObject.ID, updatedObject.TagIDs.List()); err != nil {
+			return err
+		}
+	}
+
+	if updatedObject.GroupIDs.Loaded() {
+		if err := groupsAudiosTableMgr.replaceJoins(ctx, updatedObject.ID, updatedObject.GroupIDs.List()); err != nil {
 			return err
 		}
 	}
@@ -621,6 +646,19 @@ func (qb *AudioStore) FindByPerformerID(ctx context.Context, performerID int) ([
 
 	if err != nil {
 		return nil, fmt.Errorf("getting audios for performer %d: %w", performerID, err)
+	}
+
+	return ret, nil
+}
+
+func (qb *AudioStore) FindByGroupID(ctx context.Context, groupID int) ([]*models.Audio, error) {
+	sq := dialect.From(groupsAudiosJoinTable).Select(groupsAudiosJoinTable.Col(audioIDColumn)).Where(
+		groupsAudiosJoinTable.Col(groupIDColumn).Eq(groupID),
+	)
+	ret, err := qb.findBySubquery(ctx, sq)
+
+	if err != nil {
+		return nil, fmt.Errorf("getting audios for group %d: %w", groupID, err)
 	}
 
 	return ret, nil
@@ -1072,6 +1110,10 @@ func (qb *AudioStore) GetPerformerIDs(ctx context.Context, id int) ([]int, error
 
 func (qb *AudioStore) GetTagIDs(ctx context.Context, id int) ([]int, error) {
 	return audioRepository.tags.getIDs(ctx, id)
+}
+
+func (qb *AudioStore) GetGroupIDs(ctx context.Context, id int) ([]int, error) {
+	return audioRepository.groups.getIDs(ctx, id)
 }
 
 func (qb *AudioStore) GetStashIDs(ctx context.Context, audioID int) ([]models.StashID, error) {

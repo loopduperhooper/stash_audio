@@ -49,6 +49,11 @@ func groupFromGroupCreateInput(ctx context.Context, input GroupCreateInput) (*mo
 		return nil, fmt.Errorf("converting tag ids: %w", err)
 	}
 
+	newGroup.AudioIDs, err = translator.relatedIds(input.AudioIds)
+	if err != nil {
+		return nil, fmt.Errorf("converting audio ids: %w", err)
+	}
+
 	newGroup.ContainingGroups, err = translator.groupIDDescriptions(input.ContainingGroups)
 	if err != nil {
 		return nil, fmt.Errorf("converting containing group ids: %w", err)
@@ -138,6 +143,12 @@ func groupPartialFromGroupUpdateInput(translator changesetTranslator, input Grou
 	updatedGroup.TagIDs, err = translator.updateIds(input.TagIds, "tag_ids")
 	if err != nil {
 		err = fmt.Errorf("converting tag ids: %w", err)
+		return
+	}
+
+	updatedGroup.AudioIDs, err = translator.updateIds(input.AudioIds, "audio_ids")
+	if err != nil {
+		err = fmt.Errorf("converting audio ids: %w", err)
 		return
 	}
 

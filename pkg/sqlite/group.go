@@ -23,7 +23,8 @@ const (
 	groupFrontImageBlobColumn = "front_image_blob"
 	groupBackImageBlobColumn  = "back_image_blob"
 
-	groupsTagsTable = "groups_tags"
+	groupsTagsTable    = "groups_tags"
+	groupsAudiosTable  = "groups_audios"
 
 	groupURLsTable = "group_urls"
 	groupURLColumn = "url"
@@ -134,6 +135,7 @@ type GroupStore struct {
 	customFieldsStore
 	tagRelationshipStore
 	groupRelationshipStore
+	audioRelationshipStore idRelationshipStore
 
 	tableMgr *table
 }
@@ -155,6 +157,9 @@ func NewGroupStore(blobStore *BlobStore) *GroupStore {
 		},
 		groupRelationshipStore: groupRelationshipStore{
 			table: groupRelationshipTableMgr,
+		},
+		audioRelationshipStore: idRelationshipStore{
+			joinTable: groupsAudiosTableMgr,
 		},
 
 		tableMgr: groupTableMgr,
@@ -186,6 +191,10 @@ func (qb *GroupStore) Create(ctx context.Context, newObject *models.Group) error
 	}
 
 	if err := qb.tagRelationshipStore.createRelationships(ctx, id, newObject.TagIDs); err != nil {
+		return err
+	}
+
+	if err := qb.audioRelationshipStore.createRelationships(ctx, id, newObject.AudioIDs); err != nil {
 		return err
 	}
 
@@ -232,6 +241,10 @@ func (qb *GroupStore) UpdatePartial(ctx context.Context, id int, partial models.
 		return nil, err
 	}
 
+	if err := qb.audioRelationshipStore.modifyRelationships(ctx, id, partial.AudioIDs); err != nil {
+		return nil, err
+	}
+
 	if err := qb.groupRelationshipStore.modifyContainingRelationships(ctx, id, partial.ContainingGroups); err != nil {
 		return nil, err
 	}
@@ -262,6 +275,10 @@ func (qb *GroupStore) Update(ctx context.Context, updatedObject *models.Group) e
 	}
 
 	if err := qb.tagRelationshipStore.replaceRelationships(ctx, updatedObject.ID, updatedObject.TagIDs); err != nil {
+		return err
+	}
+
+	if err := qb.audioRelationshipStore.replaceRelationships(ctx, updatedObject.ID, updatedObject.AudioIDs); err != nil {
 		return err
 	}
 
@@ -643,6 +660,10 @@ WHERE groups.studio_id = ?
 
 func (qb *GroupStore) GetURLs(ctx context.Context, groupID int) ([]string, error) {
 	return groupsURLsTableMgr.get(ctx, groupID)
+}
+
+func (qb *GroupStore) GetAudioIDs(ctx context.Context, groupID int) ([]int, error) {
+	return groupsAudiosTableMgr.get(ctx, groupID)
 }
 
 // FindSubGroupIDs returns a list of group IDs where a group in the ids list is a sub-group of the parent group

@@ -26,6 +26,14 @@ type TagIDLoader interface {
 	GetTagIDs(ctx context.Context, relatedID int) ([]int, error)
 }
 
+type AudioIDLoader interface {
+	GetAudioIDs(ctx context.Context, relatedID int) ([]int, error)
+}
+
+type GroupIDLoader interface {
+	GetGroupIDs(ctx context.Context, relatedID int) ([]int, error)
+}
+
 type TagRelationLoader interface {
 	GetParentIDs(ctx context.Context, relatedID int) ([]int, error)
 	GetChildIDs(ctx context.Context, relatedID int) ([]int, error)

@@ -40,6 +40,7 @@ import { AudioPlayer } from "./AudioPlayer";
 const AudioDetailPanel = lazyComponent(() => import("./AudioDetailPanel"));
 const AudioFileInfoPanel = lazyComponent(() => import("./AudioFileInfoPanel"));
 const AudioEditPanel = lazyComponent(() => import("./AudioEditPanel"));
+const AudioGroupPanel = lazyComponent(() => import("./AudioGroupPanel"));
 const DeleteAudiosDialog = lazyComponent(
   () => import("../DeleteAudiosDialog")
 );
@@ -173,6 +174,16 @@ const AudioPage: React.FC<IAudioPageProps> = ({
               <FormattedMessage id="file_info" />
             </Nav.Link>
           </Nav.Item>
+          {audio.groups.length > 0 && (
+            <Nav.Item>
+              <Nav.Link eventKey="audio-groups-panel">
+                <FormattedMessage
+                  id="countables.groups"
+                  values={{ count: audio.groups.length }}
+                />
+              </Nav.Link>
+            </Nav.Item>
+          )}
         </Nav>
       </div>
       <Tab.Content>
@@ -189,6 +200,9 @@ const AudioPage: React.FC<IAudioPageProps> = ({
         </Tab.Pane>
         <Tab.Pane className="file-info-panel" eventKey="audio-file-info-panel">
           <AudioFileInfoPanel audio={audio} />
+        </Tab.Pane>
+        <Tab.Pane eventKey="audio-groups-panel">
+          <AudioGroupPanel audio={audio} />
         </Tab.Pane>
       </Tab.Content>
     </Tab.Container>

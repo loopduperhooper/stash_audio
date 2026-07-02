@@ -81,6 +81,20 @@ func (r *audioResolver) Tags(ctx context.Context, obj *models.Audio) (ret []*mod
 	return ret, firstError(errs)
 }
 
+func (r *audioResolver) Groups(ctx context.Context, obj *models.Audio) (ret []*models.Group, err error) {
+	if !obj.GroupIDs.Loaded() {
+		if err := r.withReadTxn(ctx, func(ctx context.Context) error {
+			return obj.LoadGroupIDs(ctx, r.repository.Audio)
+		}); err != nil {
+			return nil, err
+		}
+	}
+
+	var errs []error
+	ret, errs = loaders.From(ctx).GroupByID.LoadAll(obj.GroupIDs.List())
+	return ret, firstError(errs)
+}
+
 func (r *audioResolver) Performers(ctx context.Context, obj *models.Audio) (ret []*models.Performer, err error) {
 	if !obj.PerformerIDs.Loaded() {
 		if err := r.withReadTxn(ctx, func(ctx context.Context) error {

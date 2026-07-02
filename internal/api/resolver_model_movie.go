@@ -205,6 +205,18 @@ func (r *groupResolver) Scenes(ctx context.Context, obj *models.Group) (ret []*m
 	return ret, nil
 }
 
+func (r *groupResolver) Audios(ctx context.Context, obj *models.Group) (ret []*models.Audio, err error) {
+	if err := r.withReadTxn(ctx, func(ctx context.Context) error {
+		var err error
+		ret, err = r.repository.Audio.FindByGroupID(ctx, obj.ID)
+		return err
+	}); err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
 func (r *groupResolver) OCounter(ctx context.Context, obj *models.Group) (ret *int, err error) {
 	var count int
 	if err := r.withReadTxn(ctx, func(ctx context.Context) error {

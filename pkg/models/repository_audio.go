@@ -23,6 +23,7 @@ type AudioFinder interface {
 	FindByFileID(ctx context.Context, fileID FileID) ([]*Audio, error)
 	FindByPrimaryFileID(ctx context.Context, fileID FileID) ([]*Audio, error)
 	FindByPerformerID(ctx context.Context, performerID int) ([]*Audio, error)
+	FindByGroupID(ctx context.Context, groupID int) ([]*Audio, error)
 }
 
 // AudioQueryer provides methods to query audios.
@@ -91,6 +92,7 @@ type AudioReader interface {
 	FileIDLoader
 	PerformerIDLoader
 	TagIDLoader
+	GroupIDLoader
 	StashIDLoader
 	FileLoader
 

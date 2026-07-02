@@ -42,10 +42,11 @@ import {
 import { Button, Tab, Tabs } from "react-bootstrap";
 import { GroupSubGroupsPanel } from "./GroupSubGroupsPanel";
 import { GroupPerformersPanel } from "./GroupPerformersPanel";
+import { GroupAudiosPanel } from "./GroupAudiosPanel";
 import { Icon } from "src/components/Shared/Icon";
 import { goBackOrReplace } from "src/utils/history";
 
-const validTabs = ["default", "scenes", "performers", "subgroups"] as const;
+const validTabs = ["default", "scenes", "performers", "subgroups", "audios"] as const;
 type TabKey = (typeof validTabs)[number];
 
 function isTabKey(tab: string): tab is TabKey {
@@ -62,6 +63,7 @@ const GroupTabs: React.FC<{
     performer_count: performerCount,
     sub_group_count: groupCount,
   } = group;
+  const audioCount = group.audios.length;
 
   const populatedDefaultTab = useMemo(() => {
     if (sceneCount == 0) {
@@ -126,6 +128,20 @@ const GroupTabs: React.FC<{
       >
         <GroupSubGroupsPanel active={tabKey === "subgroups"} group={group} />
       </Tab>
+      {audioCount > 0 && (
+        <Tab
+          eventKey="audios"
+          title={
+            <TabTitleCounter
+              messageID="audios"
+              count={audioCount}
+              abbreviateCounter={abbreviateCounter}
+            />
+          }
+        >
+          <GroupAudiosPanel group={group} />
+        </Tab>
+      )}
     </Tabs>
   );
 };

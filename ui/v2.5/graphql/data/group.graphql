@@ -40,6 +40,10 @@ fragment GroupData on Group {
     title
   }
 
+  audios {
+    ...SlimAudioData
+  }
+
   custom_fields
 }
 
@@ -81,5 +85,9 @@ fragment ListGroupData on Group {
   scenes {
     id
     title
+  }
+
+  audios {
+    ...SlimAudioData
   }
 }

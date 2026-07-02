@@ -19,8 +19,9 @@ type Group struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	URLs   RelatedStrings `json:"urls"`
-	TagIDs RelatedIDs     `json:"tag_ids"`
+	URLs     RelatedStrings `json:"urls"`
+	TagIDs   RelatedIDs     `json:"tag_ids"`
+	AudioIDs RelatedIDs     `json:"audio_ids"`
 
 	ContainingGroups RelatedGroupDescriptions `json:"containing_groups"`
 	SubGroups        RelatedGroupDescriptions `json:"sub_groups"`
@@ -54,6 +55,12 @@ func (m *Group) LoadTagIDs(ctx context.Context, l TagIDLoader) error {
 	})
 }
 
+func (m *Group) LoadAudioIDs(ctx context.Context, l AudioIDLoader) error {
+	return m.AudioIDs.load(func() ([]int, error) {
+		return l.GetAudioIDs(ctx, m.ID)
+	})
+}
+
 func (m *Group) LoadContainingGroupIDs(ctx context.Context, l ContainingGroupLoader) error {
 	return m.ContainingGroups.load(func() ([]GroupIDDescription, error) {
 		return l.GetContainingGroupDescriptions(ctx, m.ID)
@@ -78,6 +85,7 @@ type GroupPartial struct {
 	Synopsis         OptionalString
 	URLs             *UpdateStrings
 	TagIDs           *UpdateIDs
+	AudioIDs         *UpdateIDs
 	ContainingGroups *UpdateGroupDescriptions
 	SubGroups        *UpdateGroupDescriptions
 	CreatedAt        OptionalTime

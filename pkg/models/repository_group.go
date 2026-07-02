@@ -66,6 +66,7 @@ type GroupReader interface {
 	GroupCounter
 	URLLoader
 	TagIDLoader
+	AudioIDLoader
 	ContainingGroupLoader
 	SubGroupLoader
 	CustomFieldsReader

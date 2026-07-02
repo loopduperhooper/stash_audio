@@ -70,6 +70,10 @@ func (r *mutationResolver) AudioCreate(ctx context.Context, input AudioCreateInp
 	if err != nil {
 		return nil, fmt.Errorf("converting tag ids: %w", err)
 	}
+	newAudio.GroupIDs, err = translator.relatedIds(input.GroupIds)
+	if err != nil {
+		return nil, fmt.Errorf("converting group ids: %w", err)
+	}
 
 	if err := r.withTxn(ctx, func(ctx context.Context) error {
 		ret = &newAudio
@@ -197,6 +201,10 @@ func (r *mutationResolver) audioUpdate(ctx context.Context, input AudioUpdateInp
 	updatedAudio.TagIDs, err = translator.updateIds(input.TagIds, "tag_ids")
 	if err != nil {
 		return nil, fmt.Errorf("converting tag ids: %w", err)
+	}
+	updatedAudio.GroupIDs, err = translator.updateIds(input.GroupIds, "group_ids")
+	if err != nil {
+		return nil, fmt.Errorf("converting group ids: %w", err)
 	}
 
 	audio, err := r.repository.Audio.UpdatePartial(ctx, audioID, updatedAudio)

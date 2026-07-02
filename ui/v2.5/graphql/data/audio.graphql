@@ -32,6 +32,10 @@ fragment AudioData on Audio {
     ...PerformerData
   }
 
+  groups {
+    ...ListGroupData
+  }
+
   stash_ids {
     endpoint
     stash_id
