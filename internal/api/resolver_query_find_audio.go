@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func (r *queryResolver) FindAudio(ctx context.Context, id *string, checksum *string) (*models.Audio, error) {

@@ -10,7 +10,7 @@ import (
 	"unsafe"
 
 	"github.com/go-toast/toast"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/logger"
 	"golang.org/x/sys/windows/svc"
 )
 

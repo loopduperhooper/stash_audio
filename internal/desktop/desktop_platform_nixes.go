@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 // isService checks if started by init, e.g. stash is a *nix systemd service

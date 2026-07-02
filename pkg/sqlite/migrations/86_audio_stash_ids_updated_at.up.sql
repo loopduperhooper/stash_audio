@@ -1,1 +1,2 @@
-ALTER TABLE `audio_stash_ids` ADD COLUMN `updated_at` datetime not null default '1970-01-01T00:00:00Z';
+-- no-op: updated_at was already included in audio_stash_ids in migration 85
+SELECT 1;

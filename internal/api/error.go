@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/logger"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 

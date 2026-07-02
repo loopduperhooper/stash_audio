@@ -10,7 +10,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru/v2"
 	ignore "github.com/sabhiram/go-gitignore"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 const stashIgnoreFilename = ".stashignore"

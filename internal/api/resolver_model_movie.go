@@ -3,12 +3,11 @@ package api
 import (
 	"context"
 
-	"github.com/stashapp/stash/internal/api/loaders"
-	"github.com/stashapp/stash/internal/api/urlbuilders"
-	"github.com/stashapp/stash/pkg/group"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/performer"
-	"github.com/stashapp/stash/pkg/scene"
+	"github.com/stashapp/stash_audio/internal/api/loaders"
+	"github.com/stashapp/stash_audio/internal/api/urlbuilders"
+	"github.com/stashapp/stash_audio/pkg/group"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/performer"
 )
 
 func (r *groupResolver) Date(ctx context.Context, obj *models.Group) (*string, error) {
@@ -171,16 +170,6 @@ func (r *groupResolver) BackImagePath(ctx context.Context, obj *models.Group) (*
 	return &imagePath, nil
 }
 
-func (r *groupResolver) SceneCount(ctx context.Context, obj *models.Group, depth *int) (ret int, err error) {
-	if err := r.withReadTxn(ctx, func(ctx context.Context) error {
-		ret, err = scene.CountByGroupID(ctx, r.repository.Scene, obj.ID, depth)
-		return err
-	}); err != nil {
-		return 0, err
-	}
-
-	return ret, nil
-}
 
 func (r *groupResolver) PerformerCount(ctx context.Context, obj *models.Group, depth *int) (ret int, err error) {
 	if err := r.withReadTxn(ctx, func(ctx context.Context) error {
@@ -193,16 +182,19 @@ func (r *groupResolver) PerformerCount(ctx context.Context, obj *models.Group, d
 	return ret, nil
 }
 
-func (r *groupResolver) Scenes(ctx context.Context, obj *models.Group) (ret []*models.Scene, err error) {
-	if err := r.withReadTxn(ctx, func(ctx context.Context) error {
-		var err error
-		ret, err = r.repository.Scene.FindByGroupID(ctx, obj.ID)
-		return err
-	}); err != nil {
-		return nil, err
+
+func (r *groupResolver) Performers(ctx context.Context, obj *models.Group) (ret []*models.Performer, err error) {
+	if !obj.PerformerIDs.Loaded() {
+		if err := r.withReadTxn(ctx, func(ctx context.Context) error {
+			return obj.LoadPerformerIDs(ctx, r.repository.Group)
+		}); err != nil {
+			return nil, err
+		}
 	}
 
-	return ret, nil
+	var errs []error
+	ret, errs = loaders.From(ctx).PerformerByID.LoadAll(obj.PerformerIDs.List())
+	return ret, firstError(errs)
 }
 
 func (r *groupResolver) Audios(ctx context.Context, obj *models.Group) (ret []*models.Audio, err error) {
@@ -217,16 +209,6 @@ func (r *groupResolver) Audios(ctx context.Context, obj *models.Group) (ret []*m
 	return ret, nil
 }
 
-func (r *groupResolver) OCounter(ctx context.Context, obj *models.Group) (ret *int, err error) {
-	var count int
-	if err := r.withReadTxn(ctx, func(ctx context.Context) error {
-		count, err = r.repository.Scene.OCountByGroupID(ctx, obj.ID)
-		return err
-	}); err != nil {
-		return nil, err
-	}
-	return &count, nil
-}
 
 func (r *groupResolver) CustomFields(ctx context.Context, obj *models.Group) (map[string]interface{}, error) {
 	m, err := loaders.From(ctx).GroupCustomFields.Load(obj.ID)

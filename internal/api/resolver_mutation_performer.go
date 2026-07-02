@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/performer"
-	"github.com/stashapp/stash/pkg/plugin/hook"
-	"github.com/stashapp/stash/pkg/sliceutil"
-	"github.com/stashapp/stash/pkg/sliceutil/stringslice"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/performer"
+	"github.com/stashapp/stash_audio/pkg/plugin/hook"
+	"github.com/stashapp/stash_audio/pkg/sliceutil"
+	"github.com/stashapp/stash_audio/pkg/sliceutil/stringslice"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 const (

@@ -1,7 +1,7 @@
 package manager
 
 import (
-	"github.com/stashapp/stash/internal/manager/config"
+	"github.com/stashapp/stash_audio/internal/manager/config"
 )
 
 type SystemStatus struct {

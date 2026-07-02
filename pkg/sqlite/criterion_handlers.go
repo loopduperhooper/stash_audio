@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 type criterionHandler interface {
@@ -285,65 +285,6 @@ func yearFilterCriterionHandler(year *models.IntCriterionInput, col string) crit
 		if year != nil && year.Modifier.IsValid() {
 			clause, args := getIntCriterionWhereClause("cast(strftime('%Y', "+col+") as int)", *year)
 			f.addWhere(clause, args...)
-		}
-	}
-}
-
-func resolutionCriterionHandler(resolution *models.ResolutionCriterionInput, heightColumn string, widthColumn string, addJoinFn func(f *filterBuilder)) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if resolution != nil && resolution.Value.IsValid() {
-			if addJoinFn != nil {
-				addJoinFn(f)
-			}
-
-			mn := resolution.Value.GetMinResolution()
-			mx := resolution.Value.GetMaxResolution()
-
-			widthHeight := fmt.Sprintf("MIN(%s, %s)", widthColumn, heightColumn)
-
-			switch resolution.Modifier {
-			case models.CriterionModifierEquals:
-				f.addWhere(fmt.Sprintf("%s BETWEEN %d AND %d", widthHeight, mn, mx))
-			case models.CriterionModifierNotEquals:
-				f.addWhere(fmt.Sprintf("%s NOT BETWEEN %d AND %d", widthHeight, mn, mx))
-			case models.CriterionModifierLessThan:
-				f.addWhere(fmt.Sprintf("%s < %d", widthHeight, mn))
-			case models.CriterionModifierGreaterThan:
-				f.addWhere(fmt.Sprintf("%s > %d", widthHeight, mx))
-			}
-		}
-	}
-}
-
-func orientationCriterionHandler(orientation *models.OrientationCriterionInput, heightColumn string, widthColumn string, addJoinFn func(f *filterBuilder)) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if orientation != nil {
-			if addJoinFn != nil {
-				addJoinFn(f)
-			}
-
-			var clauses []sqlClause
-
-			for _, v := range orientation.Value {
-				// width mod height
-				mod := ""
-				switch v {
-				case models.OrientationPortrait:
-					mod = "<"
-				case models.OrientationLandscape:
-					mod = ">"
-				case models.OrientationSquare:
-					mod = "="
-				}
-
-				if mod != "" {
-					clauses = append(clauses, makeClause(fmt.Sprintf("%s %s %s", widthColumn, mod, heightColumn)))
-				}
-			}
-
-			if len(clauses) > 0 {
-				f.whereClauses = append(f.whereClauses, orClauses(clauses...))
-			}
 		}
 	}
 }
@@ -1132,39 +1073,3 @@ func (h *relatedFilterHandler) handle(ctx context.Context, f *filterBuilder) {
 	f.addWhere(fmt.Sprintf("%s IN ("+subQuery.toSQL(false)+")", h.relatedIDCol), subQuery.allArgs()...)
 }
 
-type phashDistanceCriterionHandler struct {
-	// assumes that applicable fingerprints table is joined as fingerprints_phash
-	joinFn    func(f *filterBuilder)
-	criterion *models.PhashDistanceCriterionInput
-}
-
-func (h *phashDistanceCriterionHandler) handle(ctx context.Context, f *filterBuilder) {
-	phashDistance := h.criterion
-	if phashDistance == nil {
-		return
-	}
-
-	h.joinFn(f)
-
-	value, _ := utils.StringToPhash(phashDistance.Value)
-	distance := 0
-	if phashDistance.Distance != nil {
-		distance = *phashDistance.Distance
-	}
-
-	switch {
-	case phashDistance.Modifier == models.CriterionModifierEquals && distance > 0:
-		// needed to avoid a type mismatch
-		f.addWhere("typeof(fingerprints_phash.fingerprint) = 'integer'")
-		f.addWhere("phash_distance(fingerprints_phash.fingerprint, ?) < ?", value, distance)
-	case phashDistance.Modifier == models.CriterionModifierNotEquals && distance > 0:
-		// needed to avoid a type mismatch
-		f.addWhere("typeof(fingerprints_phash.fingerprint) = 'integer'")
-		f.addWhere("phash_distance(fingerprints_phash.fingerprint, ?) > ?", value, distance)
-	default:
-		intCriterionHandler(&models.IntCriterionInput{
-			Value:    int(value),
-			Modifier: phashDistance.Modifier,
-		}, "fingerprints_phash.fingerprint", nil)(ctx, f)
-	}
-}

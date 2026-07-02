@@ -10,14 +10,14 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/stashapp/stash/internal/manager"
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/internal/manager/task"
-	"github.com/stashapp/stash/pkg/ffmpeg"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/internal/manager"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/internal/manager/task"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 var ErrOverriddenConfig = errors.New("cannot set overridden value")
@@ -175,16 +175,11 @@ func (r *mutationResolver) ConfigureGeneral(ctx context.Context, input ConfigGen
 		c.SetString(config.Generated, *input.GeneratedPath)
 	}
 
-	refreshScraperCache := false
-	refreshScraperSource := false
 	existingScrapersPath := c.GetScrapersPath()
 	if input.ScrapersPath != nil && existingScrapersPath != *input.ScrapersPath {
 		if err := validateDir(config.ScrapersPath, *input.ScrapersPath, false); err != nil {
 			return makeConfigGeneralResult(), err
 		}
-
-		refreshScraperCache = true
-		refreshScraperSource = true
 		c.SetString(config.ScrapersPath, *input.ScrapersPath)
 	}
 
@@ -272,13 +267,6 @@ func (r *mutationResolver) ConfigureGeneral(ctx context.Context, input ConfigGen
 		}
 		if !calculateMD5 && *input.VideoFileNamingAlgorithm == models.HashAlgorithmMd5 {
 			return makeConfigGeneralResult(), errors.New("calculateMD5 must be true if using MD5")
-		}
-
-		// validate changing VideoFileNamingAlgorithm
-		if err := r.withTxn(context.TODO(), func(ctx context.Context) error {
-			return manager.ValidateVideoFileNamingAlgorithm(ctx, r.repository.Scene, *input.VideoFileNamingAlgorithm)
-		}); err != nil {
-			return makeConfigGeneralResult(), err
 		}
 
 		c.SetInterface(config.VideoFileNamingAlgorithm, *input.VideoFileNamingAlgorithm)
@@ -409,7 +397,6 @@ func (r *mutationResolver) ConfigureGeneral(ctx context.Context, input ConfigGen
 
 	if input.CustomPerformerImageLocation != nil {
 		c.SetString(config.CustomPerformerImageLocation, *input.CustomPerformerImageLocation)
-		initCustomPerformerImages(*input.CustomPerformerImageLocation)
 	}
 
 	if input.StashBoxes != nil {
@@ -440,7 +427,6 @@ func (r *mutationResolver) ConfigureGeneral(ctx context.Context, input ConfigGen
 
 	if input.ScraperPackageSources != nil {
 		c.SetInterface(config.ScraperPackageSources, input.ScraperPackageSources)
-		refreshScraperSource = true
 	}
 
 	if input.PluginPackageSources != nil {
@@ -453,9 +439,6 @@ func (r *mutationResolver) ConfigureGeneral(ctx context.Context, input ConfigGen
 	}
 
 	manager.GetInstance().RefreshConfig()
-	if refreshScraperCache {
-		manager.GetInstance().RefreshScraperCache()
-	}
 	if refreshPluginCache {
 		manager.GetInstance().RefreshPluginCache()
 	}
@@ -470,9 +453,6 @@ func (r *mutationResolver) ConfigureGeneral(ctx context.Context, input ConfigGen
 	}
 	if refreshBlobStorage {
 		manager.GetInstance().SetBlobStoreOptions()
-	}
-	if refreshScraperSource {
-		manager.GetInstance().RefreshScraperSourceManager()
 	}
 	if refreshPluginSource {
 		manager.GetInstance().RefreshPluginSourceManager()
@@ -575,10 +555,8 @@ func (r *mutationResolver) ConfigureDlna(ctx context.Context, input ConfigDLNAIn
 	r.setConfigString(config.DLNAVideoSortOrder, input.VideoSortOrder)
 	r.setConfigInt(config.DLNAPort, input.Port)
 
-	refresh := false
 	if input.Enabled != nil {
 		c.SetBool(config.DLNADefaultEnabled, *input.Enabled)
-		refresh = true
 	}
 
 	if input.Interfaces != nil {
@@ -589,25 +567,18 @@ func (r *mutationResolver) ConfigureDlna(ctx context.Context, input ConfigDLNAIn
 		return makeConfigDLNAResult(), err
 	}
 
-	if refresh {
-		manager.GetInstance().RefreshDLNA()
-	}
-
 	return makeConfigDLNAResult(), nil
 }
 
 func (r *mutationResolver) ConfigureScraping(ctx context.Context, input ConfigScrapingInput) (*ConfigScrapingResult, error) {
 	c := config.GetInstance()
 
-	refreshScraperCache := false
 	if input.ScraperUserAgent != nil {
 		c.SetString(config.ScraperUserAgent, *input.ScraperUserAgent)
-		refreshScraperCache = true
 	}
 
 	if input.ScraperCDPPath != nil {
 		c.SetString(config.ScraperCDPPath, *input.ScraperCDPPath)
-		refreshScraperCache = true
 	}
 
 	if input.ExcludeTagPatterns != nil {
@@ -622,9 +593,6 @@ func (r *mutationResolver) ConfigureScraping(ctx context.Context, input ConfigSc
 
 	r.setConfigBool(config.ScraperCertCheck, input.ScraperCertCheck)
 
-	if refreshScraperCache {
-		manager.GetInstance().RefreshScraperCache()
-	}
 	if err := c.Write(); err != nil {
 		return makeConfigScrapingResult(), err
 	}

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 // hierarchicalRelationshipHandler provides handlers for parent, children, parent count, and child count criteria.

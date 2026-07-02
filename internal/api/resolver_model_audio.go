@@ -2,10 +2,13 @@ package api
 
 import (
 	"context"
+	"os"
+	"path/filepath"
+	"strings"
 
-	"github.com/stashapp/stash/internal/api/loaders"
-	"github.com/stashapp/stash/internal/api/urlbuilders"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/internal/api/loaders"
+	"github.com/stashapp/stash_audio/internal/api/urlbuilders"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func (r *audioResolver) getFiles(ctx context.Context, obj *models.Audio) ([]models.File, error) {
@@ -53,11 +56,32 @@ func (r *audioResolver) Paths(ctx context.Context, obj *models.Audio) (*AudioPat
 	coverPath := builder.GetCoverURL()
 	streamPath := builder.GetStreamURL()
 	vttPath := builder.GetVTTURL()
-	return &AudioPathsType{
+
+	result := &AudioPathsType{
 		Cover:  &coverPath,
 		Stream: &streamPath,
 		Vtt:    &vttPath,
-	}, nil
+	}
+
+	if obj.Path != "" {
+		base := strings.TrimSuffix(obj.Path, filepath.Ext(obj.Path))
+
+		funscript := base + ".funscript"
+		if _, err := os.Stat(funscript); err == nil {
+			u := builder.GetFunscriptURL()
+			result.Funscript = &u
+		}
+
+		for _, ext := range []string{".vtt", ".srt"} {
+			if _, err := os.Stat(base + ext); err == nil {
+				u := builder.GetSubtitlesURL()
+				result.Subtitles = &u
+				break
+			}
+		}
+	}
+
+	return result, nil
 }
 
 func (r *audioResolver) Studio(ctx context.Context, obj *models.Audio) (ret *models.Studio, err error) {

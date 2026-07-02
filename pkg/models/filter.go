@@ -144,11 +144,6 @@ func (i FloatCriterionInput) ValidModifier() bool {
 	return false
 }
 
-type ResolutionCriterionInput struct {
-	Value    ResolutionEnum    `json:"value"`
-	Modifier CriterionModifier `json:"modifier"`
-}
-
 type HierarchicalMultiCriterionInput struct {
 	Value    []string          `json:"value"`
 	Modifier CriterionModifier `json:"modifier"`
@@ -185,16 +180,6 @@ type TimestampCriterionInput struct {
 	Modifier CriterionModifier `json:"modifier"`
 }
 
-type PhashDistanceCriterionInput struct {
-	Value    string            `json:"value"`
-	Modifier CriterionModifier `json:"modifier"`
-	Distance *int              `json:"distance"`
-}
-
-type OrientationCriterionInput struct {
-	Value []OrientationEnum `json:"value"`
-}
-
 type CustomFieldCriterionInput struct {
 	Field    string            `json:"field"`
 	Value    []any             `json:"value"`
@@ -208,23 +193,3 @@ type FingerprintFilterInput struct {
 	Distance *int `json:"distance,omitempty"`
 }
 
-type VideoFileFilterInput struct {
-	Format      *StringCriterionInput      `json:"format,omitempty"`
-	Resolution  *ResolutionCriterionInput  `json:"resolution,omitempty"`
-	Orientation *OrientationCriterionInput `json:"orientation,omitempty"`
-	Framerate   *IntCriterionInput         `json:"framerate,omitempty"`
-	Bitrate     *IntCriterionInput         `json:"bitrate,omitempty"`
-	VideoCodec  *StringCriterionInput      `json:"video_codec,omitempty"`
-	AudioCodec  *StringCriterionInput      `json:"audio_codec,omitempty"`
-	// in seconds
-	Duration         *IntCriterionInput    `json:"duration,omitempty"`
-	Captions         *StringCriterionInput `json:"captions,omitempty"`
-	Interactive      *bool                 `json:"interactive,omitempty"`
-	InteractiveSpeed *IntCriterionInput    `json:"interactive_speed,omitempty"`
-}
-
-type ImageFileFilterInput struct {
-	Format      *StringCriterionInput      `json:"format,omitempty"`
-	Resolution  *ResolutionCriterionInput  `json:"resolution,omitempty"`
-	Orientation *OrientationCriterionInput `json:"orientation,omitempty"`
-}

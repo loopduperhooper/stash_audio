@@ -3,7 +3,7 @@ package sqlite
 import (
 	"context"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 type studioFilterHandler struct {
@@ -82,9 +82,6 @@ func (qb *studioFilterHandler) criterionHandler() criterionHandler {
 
 		qb.isMissingCriterionHandler(studioFilter.IsMissing),
 		qb.tagCountCriterionHandler(studioFilter.TagCount),
-		qb.sceneCountCriterionHandler(studioFilter.SceneCount),
-		qb.imageCountCriterionHandler(studioFilter.ImageCount),
-		qb.galleryCountCriterionHandler(studioFilter.GalleryCount),
 		qb.groupCountCriterionHandler(studioFilter.GroupCount),
 		qb.parentCriterionHandler(studioFilter.Parents),
 		qb.aliasCriterionHandler(studioFilter.Aliases),
@@ -92,33 +89,6 @@ func (qb *studioFilterHandler) criterionHandler() criterionHandler {
 		qb.childCountCriterionHandler(studioFilter.ChildCount),
 		&timestampCriterionHandler{studioFilter.CreatedAt, studioTable + ".created_at", nil},
 		&timestampCriterionHandler{studioFilter.UpdatedAt, studioTable + ".updated_at", nil},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "scenes.id",
-			relatedRepo:    sceneRepository.repository,
-			relatedHandler: &sceneFilterHandler{studioFilter.ScenesFilter},
-			joinFn: func(f *filterBuilder) {
-				studioRepository.scenes.innerJoin(f, "", "studios.id")
-			},
-		},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "images.id",
-			relatedRepo:    imageRepository.repository,
-			relatedHandler: &imageFilterHandler{studioFilter.ImagesFilter},
-			joinFn: func(f *filterBuilder) {
-				studioRepository.images.innerJoin(f, "", "studios.id")
-			},
-		},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "galleries.id",
-			relatedRepo:    galleryRepository.repository,
-			relatedHandler: &galleryFilterHandler{studioFilter.GalleriesFilter},
-			joinFn: func(f *filterBuilder) {
-				studioRepository.galleries.innerJoin(f, "", "studios.id")
-			},
-		},
 
 		&relatedFilterHandler{
 			relatedIDCol:   "groups.id",
@@ -165,39 +135,6 @@ func (qb *studioFilterHandler) isMissingCriterionHandler(isMissing *string) crit
 				}
 				f.addWhere("(studios." + *isMissing + " IS NULL OR TRIM(studios." + *isMissing + ") = '')")
 			}
-		}
-	}
-}
-
-func (qb *studioFilterHandler) sceneCountCriterionHandler(sceneCount *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if sceneCount != nil {
-			f.addLeftJoin("scenes", "", "scenes.studio_id = studios.id")
-			clause, args := getIntCriterionWhereClause("count(distinct scenes.id)", *sceneCount)
-
-			f.addHaving(clause, args...)
-		}
-	}
-}
-
-func (qb *studioFilterHandler) imageCountCriterionHandler(imageCount *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if imageCount != nil {
-			f.addLeftJoin("images", "", "images.studio_id = studios.id")
-			clause, args := getIntCriterionWhereClause("count(distinct images.id)", *imageCount)
-
-			f.addHaving(clause, args...)
-		}
-	}
-}
-
-func (qb *studioFilterHandler) galleryCountCriterionHandler(galleryCount *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if galleryCount != nil {
-			f.addLeftJoin("galleries", "", "galleries.studio_id = studios.id")
-			clause, args := getIntCriterionWhereClause("count(distinct galleries.id)", *galleryCount)
-
-			f.addHaving(clause, args...)
 		}
 	}
 }

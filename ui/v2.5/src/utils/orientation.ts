@@ -1,4 +1,8 @@
-import { OrientationEnum } from "src/core/generated-graphql";
+export enum OrientationEnum {
+  Landscape = "LANDSCAPE",
+  Portrait = "PORTRAIT",
+  Square = "SQUARE",
+}
 
 const stringOrientationMap = new Map<string, OrientationEnum>([
   ["Landscape", OrientationEnum.Landscape],

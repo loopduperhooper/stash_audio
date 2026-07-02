@@ -1,6 +1,6 @@
 package api
 
-import "github.com/stashapp/stash/pkg/models"
+import "github.com/stashapp/stash_audio/pkg/models"
 
 func handleUpdateCustomFields(input models.CustomFieldsInput) models.CustomFieldsInput {
 	ret := input

@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stashapp/stash/pkg/file"
+	"github.com/stashapp/stash_audio/pkg/file"
 
 	// Necessary to register custom migrations.
-	_ "github.com/stashapp/stash/pkg/sqlite/migrations"
+	_ "github.com/stashapp/stash_audio/pkg/sqlite/migrations"
 )
 
 // stashIgnorePathFilter wraps StashIgnoreFilter to implement PathFilter for testing.

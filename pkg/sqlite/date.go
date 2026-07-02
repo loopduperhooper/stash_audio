@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"time"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 	"gopkg.in/guregu/null.v4"
 )
 

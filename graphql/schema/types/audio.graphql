@@ -29,6 +29,7 @@ type AudioPathsType {
   cover: String # Resolver
   stream: String # Resolver
   vtt: String # Resolver
+  funscript: String # Resolver
 }
 
 type FindAudiosResultType {

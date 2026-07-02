@@ -5,8 +5,8 @@ import (
 	"os"
 
 	jsoniter "github.com/json-iterator/go"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/models/json"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/models/json"
 )
 
 type Image struct {

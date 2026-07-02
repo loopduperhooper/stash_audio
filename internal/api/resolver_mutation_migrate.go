@@ -4,27 +4,10 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/stashapp/stash/internal/manager"
-	"github.com/stashapp/stash/internal/manager/task"
-	"github.com/stashapp/stash/pkg/scene"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/internal/manager"
+	"github.com/stashapp/stash_audio/internal/manager/task"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
-
-func (r *mutationResolver) MigrateSceneScreenshots(ctx context.Context, input MigrateSceneScreenshotsInput) (string, error) {
-	mgr := manager.GetInstance()
-	t := &task.MigrateSceneScreenshotsJob{
-		ScreenshotsPath: manager.GetInstance().Paths.Generated.Screenshots,
-		Input: scene.MigrateSceneScreenshotsInput{
-			DeleteFiles:       utils.IsTrue(input.DeleteFiles),
-			OverwriteExisting: utils.IsTrue(input.OverwriteExisting),
-		},
-		SceneRepo:  mgr.Repository.Scene,
-		TxnManager: mgr.Repository.TxnManager,
-	}
-	jobID := mgr.JobManager.Add(ctx, "Migrating scene screenshots to blobs...", t)
-
-	return strconv.Itoa(jobID), nil
-}
 
 func (r *mutationResolver) MigrateBlobs(ctx context.Context, input MigrateBlobsInput) (string, error) {
 	mgr := manager.GetInstance()

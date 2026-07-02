@@ -8,8 +8,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/sliceutil/stringslice"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/sliceutil/stringslice"
 )
 
 const updateInputField = "input"
@@ -361,74 +361,6 @@ func (t changesetTranslator) updateStashIDs(value models.StashIDInputs, field st
 		StashIDs: value.ToStashIDs(),
 		Mode:     models.RelationshipUpdateModeSet,
 	}
-}
-
-func (t changesetTranslator) relatedGroupsFromMovies(value []models.SceneMovieInput) (models.RelatedGroups, error) {
-	groupsScenes, err := models.GroupsScenesFromInput(value)
-	if err != nil {
-		return models.RelatedGroups{}, err
-	}
-
-	return models.NewRelatedGroups(groupsScenes), nil
-}
-
-func groupsScenesFromGroupInput(input []models.SceneGroupInput) ([]models.GroupsScenes, error) {
-	ret := make([]models.GroupsScenes, len(input))
-
-	for i, v := range input {
-		mID, err := strconv.Atoi(v.GroupID)
-		if err != nil {
-			return nil, fmt.Errorf("invalid group ID: %s", v.GroupID)
-		}
-
-		ret[i] = models.GroupsScenes{
-			GroupID:    mID,
-			SceneIndex: v.SceneIndex,
-		}
-	}
-
-	return ret, nil
-}
-
-func (t changesetTranslator) relatedGroups(value []models.SceneGroupInput) (models.RelatedGroups, error) {
-	groupsScenes, err := groupsScenesFromGroupInput(value)
-	if err != nil {
-		return models.RelatedGroups{}, err
-	}
-
-	return models.NewRelatedGroups(groupsScenes), nil
-}
-
-func (t changesetTranslator) updateGroupIDsFromMovies(value []models.SceneMovieInput, field string) (*models.UpdateGroupIDs, error) {
-	if !t.hasField(field) {
-		return nil, nil
-	}
-
-	groupsScenes, err := models.GroupsScenesFromInput(value)
-	if err != nil {
-		return nil, err
-	}
-
-	return &models.UpdateGroupIDs{
-		Groups: groupsScenes,
-		Mode:   models.RelationshipUpdateModeSet,
-	}, nil
-}
-
-func (t changesetTranslator) updateGroupIDs(value []models.SceneGroupInput, field string) (*models.UpdateGroupIDs, error) {
-	if !t.hasField(field) {
-		return nil, nil
-	}
-
-	groupsScenes, err := groupsScenesFromGroupInput(value)
-	if err != nil {
-		return nil, err
-	}
-
-	return &models.UpdateGroupIDs{
-		Groups: groupsScenes,
-		Mode:   models.RelationshipUpdateModeSet,
-	}, nil
 }
 
 func (t changesetTranslator) updateGroupIDsBulk(value *BulkUpdateIds, field string) (*models.UpdateGroupIDs, error) {

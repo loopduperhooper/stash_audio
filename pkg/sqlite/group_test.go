@@ -14,9 +14,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/sliceutil"
-	"github.com/stashapp/stash/pkg/sliceutil/intslice"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/sliceutil"
+	"github.com/stashapp/stash_audio/pkg/sliceutil/intslice"
 )
 
 func loadGroupRelationships(ctx context.Context, expected models.Group, actual *models.Group) error {

@@ -11,8 +11,8 @@ import (
 	"net/url"
 	"path/filepath"
 
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 // SourcePathGetter gets the source path for a given package URL.

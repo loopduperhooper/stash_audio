@@ -6,10 +6,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/plugin/hook"
-	"github.com/stashapp/stash/pkg/sliceutil/stringslice"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/plugin"
+	"github.com/stashapp/stash_audio/pkg/plugin/hook"
+	"github.com/stashapp/stash_audio/pkg/sliceutil/stringslice"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 func (r *mutationResolver) getAudio(ctx context.Context, id int) (ret *models.Audio, err error) {
@@ -289,7 +290,7 @@ func (r *mutationResolver) BulkAudioUpdate(ctx context.Context, input BulkAudioU
 	return newRet, nil
 }
 
-func (r *mutationResolver) AudioDestroy(ctx context.Context, input AudioDestroyInput) (bool, error) {
+func (r *mutationResolver) AudioDestroy(ctx context.Context, input plugin.AudioDestroyInput) (bool, error) {
 	audioID, err := strconv.Atoi(input.ID)
 	if err != nil {
 		return false, fmt.Errorf("converting id: %w", err)

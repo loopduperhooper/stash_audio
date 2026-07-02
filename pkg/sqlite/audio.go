@@ -15,7 +15,7 @@ import (
 	"gopkg.in/guregu/null.v4"
 	"gopkg.in/guregu/null.v4/zero"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 const (
@@ -280,7 +280,7 @@ func (qb *AudioStore) Create(ctx context.Context, newObject *models.Audio, fileI
 	}
 
 	if newObject.GroupIDs.Loaded() {
-		if err := groupsAudiosTableMgr.insertJoins(ctx, id, newObject.GroupIDs.List()); err != nil {
+		if err := audiosGroupsTableMgr.insertJoins(ctx, id, newObject.GroupIDs.List()); err != nil {
 			return err
 		}
 	}
@@ -332,7 +332,7 @@ func (qb *AudioStore) UpdatePartial(ctx context.Context, id int, partial models.
 		}
 	}
 	if partial.GroupIDs != nil {
-		if err := groupsAudiosTableMgr.modifyJoins(ctx, id, partial.GroupIDs.IDs, partial.GroupIDs.Mode); err != nil {
+		if err := audiosGroupsTableMgr.modifyJoins(ctx, id, partial.GroupIDs.IDs, partial.GroupIDs.Mode); err != nil {
 			return nil, err
 		}
 	}
@@ -377,7 +377,7 @@ func (qb *AudioStore) Update(ctx context.Context, updatedObject *models.Audio) e
 	}
 
 	if updatedObject.GroupIDs.Loaded() {
-		if err := groupsAudiosTableMgr.replaceJoins(ctx, updatedObject.ID, updatedObject.GroupIDs.List()); err != nil {
+		if err := audiosGroupsTableMgr.replaceJoins(ctx, updatedObject.ID, updatedObject.GroupIDs.List()); err != nil {
 			return err
 		}
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"io/fs"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 // PathFilter provides a filter function for paths.

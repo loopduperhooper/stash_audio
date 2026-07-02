@@ -37,6 +37,7 @@ import {
 } from "./hooks/Config";
 import { ManualProvider } from "./components/Help/context";
 import { InteractiveProvider } from "./hooks/Interactive/context";
+import { IntifaceProvider } from "./hooks/IntifaceContext";
 import { ReleaseNotesDialog } from "./components/Dialogs/ReleaseNotesDialog";
 import { releaseNotes } from "./docs/en/ReleaseNotes";
 import { getPlatformURL } from "./core/createClient";
@@ -62,27 +63,14 @@ const Performers = lazyComponent(
 const FrontPage = lazyComponent(
   () => import("./components/FrontPage/FrontPage")
 );
-const Scenes = lazyComponent(() => import("./components/Scenes/Scenes"));
 const Settings = lazyComponent(() => import("./components/Settings/Settings"));
 const Stats = lazyComponent(() => import("./components/Stats"));
 const Studios = lazyComponent(() => import("./components/Studios/Studios"));
-const Galleries = lazyComponent(
-  () => import("./components/Galleries/Galleries")
-);
-
 const Groups = lazyComponent(() => import("./components/Groups/Groups"));
 const Tags = lazyComponent(() => import("./components/Tags/Tags"));
-const Images = lazyComponent(() => import("./components/Images/Images"));
 const Audios = lazyComponent(() => import("./components/Audios/Audios"));
 const Setup = lazyComponent(() => import("./components/Setup/Setup"));
 const Migrate = lazyComponent(() => import("./components/Setup/Migrate"));
-
-const SceneFilenameParser = lazyComponent(
-  () => import("./components/SceneFilenameParser/SceneFilenameParser")
-);
-const SceneDuplicateChecker = lazyComponent(
-  () => import("./components/SceneDuplicateChecker/SceneDuplicateChecker")
-);
 
 const appleRendering = isPlatformUniquelyRenderedByApple();
 
@@ -253,24 +241,13 @@ export const App: React.FC = () => {
         <Suspense fallback={<LoadingIndicator />}>
           <Switch>
             <Route exact path="/" component={FrontPage} />
-            <Route path="/scenes" component={Scenes} />
-            <Route path="/images" component={Images} />
             <Route path="/audios" component={Audios} />
-            <Route path="/galleries" component={Galleries} />
             <Route path="/performers" component={Performers} />
             <Route path="/tags" component={Tags} />
             <Route path="/studios" component={Studios} />
             <Route path="/groups" component={Groups} />
             <Route path="/stats" component={Stats} />
             <Route path="/settings" component={Settings} />
-            <Route
-              path="/sceneFilenameParser"
-              component={SceneFilenameParser}
-            />
-            <Route
-              path="/sceneDuplicateChecker"
-              component={SceneDuplicateChecker}
-            />
             <Route path="/setup" component={Setup} />
             <Route path="/migrate" component={Migrate} />
             <PluginRoutes />
@@ -370,9 +347,11 @@ export const App: React.FC = () => {
                   <LightboxProvider>
                     <ManualProvider>
                       <InteractiveProvider>
-                        <Helmet {...titleProps} />
-                        {maybeRenderNavbar()}
-                        <MainContainer>{renderContent()}</MainContainer>
+                        <IntifaceProvider>
+                          <Helmet {...titleProps} />
+                          {maybeRenderNavbar()}
+                          <MainContainer>{renderContent()}</MainContainer>
+                        </IntifaceProvider>
                       </InteractiveProvider>
                     </ManualProvider>
                   </LightboxProvider>

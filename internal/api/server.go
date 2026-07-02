@@ -30,15 +30,15 @@ import (
 	"github.com/vearutop/statigz"
 	"github.com/vektah/gqlparser/v2/ast"
 
-	"github.com/stashapp/stash/internal/api/loaders"
-	"github.com/stashapp/stash/internal/build"
-	"github.com/stashapp/stash/internal/manager"
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/plugin"
-	"github.com/stashapp/stash/pkg/utils"
-	"github.com/stashapp/stash/ui"
+	"github.com/stashapp/stash_audio/internal/api/loaders"
+	"github.com/stashapp/stash_audio/internal/build"
+	"github.com/stashapp/stash_audio/internal/manager"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/plugin"
+	"github.com/stashapp/stash_audio/pkg/utils"
+	"github.com/stashapp/stash_audio/ui"
 )
 
 const (
@@ -83,8 +83,6 @@ func (dir osFS) Open(name string) (fs.File, error) {
 func Initialize() (*Server, error) {
 	mgr := manager.GetInstance()
 	cfg := mgr.Config
-
-	initCustomPerformerImages(cfg.GetCustomPerformerImageLocation())
 
 	displayHost := cfg.GetHost()
 	if displayHost == "0.0.0.0" {
@@ -158,17 +156,11 @@ func Initialize() (*Server, error) {
 	r.Use(dataloaders.Middleware)
 
 	pluginCache := mgr.PluginCache
-	sceneService := mgr.SceneService
-	imageService := mgr.ImageService
-	galleryService := mgr.GalleryService
 	groupService := mgr.GroupService
 	resolver := &Resolver{
-		repository:     repo,
-		sceneService:   sceneService,
-		imageService:   imageService,
-		galleryService: galleryService,
-		groupService:   groupService,
-		hookExecutor:   pluginCache,
+		repository:   repo,
+		groupService: groupService,
+		hookExecutor: pluginCache,
 	}
 
 	gqlSrv := gqlHandler.New(NewExecutableSchema(Config{Resolvers: resolver}))
@@ -212,9 +204,6 @@ func Initialize() (*Server, error) {
 	})
 
 	r.Mount("/performer", server.getPerformerRoutes())
-	r.Mount("/scene", server.getSceneRoutes())
-	r.Mount("/gallery", server.getGalleryRoutes())
-	r.Mount("/image", server.getImageRoutes())
 	r.Mount("/audio", server.getAudioRoutes())
 	r.Mount("/studio", server.getStudioRoutes())
 	r.Mount("/group", server.getGroupRoutes())
@@ -353,37 +342,6 @@ func (s *Server) getPerformerRoutes() chi.Router {
 		routes:          routes{txnManager: repo.TxnManager},
 		performerFinder: repo.Performer,
 		sfwConfig:       s.manager.Config,
-	}.Routes()
-}
-
-func (s *Server) getSceneRoutes() chi.Router {
-	repo := s.manager.Repository
-	return sceneRoutes{
-		routes:            routes{txnManager: repo.TxnManager},
-		sceneFinder:       repo.Scene,
-		fileGetter:        repo.File,
-		captionFinder:     repo.File,
-		sceneMarkerFinder: repo.SceneMarker,
-		tagFinder:         repo.Tag,
-	}.Routes()
-}
-
-func (s *Server) getGalleryRoutes() chi.Router {
-	repo := s.manager.Repository
-	return galleryRoutes{
-		routes:        routes{txnManager: repo.TxnManager},
-		imageFinder:   repo.Image,
-		galleryFinder: repo.Gallery,
-		fileGetter:    repo.File,
-	}.Routes()
-}
-
-func (s *Server) getImageRoutes() chi.Router {
-	repo := s.manager.Repository
-	return imageRoutes{
-		routes:      routes{txnManager: repo.TxnManager},
-		imageFinder: repo.Image,
-		fileGetter:  repo.File,
 	}.Routes()
 }
 

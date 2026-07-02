@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 
-	"github.com/stashapp/stash/pkg/sliceutil"
+	"github.com/stashapp/stash_audio/pkg/sliceutil"
 )
 
 type SceneIDLoader interface {

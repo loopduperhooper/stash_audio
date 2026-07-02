@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 
 	flag "github.com/spf13/pflag"
-	"github.com/stashapp/stash/pkg/ffmpeg"
-	"github.com/stashapp/stash/pkg/hash/imagephash"
-	"github.com/stashapp/stash/pkg/hash/videophash"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/hash/imagephash"
+	"github.com/stashapp/stash_audio/pkg/hash/videophash"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func customUsage() {

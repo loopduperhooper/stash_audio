@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 // SetLocalRequest checks if the request is from localhost and sets the context value accordingly.

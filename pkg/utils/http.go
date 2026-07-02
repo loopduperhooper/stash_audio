@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/stashapp/stash/pkg/hash/md5"
+	"github.com/stashapp/stash_audio/pkg/hash/md5"
 )
 
 // Returns an MD5 hash of data, formatted for use as an HTTP ETag header.

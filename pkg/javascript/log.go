@@ -7,7 +7,7 @@ import (
 	"reflect"
 
 	"github.com/dop251/goja"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 // Log provides log wrappers for usable from the JS VM.

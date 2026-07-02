@@ -10,20 +10,17 @@ import (
 	"path/filepath"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/stashapp/stash/pkg/file"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/gallery"
-	"github.com/stashapp/stash/pkg/group"
-	"github.com/stashapp/stash/pkg/image"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/models/jsonschema"
-	"github.com/stashapp/stash/pkg/models/paths"
-	"github.com/stashapp/stash/pkg/performer"
-	"github.com/stashapp/stash/pkg/savedfilter"
-	"github.com/stashapp/stash/pkg/scene"
-	"github.com/stashapp/stash/pkg/studio"
-	"github.com/stashapp/stash/pkg/tag"
+	"github.com/stashapp/stash_audio/pkg/file"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/group"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models/jsonschema"
+	"github.com/stashapp/stash_audio/pkg/models/paths"
+	"github.com/stashapp/stash_audio/pkg/performer"
+	"github.com/stashapp/stash_audio/pkg/savedfilter"
+	"github.com/stashapp/stash_audio/pkg/studio"
+	"github.com/stashapp/stash_audio/pkg/tag"
 )
 
 type Resetter interface {
@@ -131,10 +128,6 @@ func (t *ImportTask) Start(ctx context.Context) {
 	t.ImportStudios(ctx)
 	t.ImportGroups(ctx)
 	t.ImportFiles(ctx)
-	t.ImportGalleries(ctx)
-
-	t.ImportScenes(ctx)
-	t.ImportImages(ctx)
 }
 
 func (t *ImportTask) unzipFile() error {
@@ -511,70 +504,6 @@ func (t *ImportTask) importFile(ctx context.Context, fileJSON jsonschema.DirEntr
 	return nil
 }
 
-func (t *ImportTask) ImportGalleries(ctx context.Context) {
-	logger.Info("[galleries] importing")
-
-	path := t.json.json.Galleries
-	files, err := os.ReadDir(path)
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			logger.Errorf("[galleries] failed to read galleries directory: %v", err)
-		}
-
-		return
-	}
-
-	r := t.repository
-
-	for i, fi := range files {
-		index := i + 1
-		galleryJSON, err := jsonschema.LoadGalleryFile(filepath.Join(path, fi.Name()))
-		if err != nil {
-			logger.Errorf("[galleries] failed to read json: %v", err)
-			continue
-		}
-
-		logger.Progressf("[galleries] %d of %d", index, len(files))
-
-		if err := r.WithTxn(ctx, func(ctx context.Context) error {
-			galleryImporter := &gallery.Importer{
-				ReaderWriter:        r.Gallery,
-				FolderFinder:        r.Folder,
-				FileFinder:          r.File,
-				PerformerWriter:     r.Performer,
-				StudioWriter:        r.Studio,
-				TagWriter:           r.Tag,
-				Input:               *galleryJSON,
-				MissingRefBehaviour: t.MissingRefBehaviour,
-			}
-
-			if err := performImport(ctx, galleryImporter, t.DuplicateBehaviour); err != nil {
-				return err
-			}
-
-			// import the gallery chapters
-			for _, m := range galleryJSON.Chapters {
-				chapterImporter := &gallery.ChapterImporter{
-					GalleryID:           galleryImporter.ID,
-					Input:               m,
-					MissingRefBehaviour: t.MissingRefBehaviour,
-					ReaderWriter:        r.GalleryChapter,
-				}
-
-				if err := performImport(ctx, chapterImporter, t.DuplicateBehaviour); err != nil {
-					return err
-				}
-			}
-
-			return nil
-		}); err != nil {
-			logger.Errorf("[galleries] <%s> import failed to commit: %v", fi.Name(), err)
-			continue
-		}
-	}
-
-	logger.Info("[galleries] import complete")
-}
 
 func (t *ImportTask) ImportTags(ctx context.Context) {
 	pendingParent := make(map[string][]*jsonschema.Tag)
@@ -663,129 +592,6 @@ func (t *ImportTask) importTag(ctx context.Context, tagJSON *jsonschema.Tag, pen
 	return nil
 }
 
-func (t *ImportTask) ImportScenes(ctx context.Context) {
-	logger.Info("[scenes] importing")
-
-	path := t.json.json.Scenes
-	files, err := os.ReadDir(path)
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			logger.Errorf("[scenes] failed to read scenes directory: %v", err)
-		}
-
-		return
-	}
-
-	r := t.repository
-
-	for i, fi := range files {
-		index := i + 1
-
-		logger.Progressf("[scenes] %d of %d", index, len(files))
-
-		sceneJSON, err := jsonschema.LoadSceneFile(filepath.Join(path, fi.Name()))
-		if err != nil {
-			logger.Infof("[scenes] <%s> json parse failure: %v", fi.Name(), err)
-			continue
-		}
-
-		if err := r.WithTxn(ctx, func(ctx context.Context) error {
-			sceneImporter := &scene.Importer{
-				ReaderWriter: r.Scene,
-				Input:        *sceneJSON,
-				FileFinder:   r.File,
-
-				FileNamingAlgorithm: t.fileNamingAlgorithm,
-				MissingRefBehaviour: t.MissingRefBehaviour,
-
-				GalleryFinder:   r.Gallery,
-				GroupWriter:     r.Group,
-				PerformerWriter: r.Performer,
-				StudioWriter:    r.Studio,
-				TagWriter:       r.Tag,
-			}
-
-			if err := performImport(ctx, sceneImporter, t.DuplicateBehaviour); err != nil {
-				return err
-			}
-
-			// skip importing markers if the scene was not created
-			if sceneImporter.ID == 0 {
-				return nil
-			}
-
-			// import the scene markers
-			for _, m := range sceneJSON.Markers {
-				markerImporter := &scene.MarkerImporter{
-					SceneID:             sceneImporter.ID,
-					Input:               m,
-					MissingRefBehaviour: t.MissingRefBehaviour,
-					ReaderWriter:        r.SceneMarker,
-					TagWriter:           r.Tag,
-				}
-
-				if err := performImport(ctx, markerImporter, t.DuplicateBehaviour); err != nil {
-					return err
-				}
-			}
-
-			return nil
-		}); err != nil {
-			logger.Errorf("[scenes] <%s> import failed: %v", fi.Name(), err)
-		}
-	}
-
-	logger.Info("[scenes] import complete")
-}
-
-func (t *ImportTask) ImportImages(ctx context.Context) {
-	logger.Info("[images] importing")
-
-	path := t.json.json.Images
-	files, err := os.ReadDir(path)
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			logger.Errorf("[images] failed to read images directory: %v", err)
-		}
-
-		return
-	}
-
-	r := t.repository
-
-	for i, fi := range files {
-		index := i + 1
-
-		logger.Progressf("[images] %d of %d", index, len(files))
-
-		imageJSON, err := jsonschema.LoadImageFile(filepath.Join(path, fi.Name()))
-		if err != nil {
-			logger.Infof("[images] <%s> json parse failure: %v", fi.Name(), err)
-			continue
-		}
-
-		if err := r.WithTxn(ctx, func(ctx context.Context) error {
-			imageImporter := &image.Importer{
-				ReaderWriter: r.Image,
-				FileFinder:   r.File,
-				Input:        *imageJSON,
-
-				MissingRefBehaviour: t.MissingRefBehaviour,
-
-				GalleryFinder:   r.Gallery,
-				PerformerWriter: r.Performer,
-				StudioWriter:    r.Studio,
-				TagWriter:       r.Tag,
-			}
-
-			return performImport(ctx, imageImporter, t.DuplicateBehaviour)
-		}); err != nil {
-			logger.Errorf("[images] <%s> import failed: %v", fi.Name(), err)
-		}
-	}
-
-	logger.Info("[images] import complete")
-}
 
 func (t *ImportTask) ImportSavedFilters(ctx context.Context) {
 	logger.Info("[saved filters] importing")

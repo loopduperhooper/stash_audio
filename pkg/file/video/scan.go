@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/stashapp/stash/pkg/ffmpeg"
-	"github.com/stashapp/stash/pkg/file"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/file"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 // Decorator adds video specific fields to a File.

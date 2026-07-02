@@ -4,9 +4,9 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/stashapp/stash/internal/manager"
-	"github.com/stashapp/stash/internal/manager/task"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/internal/manager"
+	"github.com/stashapp/stash_audio/internal/manager/task"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func refreshPackageType(typeArg PackageType) {
@@ -14,8 +14,6 @@ func refreshPackageType(typeArg PackageType) {
 
 	if typeArg == PackageTypePlugin {
 		mgr.RefreshPluginCache()
-	} else if typeArg == PackageTypeScraper {
-		mgr.RefreshScraperCache()
 	}
 }
 

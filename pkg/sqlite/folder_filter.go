@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 type folderFilterHandler struct {
@@ -23,9 +23,7 @@ func (qb *folderFilterHandler) validate() error {
 		return err
 	}
 
-	if qb.isRelated && (folderFilter.GalleriesFilter != nil) {
-		return fmt.Errorf("cannot use related filters inside a related filter")
-	}
+
 
 	if subFilter := folderFilter.SubFilter(); subFilter != nil {
 		sqb := &folderFilterHandler{folderFilter: subFilter, isRelated: qb.isRelated}
@@ -71,19 +69,8 @@ func (qb *folderFilterHandler) criterionHandler() criterionHandler {
 		qb.parentFolderCriterionHandler(folderFilter.ParentFolder),
 		qb.zipFileCriterionHandler(folderFilter.ZipFile),
 
-		qb.galleryCountCriterionHandler(folderFilter.GalleryCount),
-
 		&timestampCriterionHandler{folderFilter.CreatedAt, qb.table.Col("created_at"), nil},
 		&timestampCriterionHandler{folderFilter.UpdatedAt, qb.table.Col("updated_at"), nil},
-
-		&relatedFilterHandler{
-			relatedIDCol:   qb.table.Col("id"),
-			relatedRepo:    galleryRepository.repository,
-			relatedHandler: &galleryFilterHandler{folderFilter.GalleriesFilter},
-			joinFn: func(f *filterBuilder) {
-				folderRepository.galleries.innerJoin(f, "", qb.table.Col("id"))
-			},
-		},
 	}
 }
 
@@ -149,13 +136,3 @@ func (qb *folderFilterHandler) parentFolderCriterionHandler(folder *models.Hiera
 	}
 }
 
-func (qb *folderFilterHandler) galleryCountCriterionHandler(galleryCount *models.IntCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if galleryCount != nil {
-			f.addLeftJoin("galleries", "", "galleries.folder_id = folders.id")
-			clause, args := getIntCriterionWhereClause("count(distinct galleries.id)", *galleryCount)
-
-			f.addHaving(clause, args...)
-		}
-	}
-}

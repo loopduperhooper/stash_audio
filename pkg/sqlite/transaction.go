@@ -8,8 +8,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/mattn/go-sqlite3"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 type key int
@@ -117,20 +117,15 @@ func (db *Database) IsLocked(err error) bool {
 
 func (db *Database) Repository() models.Repository {
 	return models.Repository{
-		TxnManager:     db,
-		Blob:           db.Blobs,
-		File:           db.File,
-		Folder:         db.Folder,
-		Gallery:        db.Gallery,
-		GalleryChapter: db.GalleryChapter,
-		Image:          db.Image,
-		Group:          db.Group,
-		Performer:      db.Performer,
-		Scene:          db.Scene,
-		SceneMarker:    db.SceneMarker,
-		Audio:          db.Audio,
-		Studio:         db.Studio,
-		Tag:            db.Tag,
-		SavedFilter:    db.SavedFilter,
+		TxnManager:  db,
+		Blob:        db.Blobs,
+		File:        db.File,
+		Folder:      db.Folder,
+		Group:       db.Group,
+		Performer:   db.Performer,
+		Audio:       db.Audio,
+		Studio:      db.Studio,
+		Tag:         db.Tag,
+		SavedFilter: db.SavedFilter,
 	}
 }

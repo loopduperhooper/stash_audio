@@ -11,10 +11,10 @@ import (
 	"strings"
 	"sync"
 
-	stashExec "github.com/stashapp/stash/pkg/exec"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/plugin/common"
-	"github.com/stashapp/stash/pkg/python"
+	stashExec "github.com/stashapp/stash_audio/pkg/exec"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/plugin/common"
+	"github.com/stashapp/stash_audio/pkg/python"
 )
 
 type rawTaskBuilder struct{}

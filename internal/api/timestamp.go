@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 var ErrTimestamp = errors.New("cannot parse Timestamp")

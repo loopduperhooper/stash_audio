@@ -4,18 +4,13 @@ import { IntlShape, useIntl } from "react-intl";
 import * as GQL from "src/core/generated-graphql";
 import { Button, ButtonGroup } from "react-bootstrap";
 import { FilterSelect, SelectObject } from "./Select";
-import {
-  GalleryIDSelect,
-  excludeFileBasedGalleries,
-} from "../Galleries/GallerySelect";
 import { PerformerIDSelect } from "../Performers/PerformerSelect";
 import { StudioIDSelect } from "../Studios/StudioSelect";
 import { TagIDSelect } from "../Tags/TagSelect";
 import { GroupIDSelect } from "../Groups/GroupSelect";
-import { SceneIDSelect } from "../Scenes/SceneSelect";
 
 interface IMultiSetProps {
-  type: "performers" | "studios" | "tags" | "groups" | "galleries" | "scenes";
+  type: "performers" | "studios" | "tags" | "groups";
   existingIds?: string[];
   ids?: string[];
   mode: GQL.BulkUpdateIdMode;
@@ -69,30 +64,6 @@ const Select: React.FC<IMultiSetProps> = (props) => {
     case "groups":
       return (
         <GroupIDSelect
-          isDisabled={disabled}
-          isMulti
-          isClearable={false}
-          onSelect={onUpdate}
-          ids={props.ids ?? []}
-          menuPortalTarget={props.menuPortalTarget}
-        />
-      );
-    case "galleries":
-      return (
-        <GalleryIDSelect
-          isDisabled={disabled}
-          isMulti
-          isClearable={false}
-          onSelect={onUpdate}
-          ids={props.ids ?? []}
-          // exclude file-based galleries when setting galleries
-          extraCriteria={excludeFileBasedGalleries}
-          menuPortalTarget={props.menuPortalTarget}
-        />
-      );
-    case "scenes":
-      return (
-        <SceneIDSelect
           isDisabled={disabled}
           isMulti
           isClearable={false}
@@ -189,10 +160,8 @@ export const MultiSet: React.FC<IMultiSetProps> = (props) => {
       return;
     }
 
-    // if going to Set, set the existing ids
     if (m === GQL.BulkUpdateIdMode.Set && existingIds) {
       onUpdate(existingIds);
-      // if going from Set, wipe the ids
     } else if (
       m !== GQL.BulkUpdateIdMode.Set &&
       mode === GQL.BulkUpdateIdMode.Set

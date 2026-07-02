@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/txn"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/txn"
 )
 
 // Repository provides access to storage methods for files and folders.

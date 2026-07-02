@@ -11,8 +11,8 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/pkg/logger"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/pkg/logger"
 )
 
 // MUST be run on the main goroutine or will have no effect on macOS

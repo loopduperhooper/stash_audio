@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/stashapp/stash/internal/manager"
+	"github.com/stashapp/stash_audio/internal/manager"
 )
 
 type downloadsRoutes struct{}

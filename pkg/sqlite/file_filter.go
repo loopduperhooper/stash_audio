@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 type fileFilterHandler struct {
@@ -22,10 +22,6 @@ func (qb *fileFilterHandler) validate() error {
 
 	if err := validateFilterCombination(fileFilter.OperatorFilter); err != nil {
 		return err
-	}
-
-	if qb.isRelated && (fileFilter.ScenesFilter != nil || fileFilter.ImagesFilter != nil || fileFilter.GalleriesFilter != nil) {
-		return fmt.Errorf("cannot use related filters inside a related filter")
 	}
 
 	if subFilter := fileFilter.SubFilter(); subFilter != nil {
@@ -61,13 +57,6 @@ func (qb *fileFilterHandler) handle(ctx context.Context, f *filterBuilder) {
 func (qb *fileFilterHandler) criterionHandler() criterionHandler {
 	fileFilter := qb.fileFilter
 	return compoundHandler{
-		&videoFileFilterHandler{
-			filter: fileFilter.VideoFileFilter,
-		},
-		&imageFileFilterHandler{
-			filter: fileFilter.ImageFileFilter,
-		},
-
 		pathCriterionHandler(fileFilter.Path, "folders.path", "files.basename", nil),
 		stringCriterionHandler(fileFilter.Basename, "files.basename"),
 		stringCriterionHandler(fileFilter.Dir, "folders.path"),
@@ -76,40 +65,10 @@ func (qb *fileFilterHandler) criterionHandler() criterionHandler {
 		qb.parentFolderCriterionHandler(fileFilter.ParentFolder),
 		qb.zipFileCriterionHandler(fileFilter.ZipFile),
 
-		qb.sceneCountCriterionHandler(fileFilter.SceneCount),
-		qb.imageCountCriterionHandler(fileFilter.ImageCount),
-		qb.galleryCountCriterionHandler(fileFilter.GalleryCount),
-
 		qb.hashesCriterionHandler(fileFilter.Hashes),
 
-		qb.duplicatedCriterionHandler(fileFilter.Duplicated),
 		&timestampCriterionHandler{fileFilter.CreatedAt, "files.created_at", nil},
 		&timestampCriterionHandler{fileFilter.UpdatedAt, "files.updated_at", nil},
-
-		&relatedFilterHandler{
-			relatedIDCol:   "scenes_files.scene_id",
-			relatedRepo:    sceneRepository.repository,
-			relatedHandler: &sceneFilterHandler{fileFilter.ScenesFilter},
-			joinFn: func(f *filterBuilder) {
-				fileRepository.scenes.innerJoin(f, "", "files.id")
-			},
-		},
-		&relatedFilterHandler{
-			relatedIDCol:   "images_files.image_id",
-			relatedRepo:    imageRepository.repository,
-			relatedHandler: &imageFilterHandler{fileFilter.ImagesFilter},
-			joinFn: func(f *filterBuilder) {
-				fileRepository.images.innerJoin(f, "", "files.id")
-			},
-		},
-		&relatedFilterHandler{
-			relatedIDCol:   "galleries_files.gallery_id",
-			relatedRepo:    galleryRepository.repository,
-			relatedHandler: &galleryFilterHandler{fileFilter.GalleriesFilter},
-			joinFn: func(f *filterBuilder) {
-				fileRepository.galleries.innerJoin(f, "", "files.id")
-			},
-		},
 	}
 }
 
@@ -175,61 +134,6 @@ func (qb *fileFilterHandler) parentFolderCriterionHandler(folder *models.Hierarc
 	}
 }
 
-func (qb *fileFilterHandler) sceneCountCriterionHandler(c *models.IntCriterionInput) criterionHandlerFunc {
-	h := countCriterionHandlerBuilder{
-		primaryTable: fileTable,
-		joinTable:    scenesFilesTable,
-		primaryFK:    fileIDColumn,
-	}
-
-	return h.handler(c)
-}
-
-func (qb *fileFilterHandler) imageCountCriterionHandler(c *models.IntCriterionInput) criterionHandlerFunc {
-	h := countCriterionHandlerBuilder{
-		primaryTable: fileTable,
-		joinTable:    imagesFilesTable,
-		primaryFK:    fileIDColumn,
-	}
-
-	return h.handler(c)
-}
-
-func (qb *fileFilterHandler) galleryCountCriterionHandler(c *models.IntCriterionInput) criterionHandlerFunc {
-	h := countCriterionHandlerBuilder{
-		primaryTable: fileTable,
-		joinTable:    galleriesFilesTable,
-		primaryFK:    fileIDColumn,
-	}
-
-	return h.handler(c)
-}
-
-func (qb *fileFilterHandler) duplicatedCriterionHandler(duplicatedFilter *models.FileDuplicationCriterionInput) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		// TODO: Wishlist item: Implement Distance matching
-		// For files, only phash duplication applies
-		if duplicatedFilter == nil {
-			return
-		}
-
-		var phashValue *bool
-
-		// Handle legacy 'duplicated' field for backwards compatibility
-		//nolint:staticcheck
-		if duplicatedFilter.Duplicated != nil && duplicatedFilter.Phash == nil {
-			//nolint:staticcheck
-			phashValue = duplicatedFilter.Duplicated
-		} else if duplicatedFilter.Phash != nil {
-			phashValue = duplicatedFilter.Phash
-		}
-
-		if phashValue != nil {
-			v := getCountOperator(*phashValue)
-			f.addInnerJoin("(SELECT file_id FROM files_fingerprints INNER JOIN (SELECT fingerprint FROM files_fingerprints WHERE type = 'phash' GROUP BY fingerprint HAVING COUNT (fingerprint) "+v+" 1) dupes on files_fingerprints.fingerprint = dupes.fingerprint)", "scph", "files.id = scph.file_id")
-		}
-	}
-}
 
 func (qb *fileFilterHandler) hashesCriterionHandler(hashes []*models.FingerprintFilterInput) criterionHandlerFunc {
 	return func(ctx context.Context, f *filterBuilder) {
@@ -269,98 +173,3 @@ func (qb *fileFilterHandler) hashesCriterionHandler(hashes []*models.Fingerprint
 	}
 }
 
-type videoFileFilterHandler struct {
-	filter *models.VideoFileFilterInput
-}
-
-func (qb *videoFileFilterHandler) handle(ctx context.Context, f *filterBuilder) {
-	videoFileFilter := qb.filter
-	if videoFileFilter == nil {
-		return
-	}
-	f.handleCriterion(ctx, qb.criterionHandler())
-}
-
-func (qb *videoFileFilterHandler) criterionHandler() criterionHandler {
-	videoFileFilter := qb.filter
-	return compoundHandler{
-		joinedStringCriterionHandler(videoFileFilter.Format, "video_files.format", qb.addVideoFilesTable),
-		floatIntCriterionHandler(videoFileFilter.Duration, "video_files.duration", qb.addVideoFilesTable),
-		resolutionCriterionHandler(videoFileFilter.Resolution, "video_files.height", "video_files.width", qb.addVideoFilesTable),
-		orientationCriterionHandler(videoFileFilter.Orientation, "video_files.height", "video_files.width", qb.addVideoFilesTable),
-		floatIntCriterionHandler(videoFileFilter.Framerate, "ROUND(video_files.frame_rate)", qb.addVideoFilesTable),
-		intCriterionHandler(videoFileFilter.Bitrate, "video_files.bit_rate", qb.addVideoFilesTable),
-		qb.codecCriterionHandler(videoFileFilter.VideoCodec, "video_files.video_codec", qb.addVideoFilesTable),
-		qb.codecCriterionHandler(videoFileFilter.AudioCodec, "video_files.audio_codec", qb.addVideoFilesTable),
-
-		boolCriterionHandler(videoFileFilter.Interactive, "video_files.interactive", qb.addVideoFilesTable),
-		intCriterionHandler(videoFileFilter.InteractiveSpeed, "video_files.interactive_speed", qb.addVideoFilesTable),
-
-		qb.captionCriterionHandler(videoFileFilter.Captions),
-	}
-}
-
-func (qb *videoFileFilterHandler) addVideoFilesTable(f *filterBuilder) {
-	f.addLeftJoin(videoFileTable, "", "video_files.file_id = files.id")
-}
-
-func (qb *videoFileFilterHandler) codecCriterionHandler(codec *models.StringCriterionInput, codecColumn string, addJoinFn func(f *filterBuilder)) criterionHandlerFunc {
-	return func(ctx context.Context, f *filterBuilder) {
-		if codec != nil {
-			if addJoinFn != nil {
-				addJoinFn(f)
-			}
-
-			stringCriterionHandler(codec, codecColumn)(ctx, f)
-		}
-	}
-}
-
-func (qb *videoFileFilterHandler) captionCriterionHandler(captions *models.StringCriterionInput) criterionHandlerFunc {
-	h := stringListCriterionHandlerBuilder{
-		primaryTable: sceneTable,
-		primaryFK:    sceneIDColumn,
-		joinTable:    videoCaptionsTable,
-		stringColumn: captionCodeColumn,
-		addJoinTable: func(f *filterBuilder) {
-			f.addLeftJoin(videoCaptionsTable, "", "video_captions.file_id = files.id")
-		},
-		excludeHandler: func(f *filterBuilder, criterion *models.StringCriterionInput) {
-			excludeClause := `files.id NOT IN (
-				SELECT files.id from files 
-				INNER JOIN video_captions on video_captions.file_id = files.id 
-				WHERE video_captions.language_code LIKE ?
-			)`
-			f.addWhere(excludeClause, criterion.Value)
-
-			// TODO - should we also exclude null values?
-		},
-	}
-
-	return h.handler(captions)
-}
-
-type imageFileFilterHandler struct {
-	filter *models.ImageFileFilterInput
-}
-
-func (qb *imageFileFilterHandler) handle(ctx context.Context, f *filterBuilder) {
-	ff := qb.filter
-	if ff == nil {
-		return
-	}
-	f.handleCriterion(ctx, qb.criterionHandler())
-}
-
-func (qb *imageFileFilterHandler) criterionHandler() criterionHandler {
-	ff := qb.filter
-	return compoundHandler{
-		joinedStringCriterionHandler(ff.Format, "image_files.format", qb.addImageFilesTable),
-		resolutionCriterionHandler(ff.Resolution, "image_files.height", "image_files.width", qb.addImageFilesTable),
-		orientationCriterionHandler(ff.Orientation, "image_files.height", "image_files.width", qb.addImageFilesTable),
-	}
-}
-
-func (qb *imageFileFilterHandler) addImageFilesTable(f *filterBuilder) {
-	f.addLeftJoin(imageFileTable, "", "image_files.file_id = files.id")
-}

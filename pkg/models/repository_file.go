@@ -68,7 +68,6 @@ type FileReader interface {
 	FileQueryer
 	FileCounter
 
-	GetCaptions(ctx context.Context, fileID FileID) ([]*VideoCaption, error)
 	IsPrimary(ctx context.Context, fileID FileID) (bool, error)
 }
 
@@ -84,7 +83,6 @@ type FileWriter interface {
 	FileDestroyer
 	FileFingerprintWriter
 
-	UpdateCaptions(ctx context.Context, fileID FileID, captions []*VideoCaption) error
 }
 
 // FileReaderWriter provides all file methods.

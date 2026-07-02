@@ -5,14 +5,11 @@ import * as GQL from "src/core/generated-graphql";
 import { useFindSavedFilter } from "src/core/StashService";
 import { useConfigurationContext } from "src/hooks/Config";
 import { ListFilterModel } from "src/models/list-filter/filter";
-import { GalleryRecommendationRow } from "../Galleries/GalleryRecommendationRow";
-import { ImageRecommendationRow } from "../Images/ImageRecommendationRow";
+import { AudioRecommendationRow } from "../Audios/AudioRecommendationRow";
 import { GroupRecommendationRow } from "../Groups/GroupRecommendationRow";
 import { PerformerRecommendationRow } from "../Performers/PerformerRecommendationRow";
-import { SceneRecommendationRow } from "../Scenes/SceneRecommendationRow";
 import { StudioRecommendationRow } from "../Studios/StudioRecommendationRow";
 import { TagRecommendationRow } from "../Tags/TagRecommendationRow";
-import { SceneMarkerRecommendationRow } from "../Scenes/SceneMarkerRecommendationRow";
 
 interface IFilter {
   mode: GQL.FilterMode;
@@ -28,9 +25,9 @@ const RecommendationRow: React.FC<IFilter> = ({ mode, filter, header }) => {
   const isTouch = isTouchEnabled();
 
   switch (mode) {
-    case GQL.FilterMode.Scenes:
+    case GQL.FilterMode.Audios:
       return (
-        <SceneRecommendationRow
+        <AudioRecommendationRow
           isTouch={isTouch}
           filter={filter}
           header={header}
@@ -61,33 +58,9 @@ const RecommendationRow: React.FC<IFilter> = ({ mode, filter, header }) => {
           header={header}
         />
       );
-    case GQL.FilterMode.Galleries:
-      return (
-        <GalleryRecommendationRow
-          isTouch={isTouch}
-          filter={filter}
-          header={header}
-        />
-      );
-    case GQL.FilterMode.Images:
-      return (
-        <ImageRecommendationRow
-          isTouch={isTouch}
-          filter={filter}
-          header={header}
-        />
-      );
     case GQL.FilterMode.Tags:
       return (
         <TagRecommendationRow
-          isTouch={isTouch}
-          filter={filter}
-          header={header}
-        />
-      );
-    case GQL.FilterMode.SceneMarkers:
-      return (
-        <SceneMarkerRecommendationRow
           isTouch={isTouch}
           filter={filter}
           header={header}

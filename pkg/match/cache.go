@@ -3,7 +3,7 @@ package match
 import (
 	"context"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 const singleFirstCharacterRegex = `^[\p{L}][.\-_ ]`

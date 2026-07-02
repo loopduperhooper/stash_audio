@@ -4,12 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
 
-	"github.com/stashapp/stash/pkg/ffmpeg"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/plugin"
-	"github.com/stashapp/stash/pkg/plugin/hook"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/plugin"
+	"github.com/stashapp/stash_audio/pkg/plugin/hook"
 )
 
 var ErrNotAudioFile = errors.New("not an audio file")
@@ -22,10 +27,17 @@ type ScanCreatorUpdater interface {
 	FindByFileID(ctx context.Context, fileID models.FileID) ([]*models.Audio, error)
 	FindByFingerprints(ctx context.Context, fp []models.Fingerprint) ([]*models.Audio, error)
 	GetFiles(ctx context.Context, relatedID int) ([]models.File, error)
+	GetGroupIDs(ctx context.Context, id int) ([]int, error)
 
 	Create(ctx context.Context, newAudio *models.Audio, fileIDs []models.FileID) error
 	UpdatePartial(ctx context.Context, id int, updatedAudio models.AudioPartial) (*models.Audio, error)
 	AddFileID(ctx context.Context, id int, fileID models.FileID) error
+}
+
+// GroupAssigner is the interface needed to find-or-create groups during scan.
+type GroupAssigner interface {
+	FindByName(ctx context.Context, name string, nocase bool) (*models.Group, error)
+	Create(ctx context.Context, newGroup *models.Group) error
 }
 
 // CoverUpdater is the interface needed by ScanHandler to store cover art.
@@ -40,6 +52,11 @@ type ScanHandler struct {
 	CoverUpdater   CoverUpdater
 	FFMpeg         *ffmpeg.FFMpeg
 	PluginCache    *plugin.Cache
+	// GroupAssigner enables auto-creating groups from subdirectory names on scan.
+	// Set to nil to disable the feature.
+	GroupAssigner GroupAssigner
+	// LibraryPaths are the stash root paths used to determine subdirectory names.
+	LibraryPaths []string
 }
 
 func (h *ScanHandler) validate() error {
@@ -78,6 +95,11 @@ func (h *ScanHandler) Handle(ctx context.Context, f models.File, oldFile models.
 		if err := h.associateExisting(ctx, existing, audioFile, updateExisting); err != nil {
 			return err
 		}
+		for _, a := range existing {
+			if err := h.associateSubdirGroup(ctx, a.ID, f.Base().Path); err != nil {
+				logger.Warnf("auto-group for audio %d: %v", a.ID, err)
+			}
+		}
 	} else {
 		// create a new audio
 		newAudio := models.NewAudio()
@@ -90,12 +112,82 @@ func (h *ScanHandler) Handle(ctx context.Context, f models.File, oldFile models.
 
 		h.extractCoverIfMissing(ctx, newAudio.ID, f.Base().Path)
 
+		if err := h.associateSubdirGroup(ctx, newAudio.ID, f.Base().Path); err != nil {
+			logger.Warnf("auto-group for audio %d: %v", newAudio.ID, err)
+		}
+
 		if h.PluginCache != nil {
 			h.PluginCache.RegisterPostHooks(ctx, newAudio.ID, hook.AudioCreatePost, nil, nil)
 		}
 	}
 
 	return nil
+}
+
+// associateSubdirGroup finds or creates a Group named after the audio file's
+// immediate parent directory (relative to its library root) and adds the audio
+// to that group. Files sitting directly in the library root are skipped.
+func (h *ScanHandler) associateSubdirGroup(ctx context.Context, audioID int, filePath string) error {
+	if h.GroupAssigner == nil || len(h.LibraryPaths) == 0 {
+		return nil
+	}
+
+	dir := filepath.Dir(filePath)
+	var stashRoot string
+	for _, root := range h.LibraryPaths {
+		if fsutil.IsPathInDir(root, dir) {
+			stashRoot = root
+			break
+		}
+	}
+	if stashRoot == "" {
+		return nil
+	}
+
+	rel, err := filepath.Rel(stashRoot, dir)
+	if err != nil || rel == "." {
+		return nil // file is directly in the library root
+	}
+
+	// Use the immediate parent directory name as the group name.
+	// e.g. root/Album/track.mp3      → "Album"
+	//      root/Artist/Album/track.mp3 → "Album"
+	groupName := filepath.Base(rel)
+	if groupName == "" || groupName == "." {
+		return nil
+	}
+
+	// Find or create the group.
+	group, err := h.GroupAssigner.FindByName(ctx, groupName, false)
+	if err != nil {
+		return fmt.Errorf("finding group %q: %w", groupName, err)
+	}
+	if group == nil {
+		logger.Infof("Auto-creating group %q for %s", groupName, filePath)
+		newGroup := models.NewGroup()
+		newGroup.Name = groupName
+		if err := h.GroupAssigner.Create(ctx, &newGroup); err != nil {
+			return fmt.Errorf("creating group %q: %w", groupName, err)
+		}
+		group = &newGroup
+	}
+
+	// Skip if already a member.
+	existingGroupIDs, err := h.CreatorUpdater.GetGroupIDs(ctx, audioID)
+	if err != nil {
+		return fmt.Errorf("getting group IDs for audio %d: %w", audioID, err)
+	}
+	if slices.Contains(existingGroupIDs, group.ID) {
+		return nil
+	}
+
+	_, err = h.CreatorUpdater.UpdatePartial(ctx, audioID, models.AudioPartial{
+		GroupIDs: &models.UpdateIDs{
+			IDs:  []int{group.ID},
+			Mode: models.RelationshipUpdateModeAdd,
+		},
+	})
+	return err
 }
 
 func (h *ScanHandler) associateExisting(ctx context.Context, existing []*models.Audio, f *models.AudioFile, updateExisting bool) error {
@@ -140,9 +232,10 @@ func (h *ScanHandler) associateExisting(ctx context.Context, existing []*models.
 	return nil
 }
 
-// extractCoverIfMissing extracts embedded cover art from filePath and stores
-// it for audioID, but only when no cover is already set. Errors are logged
-// and not propagated so cover extraction never aborts a scan.
+// extractCoverIfMissing finds cover art for audioID and stores it, but only
+// when no cover is already set. It checks sidecar image files first (same
+// directory, common cover names), then falls back to embedded art via ffmpeg.
+// Errors are logged and not propagated so cover extraction never aborts a scan.
 func (h *ScanHandler) extractCoverIfMissing(ctx context.Context, audioID int, filePath string) {
 	if h.CoverUpdater == nil {
 		return
@@ -157,6 +250,15 @@ func (h *ScanHandler) extractCoverIfMissing(ctx context.Context, audioID int, fi
 		return
 	}
 
+	// 1. Look for sidecar image files.
+	if cover := findSidecarCover(filePath); len(cover) > 0 {
+		if err := h.CoverUpdater.UpdateCover(ctx, audioID, cover); err != nil {
+			logger.Warnf("storing sidecar cover for audio %d: %v", audioID, err)
+		}
+		return
+	}
+
+	// 2. Fall back to embedded art.
 	if h.FFMpeg == nil {
 		return
 	}
@@ -171,6 +273,38 @@ func (h *ScanHandler) extractCoverIfMissing(ctx context.Context, audioID int, fi
 	}
 
 	if err := h.CoverUpdater.UpdateCover(ctx, audioID, cover); err != nil {
-		logger.Warnf("storing cover for audio %d: %v", audioID, err)
+		logger.Warnf("storing embedded cover for audio %d: %v", audioID, err)
 	}
+}
+
+// sidecarCoverNames lists candidate filenames to check, in priority order.
+// Also checks <audio-basename>.<ext> for each ext.
+var sidecarCoverExts = []string{".jpg", ".jpeg", ".png", ".webp"}
+var sidecarCoverNames = []string{"cover", "folder", "artwork", "front"}
+
+func findSidecarCover(audioPath string) []byte {
+	dir := filepath.Dir(audioPath)
+	base := strings.TrimSuffix(filepath.Base(audioPath), filepath.Ext(audioPath))
+
+	// Priority 1: same basename as audio file
+	for _, ext := range sidecarCoverExts {
+		candidate := filepath.Join(dir, base+ext)
+		if data, err := os.ReadFile(candidate); err == nil {
+			logger.Debugf("Using sidecar cover: %s", candidate)
+			return data
+		}
+	}
+
+	// Priority 2: common cover filenames in the same directory
+	for _, name := range sidecarCoverNames {
+		for _, ext := range sidecarCoverExts {
+			candidate := filepath.Join(dir, name+ext)
+			if data, err := os.ReadFile(candidate); err == nil {
+				logger.Debugf("Using sidecar cover: %s", candidate)
+				return data
+			}
+		}
+	}
+
+	return nil
 }

@@ -113,15 +113,15 @@ endif
 .PHONY: build-flags
 build-flags: build-info
 	$(eval BUILD_LDFLAGS := $(LDFLAGS))
-	$(eval BUILD_LDFLAGS += -X 'github.com/stashapp/stash/internal/build.buildstamp=$(BUILD_DATE)')
-	$(eval BUILD_LDFLAGS += -X 'github.com/stashapp/stash/internal/build.githash=$(GITHASH)')
-	$(eval BUILD_LDFLAGS += -X 'github.com/stashapp/stash/internal/build.version=$(STASH_VERSION)')
-	$(eval BUILD_LDFLAGS += -X 'github.com/stashapp/stash/internal/build.officialBuild=$(OFFICIAL_BUILD)')
+	$(eval BUILD_LDFLAGS += -X 'github.com/stashapp/stash_audio/internal/build.buildstamp=$(BUILD_DATE)')
+	$(eval BUILD_LDFLAGS += -X 'github.com/stashapp/stash_audio/internal/build.githash=$(GITHASH)')
+	$(eval BUILD_LDFLAGS += -X 'github.com/stashapp/stash_audio/internal/build.version=$(STASH_VERSION)')
+	$(eval BUILD_LDFLAGS += -X 'github.com/stashapp/stash_audio/internal/build.officialBuild=$(OFFICIAL_BUILD)')
 	$(eval BUILD_FLAGS := -v -tags "$(GO_BUILD_TAGS)" $(GO_BUILD_FLAGS) -ldflags "$(BUILD_LDFLAGS)")
 
 .PHONY: stash
 stash: build-flags
-	go build $(STASH_OUTPUT) $(BUILD_FLAGS) ./cmd/stash
+	go build $(STASH_OUTPUT) $(BUILD_FLAGS) ./cmd/stash_audio
 
 .PHONY: phasher
 phasher: build-flags
@@ -279,7 +279,7 @@ generate-ui:
 
 .PHONY: generate-backend
 generate-backend: touch-ui
-	go generate ./cmd/stash
+	go generate ./cmd/stash_audio
 
 .PHONY: generate-login-locale
 generate-login-locale:
@@ -329,7 +329,7 @@ ifdef IS_WIN_SHELL
 else
 	@mkdir -p .local
 endif
-	cd .local && go run $(BUILD_FLAGS) ../cmd/stash
+	cd .local && go run $(BUILD_FLAGS) ../cmd/stash_audio
 
 # removes local dev config files
 .PHONY: server-clean

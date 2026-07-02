@@ -22,10 +22,7 @@ import {
   CompressedPerformerDetailsPanel,
   PerformerDetailsPanel,
 } from "./PerformerDetailsPanel";
-import { PerformerScenesPanel } from "./PerformerScenesPanel";
-import { PerformerGalleriesPanel } from "./PerformerGalleriesPanel";
 import { PerformerGroupsPanel } from "./PerformerGroupsPanel";
-import { PerformerImagesPanel } from "./PerformerImagesPanel";
 import { PerformerAppearsWithPanel } from "./performerAppearsWithPanel";
 import { PerformerEditPanel } from "./PerformerEditPanel";
 import { PerformerMergeModal } from "../PerformerMergeDialog";
@@ -63,9 +60,6 @@ interface IPerformerParams {
 
 const validTabs = [
   "default",
-  "scenes",
-  "galleries",
-  "images",
   "groups",
   "appearswith",
 ] as const;
@@ -81,19 +75,8 @@ const PerformerTabs: React.FC<{
   abbreviateCounter: boolean;
 }> = ({ tabKey, performer, abbreviateCounter }) => {
   const populatedDefaultTab = useMemo(() => {
-    let ret: TabKey = "scenes";
-    if (performer.scene_count == 0) {
-      if (performer.gallery_count != 0) {
-        ret = "galleries";
-      } else if (performer.image_count != 0) {
-        ret = "images";
-      } else if (performer.group_count != 0) {
-        ret = "groups";
-      }
-    }
-
-    return ret;
-  }, [performer]);
+    return "groups" as TabKey;
+  }, []);
 
   const { setTabKey } = useTabKey({
     tabKey,
@@ -103,13 +86,9 @@ const PerformerTabs: React.FC<{
   });
 
   useEffect(() => {
-    Mousetrap.bind("c", () => setTabKey("scenes"));
-    Mousetrap.bind("g", () => setTabKey("galleries"));
     Mousetrap.bind("m", () => setTabKey("groups"));
 
     return () => {
-      Mousetrap.unbind("c");
-      Mousetrap.unbind("g");
       Mousetrap.unbind("m");
     };
   });
@@ -122,54 +101,6 @@ const PerformerTabs: React.FC<{
       activeKey={tabKey}
       onSelect={setTabKey}
     >
-      <Tab
-        eventKey="scenes"
-        title={
-          <TabTitleCounter
-            messageID="scenes"
-            count={performer.scene_count}
-            abbreviateCounter={abbreviateCounter}
-          />
-        }
-      >
-        <PerformerScenesPanel
-          active={tabKey === "scenes"}
-          performer={performer}
-        />
-      </Tab>
-
-      <Tab
-        eventKey="galleries"
-        title={
-          <TabTitleCounter
-            messageID="galleries"
-            count={performer.gallery_count}
-            abbreviateCounter={abbreviateCounter}
-          />
-        }
-      >
-        <PerformerGalleriesPanel
-          active={tabKey === "galleries"}
-          performer={performer}
-        />
-      </Tab>
-
-      <Tab
-        eventKey="images"
-        title={
-          <TabTitleCounter
-            messageID="images"
-            count={performer.image_count}
-            abbreviateCounter={abbreviateCounter}
-          />
-        }
-      >
-        <PerformerImagesPanel
-          active={tabKey === "images"}
-          performer={performer}
-        />
-      </Tab>
-
       <Tab
         eventKey="groups"
         title={

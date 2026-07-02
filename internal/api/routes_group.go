@@ -8,10 +8,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/stashapp/stash/internal/static"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/internal/static"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 type GroupFinder interface {
@@ -31,6 +31,7 @@ func (rs groupRoutes) Routes() chi.Router {
 	r.Route("/{groupId}", func(r chi.Router) {
 		r.Use(rs.GroupCtx)
 		r.Get("/frontimage", rs.FrontImage)
+		r.Get("/cover", rs.FrontImage)
 		r.Get("/backimage", rs.BackImage)
 	})
 

@@ -3,7 +3,7 @@ package plugin
 import (
 	"net/http"
 
-	"github.com/stashapp/stash/pkg/plugin/common"
+	"github.com/stashapp/stash_audio/pkg/plugin/common"
 )
 
 type PluginTask struct {

@@ -18,6 +18,8 @@ fragment AudioData on Audio {
     cover
     stream
     vtt
+    funscript
+    subtitles
   }
 
   studio {

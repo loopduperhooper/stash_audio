@@ -10,25 +10,20 @@ import (
 	"time"
 
 	"github.com/remeh/sizedwaitgroup"
-	"github.com/stashapp/stash/internal/desktop"
-	"github.com/stashapp/stash/internal/dlna"
-	"github.com/stashapp/stash/internal/log"
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/pkg/ffmpeg"
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/gallery"
-	"github.com/stashapp/stash/pkg/group"
-	"github.com/stashapp/stash/pkg/image"
-	"github.com/stashapp/stash/pkg/job"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models/paths"
-	"github.com/stashapp/stash/pkg/plugin"
-	"github.com/stashapp/stash/pkg/scene"
-	"github.com/stashapp/stash/pkg/scraper"
-	"github.com/stashapp/stash/pkg/session"
-	"github.com/stashapp/stash/pkg/sqlite"
-	"github.com/stashapp/stash/pkg/utils"
-	"github.com/stashapp/stash/ui"
+	"github.com/stashapp/stash_audio/internal/desktop"
+	"github.com/stashapp/stash_audio/internal/log"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/group"
+	"github.com/stashapp/stash_audio/pkg/job"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models/paths"
+	"github.com/stashapp/stash_audio/pkg/plugin"
+	"github.com/stashapp/stash_audio/pkg/session"
+	"github.com/stashapp/stash_audio/pkg/sqlite"
+	"github.com/stashapp/stash_audio/pkg/utils"
+	"github.com/stashapp/stash_audio/ui"
 )
 
 // Called at startup
@@ -41,44 +36,11 @@ func Initialize(cfg *config.Config, l *log.Logger) (*Manager, error) {
 	// start with empty paths
 	mgrPaths := &paths.Paths{}
 
-	scraperRepository := scraper.NewRepository(repo)
-	scraperCache := scraper.NewCache(cfg, scraperRepository)
-
 	pluginCache := plugin.NewCache(cfg)
-
-	sceneService := &scene.Service{
-		File:             db.File,
-		Repository:       db.Scene,
-		MarkerRepository: db.SceneMarker,
-		PluginCache:      pluginCache,
-		Paths:            mgrPaths,
-		Config:           cfg,
-	}
-
-	imageService := &image.Service{
-		File:       db.File,
-		Repository: db.Image,
-	}
-
-	galleryService := &gallery.Service{
-		Repository:   db.Gallery,
-		ImageFinder:  db.Image,
-		ImageService: imageService,
-		File:         db.File,
-		Folder:       db.Folder,
-	}
 
 	groupService := &group.Service{
 		Repository: db.Group,
 	}
-
-	sceneServer := &SceneServer{
-		TxnManager:       repo.TxnManager,
-		SceneCoverGetter: repo.Scene,
-	}
-
-	dlnaRepository := dlna.NewRepository(repo)
-	dlnaService := dlna.NewService(dlnaRepository, cfg, sceneServer, repo.Scene, cfg.GetMinimumPlayPercent())
 
 	mgr := &Manager{
 		Config: cfg,
@@ -93,18 +55,12 @@ func Initialize(cfg *config.Config, l *log.Logger) (*Manager, error) {
 
 		DownloadStore: NewDownloadStore(),
 
-		PluginCache:  pluginCache,
-		ScraperCache: scraperCache,
-
-		DLNAService: dlnaService,
+		PluginCache: pluginCache,
 
 		Database:   db,
 		Repository: repo,
 
-		SceneService:   sceneService,
-		ImageService:   imageService,
-		GalleryService: galleryService,
-		GroupService:   groupService,
+		GroupService: groupService,
 
 		scanSubs: &subscriptionManager{},
 	}
@@ -194,11 +150,6 @@ func (s *Manager) postInit(ctx context.Context) error {
 
 	s.RefreshPluginCache()
 	s.RefreshPluginSourceManager()
-
-	s.RefreshScraperCache()
-	s.RefreshScraperSourceManager()
-
-	s.RefreshDLNA()
 
 	s.SetBlobStoreOptions()
 

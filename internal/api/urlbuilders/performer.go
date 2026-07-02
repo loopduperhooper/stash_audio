@@ -3,7 +3,7 @@ package urlbuilders
 import (
 	"strconv"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 type PerformerURLBuilder struct {

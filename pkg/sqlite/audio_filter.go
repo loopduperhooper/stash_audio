@@ -3,7 +3,7 @@ package sqlite
 import (
 	"context"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 type audioFilterHandler struct {

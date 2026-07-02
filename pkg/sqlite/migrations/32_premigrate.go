@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/sqlite"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/sqlite"
 )
 
 func pre32(ctx context.Context, db *sqlx.DB) error {

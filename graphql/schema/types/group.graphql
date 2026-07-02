@@ -24,14 +24,13 @@ type Group {
   containing_groups: [GroupDescription!]!
   sub_groups: [GroupDescription!]!
   audios: [Audio!]!
+  performers: [Performer!]!
 
   front_image_path: String # Resolver
   back_image_path: String # Resolver
-  scene_count(depth: Int): Int! # Resolver
+  audio_count(depth: Int): Int! # Resolver
   performer_count(depth: Int): Int! # Resolver
   sub_group_count(depth: Int): Int! # Resolver
-  scenes: [Scene!]!
-  o_counter: Int # Resolver
   custom_fields: Map!
 }
 
@@ -54,6 +53,7 @@ input GroupCreateInput {
   urls: [String!]
   tag_ids: [ID!]
   audio_ids: [ID!]
+  performer_ids: [ID!]
 
   containing_groups: [GroupDescriptionInput!]
   sub_groups: [GroupDescriptionInput!]
@@ -80,6 +80,7 @@ input GroupUpdateInput {
   urls: [String!]
   tag_ids: [ID!]
   audio_ids: [ID!]
+  performer_ids: [ID!]
 
   containing_groups: [GroupDescriptionInput!]
   sub_groups: [GroupDescriptionInput!]

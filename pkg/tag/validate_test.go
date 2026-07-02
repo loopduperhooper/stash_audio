@@ -3,8 +3,8 @@ package tag
 import (
 	"testing"
 
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/models/mocks"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

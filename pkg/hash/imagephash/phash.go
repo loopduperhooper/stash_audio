@@ -8,10 +8,10 @@ import (
 	"image"
 
 	"github.com/corona10/goimagehash"
-	"github.com/stashapp/stash/pkg/ffmpeg"
-	"github.com/stashapp/stash/pkg/ffmpeg/transcoder"
-	"github.com/stashapp/stash/pkg/file"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg"
+	"github.com/stashapp/stash_audio/pkg/ffmpeg/transcoder"
+	"github.com/stashapp/stash_audio/pkg/file"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 // Generate computes a perceptual hash for an image file.

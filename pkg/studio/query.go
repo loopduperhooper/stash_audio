@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func ByName(ctx context.Context, qb models.StudioQueryer, name string) (*models.Studio, error) {

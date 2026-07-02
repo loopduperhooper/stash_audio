@@ -26,16 +26,7 @@ type FileFilterType struct {
 	ParentFolder    *HierarchicalMultiCriterionInput `json:"parent_folder"`
 	ZipFile         *MultiCriterionInput             `json:"zip_file"`
 	ModTime         *TimestampCriterionInput         `json:"mod_time"`
-	Duplicated      *FileDuplicationCriterionInput   `json:"duplicated"`
 	Hashes          []*FingerprintFilterInput        `json:"hashes"`
-	VideoFileFilter *VideoFileFilterInput            `json:"video_file_filter"`
-	ImageFileFilter *ImageFileFilterInput            `json:"image_file_filter"`
-	SceneCount      *IntCriterionInput               `json:"scene_count"`
-	ImageCount      *IntCriterionInput               `json:"image_count"`
-	GalleryCount    *IntCriterionInput               `json:"gallery_count"`
-	ScenesFilter    *SceneFilterType                 `json:"scenes_filter"`
-	ImagesFilter    *ImageFilterType                 `json:"images_filter"`
-	GalleriesFilter *GalleryFilterType               `json:"galleries_filter"`
 	CreatedAt       *TimestampCriterionInput         `json:"created_at"`
 	UpdatedAt       *TimestampCriterionInput         `json:"updated_at"`
 }

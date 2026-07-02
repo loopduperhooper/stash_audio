@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	models "github.com/stashapp/stash/pkg/models"
+	models "github.com/stashapp/stash_audio/pkg/models"
 	mock "github.com/stretchr/testify/mock"
 )
 

@@ -3,7 +3,7 @@ package tag
 import (
 	"context"
 
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 func ByName(ctx context.Context, qb models.TagQueryer, name string) (*models.Tag, error) {

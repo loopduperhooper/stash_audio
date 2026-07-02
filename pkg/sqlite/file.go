@@ -13,7 +13,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/models"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -339,9 +339,6 @@ func (r fileQueryRows) resolve() []models.File {
 
 type fileRepositoryType struct {
 	repository
-	scenes    joinRepository
-	images    joinRepository
-	galleries joinRepository
 }
 
 var (
@@ -349,27 +346,6 @@ var (
 		repository: repository{
 			tableName: fileTable,
 			idColumn:  idColumn,
-		},
-		scenes: joinRepository{
-			repository: repository{
-				tableName: scenesFilesTable,
-				idColumn:  fileIDColumn,
-			},
-			fkColumn: sceneIDColumn,
-		},
-		images: joinRepository{
-			repository: repository{
-				tableName: imagesFilesTable,
-				idColumn:  fileIDColumn,
-			},
-			fkColumn: imageIDColumn,
-		},
-		galleries: joinRepository{
-			repository: repository{
-				tableName: galleriesFilesTable,
-				idColumn:  fileIDColumn,
-			},
-			fkColumn: galleryIDColumn,
 		},
 	}
 )
@@ -1125,19 +1101,3 @@ func (qb *FileStore) setQuerySort(query *queryBuilder, findFilter *models.FindFi
 	return nil
 }
 
-func (qb *FileStore) captionRepository() *captionRepository {
-	return &captionRepository{
-		repository: repository{
-			tableName: videoCaptionsTable,
-			idColumn:  fileIDColumn,
-		},
-	}
-}
-
-func (qb *FileStore) GetCaptions(ctx context.Context, fileID models.FileID) ([]*models.VideoCaption, error) {
-	return qb.captionRepository().get(ctx, fileID)
-}
-
-func (qb *FileStore) UpdateCaptions(ctx context.Context, fileID models.FileID, captions []*models.VideoCaption) error {
-	return qb.captionRepository().replace(ctx, fileID, captions)
-}

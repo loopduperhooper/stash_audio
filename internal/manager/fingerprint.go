@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/pkg/file"
-	"github.com/stashapp/stash/pkg/hash/md5"
-	"github.com/stashapp/stash/pkg/hash/oshash"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/pkg/file"
+	"github.com/stashapp/stash_audio/pkg/hash/md5"
+	"github.com/stashapp/stash_audio/pkg/hash/oshash"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 type fingerprintCalculator struct {
@@ -64,7 +64,7 @@ func (c *fingerprintCalculator) CalculateFingerprints(f *models.BaseFile, o file
 	var ret []models.Fingerprint
 	calculateMD5 := true
 
-	if useAsVideo(f.Path) {
+	if useAsAudio(f.Path) {
 		var (
 			fp  *models.Fingerprint
 			err error
@@ -75,7 +75,6 @@ func (c *fingerprintCalculator) CalculateFingerprints(f *models.BaseFile, o file
 		}
 
 		if fp == nil {
-			// calculate oshash first
 			fp, err = c.calculateOshash(f, o)
 			if err != nil {
 				return nil, err
@@ -84,7 +83,6 @@ func (c *fingerprintCalculator) CalculateFingerprints(f *models.BaseFile, o file
 
 		ret = append(ret, *fp)
 
-		// only calculate MD5 if enabled in config
 		calculateMD5 = c.Config.IsCalculateMD5()
 	}
 

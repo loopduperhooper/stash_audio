@@ -4,17 +4,19 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/stashapp/stash/internal/static"
-	"github.com/stashapp/stash/pkg/file"
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/txn"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/internal/static"
+	"github.com/stashapp/stash_audio/pkg/file"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/txn"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 type AudioFinder interface {
@@ -38,6 +40,8 @@ func (rs audioRoutes) Routes() chi.Router {
 		r.Get("/stream", rs.Stream)
 		r.Get("/cover", rs.Cover)
 		r.Get("/vtt/chapter", rs.VttChapter)
+		r.Get("/funscript", rs.Funscript)
+		r.Get("/subtitles", rs.Subtitles)
 	})
 
 	return r
@@ -90,6 +94,41 @@ func (rs audioRoutes) Cover(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.ServeImage(w, r, cover)
+}
+
+func (rs audioRoutes) Funscript(w http.ResponseWriter, r *http.Request) {
+	audio := r.Context().Value(audioKey).(*models.Audio)
+	f := audio.Files.Primary()
+	if f == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	path := f.Base().Path
+	ext := filepath.Ext(path)
+	sidecar := path[:len(path)-len(ext)] + ".funscript"
+
+	http.ServeFile(w, r, sidecar)
+}
+
+func (rs audioRoutes) Subtitles(w http.ResponseWriter, r *http.Request) {
+	audio := r.Context().Value(audioKey).(*models.Audio)
+	f := audio.Files.Primary()
+	if f == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	base := strings.TrimSuffix(f.Base().Path, filepath.Ext(f.Base().Path))
+	for _, ext := range []string{".vtt", ".srt"} {
+		candidate := base + ext
+		if _, err := os.Stat(candidate); err == nil {
+			w.Header().Set("Cache-Control", "no-cache")
+			http.ServeFile(w, r, candidate)
+			return
+		}
+	}
+	http.NotFound(w, r)
 }
 
 // VttChapter returns an empty WebVTT file for now.

@@ -15,13 +15,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stashapp/stash/internal/manager/config"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/sqlite"
-	"github.com/stashapp/stash/pkg/txn"
+	"github.com/stashapp/stash_audio/internal/manager/config"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/sqlite"
+	"github.com/stashapp/stash_audio/pkg/txn"
 
 	// necessary to register custom migrations
-	_ "github.com/stashapp/stash/pkg/sqlite/migrations"
+	_ "github.com/stashapp/stash_audio/pkg/sqlite/migrations"
 )
 
 var epochTime = time.Unix(0, 0).UTC()

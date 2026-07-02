@@ -5,8 +5,8 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/stashapp/stash/pkg/fsutil"
-	"github.com/stashapp/stash/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/fsutil"
+	"github.com/stashapp/stash_audio/pkg/models"
 )
 
 // Opener provides an interface to open a file.

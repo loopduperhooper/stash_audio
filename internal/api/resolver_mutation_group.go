@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/stashapp/stash/internal/static"
-	"github.com/stashapp/stash/pkg/group"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/plugin/hook"
-	"github.com/stashapp/stash/pkg/sliceutil/stringslice"
-	"github.com/stashapp/stash/pkg/utils"
+	"github.com/stashapp/stash_audio/internal/static"
+	"github.com/stashapp/stash_audio/pkg/group"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/plugin/hook"
+	"github.com/stashapp/stash_audio/pkg/sliceutil/stringslice"
+	"github.com/stashapp/stash_audio/pkg/utils"
 )
 
 func groupFromGroupCreateInput(ctx context.Context, input GroupCreateInput) (*models.CreateGroupInput, error) {
@@ -52,6 +52,11 @@ func groupFromGroupCreateInput(ctx context.Context, input GroupCreateInput) (*mo
 	newGroup.AudioIDs, err = translator.relatedIds(input.AudioIds)
 	if err != nil {
 		return nil, fmt.Errorf("converting audio ids: %w", err)
+	}
+
+	newGroup.PerformerIDs, err = translator.relatedIds(input.PerformerIds)
+	if err != nil {
+		return nil, fmt.Errorf("converting performer ids: %w", err)
 	}
 
 	newGroup.ContainingGroups, err = translator.groupIDDescriptions(input.ContainingGroups)
@@ -149,6 +154,12 @@ func groupPartialFromGroupUpdateInput(translator changesetTranslator, input Grou
 	updatedGroup.AudioIDs, err = translator.updateIds(input.AudioIds, "audio_ids")
 	if err != nil {
 		err = fmt.Errorf("converting audio ids: %w", err)
+		return
+	}
+
+	updatedGroup.PerformerIDs, err = translator.updateIds(input.PerformerIds, "performer_ids")
+	if err != nil {
+		err = fmt.Errorf("converting performer ids: %w", err)
 		return
 	}
 

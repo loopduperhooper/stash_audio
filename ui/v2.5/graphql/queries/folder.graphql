@@ -1,3 +1,11 @@
+query Directory($path: String) {
+  directory(path: $path) {
+    path
+    parent
+    directories
+  }
+}
+
 query FindRootFoldersForSelect {
   findFolders(
     filter: { per_page: -1, sort: "path", direction: ASC }

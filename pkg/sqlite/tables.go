@@ -45,11 +45,12 @@ var (
 	studiosStashIDsJoinTable = goqu.T("studio_stash_ids")
 	studiosCustomFieldsTable = goqu.T("studio_custom_fields")
 
-	groupsURLsJoinTable     = goqu.T(groupURLsTable)
-	groupsTagsJoinTable     = goqu.T(groupsTagsTable)
-	groupRelationsJoinTable = goqu.T(groupRelationsTable)
-	groupsCustomFieldsTable = goqu.T("group_custom_fields")
-	groupsAudiosJoinTable   = goqu.T(groupsAudiosTable)
+	groupsURLsJoinTable       = goqu.T(groupURLsTable)
+	groupsTagsJoinTable       = goqu.T(groupsTagsTable)
+	groupRelationsJoinTable   = goqu.T(groupRelationsTable)
+	groupsCustomFieldsTable   = goqu.T("group_custom_fields")
+	groupsAudiosJoinTable     = goqu.T(groupsAudiosTable)
+	performersGroupsJoinTable = goqu.T(performersGroupsTable)
 
 	tagsAliasesJoinTable  = goqu.T(tagAliasesTable)
 	tagRelationsJoinTable = goqu.T(tagRelationsTable)
@@ -431,6 +432,24 @@ var (
 			idColumn: groupsAudiosJoinTable.Col(groupIDColumn),
 		},
 		fkColumn: groupsAudiosJoinTable.Col(audioIDColumn),
+	}
+
+	// audiosGroupsTableMgr is the audio-centric inverse of groupsAudiosTableMgr.
+	// Use this when the primary key is an audio ID (e.g. in AudioStore).
+	audiosGroupsTableMgr = &joinTable{
+		table: table{
+			table:    groupsAudiosJoinTable,
+			idColumn: groupsAudiosJoinTable.Col(audioIDColumn),
+		},
+		fkColumn: groupsAudiosJoinTable.Col(groupIDColumn),
+	}
+
+	performersGroupsTableMgr = &joinTable{
+		table: table{
+			table:    performersGroupsJoinTable,
+			idColumn: performersGroupsJoinTable.Col(groupIDColumn),
+		},
+		fkColumn: performersGroupsJoinTable.Col(performerIDColumn),
 	}
 )
 

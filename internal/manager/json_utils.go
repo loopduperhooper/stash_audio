@@ -3,8 +3,8 @@ package manager
 import (
 	"path/filepath"
 
-	"github.com/stashapp/stash/pkg/models/jsonschema"
-	"github.com/stashapp/stash/pkg/models/paths"
+	"github.com/stashapp/stash_audio/pkg/models/jsonschema"
+	"github.com/stashapp/stash_audio/pkg/models/paths"
 )
 
 type jsonUtils struct {

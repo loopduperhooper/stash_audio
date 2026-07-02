@@ -12,9 +12,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gopkg.in/guregu/null.v4"
 
-	"github.com/stashapp/stash/pkg/logger"
-	"github.com/stashapp/stash/pkg/models"
-	"github.com/stashapp/stash/pkg/sliceutil"
+	"github.com/stashapp/stash_audio/pkg/logger"
+	"github.com/stashapp/stash_audio/pkg/models"
+	"github.com/stashapp/stash_audio/pkg/sliceutil"
 )
 
 type table struct {
