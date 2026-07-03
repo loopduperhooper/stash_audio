@@ -68,6 +68,11 @@ func (m *mockCreatorUpdater) AddFileID(ctx context.Context, id int, fileID model
 	return args.Error(0)
 }
 
+func (m *mockCreatorUpdater) GetGroupIDs(ctx context.Context, id int) ([]int, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).([]int), args.Error(1)
+}
+
 // Compile-time interface check.
 var _ ScanCreatorUpdater = (*mockCreatorUpdater)(nil)
 
@@ -199,6 +204,38 @@ func TestHandle_CreatesNewAudioForUnknownFile(t *testing.T) {
 		assert.NoError(t, err)
 	})
 	cu.AssertCalled(t, "Create", mock.Anything, mock.Anything, []models.FileID{testFileID})
+}
+
+func TestHandle_MatchesByOshashWhenMD5NotComputed(t *testing.T) {
+	// Regression test: MD5 is only computed for audio files when explicitly
+	// enabled in config, so a file with only an oshash fingerprint must still
+	// be matchable. Previously matchableFingerprintTypes only listed MD5, so
+	// this produced an empty filter, which (combined with a sqlite bug) made
+	// every new audio file collapse into whatever audio was created first.
+	audioFile := &models.AudioFile{
+		BaseFile: &models.BaseFile{
+			ID:   testFileID,
+			Path: "new.mp3",
+			Fingerprints: models.Fingerprints{
+				{Type: models.FingerprintTypeOshash, Fingerprint: "deadbeef"},
+			},
+		},
+	}
+
+	cu := &mockCreatorUpdater{}
+	cu.On("FindByFileID", mock.Anything, testFileID).Return([]*models.Audio{}, nil)
+	cu.On("FindByFingerprints", mock.Anything, mock.MatchedBy(func(fp []models.Fingerprint) bool {
+		return len(fp) == 1 && fp[0].Type == models.FingerprintTypeOshash
+	})).Return([]*models.Audio{}, nil)
+	cu.On("Create", mock.Anything, mock.AnythingOfType("*models.Audio"), mock.Anything).Return(nil)
+
+	h := &ScanHandler{CreatorUpdater: cu, PluginCache: &plugin.Cache{}}
+
+	withTxnCtx(func(ctx context.Context) {
+		err := h.Handle(ctx, audioFile, nil)
+		assert.NoError(t, err)
+	})
+	cu.AssertExpectations(t)
 }
 
 func TestHandle_MatchesExistingByFileID(t *testing.T) {

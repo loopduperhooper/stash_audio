@@ -574,6 +574,13 @@ func (qb *AudioStore) CountByFileID(ctx context.Context, fileID models.FileID) (
 }
 
 func (qb *AudioStore) FindByFingerprints(ctx context.Context, fp []models.Fingerprint) ([]*models.Audio, error) {
+	if len(fp) == 0 {
+		// An empty fingerprint list must never match anything: goqu.Or with no
+		// expressions renders as an empty WHERE clause, which would otherwise
+		// return every audio that has any file with any fingerprint at all.
+		return nil, nil
+	}
+
 	fingerprintTable := fingerprintTableMgr.table
 
 	var ex []exp.Expression

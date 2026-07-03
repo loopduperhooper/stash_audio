@@ -20,7 +20,10 @@ import (
 var ErrNotAudioFile = errors.New("not an audio file")
 
 // matchableFingerprintTypes are the fingerprint types used for audio matching.
-var matchableFingerprintTypes = []string{models.FingerprintTypeMD5}
+// Oshash is always computed for audio files during scan; MD5 is only computed
+// when explicitly enabled in config. Both must be listed here so that a scan
+// with MD5 disabled still has a non-empty fingerprint set to match against.
+var matchableFingerprintTypes = []string{models.FingerprintTypeOshash, models.FingerprintTypeMD5}
 
 // ScanCreatorUpdater is the interface needed by ScanHandler to create and update audios.
 type ScanCreatorUpdater interface {

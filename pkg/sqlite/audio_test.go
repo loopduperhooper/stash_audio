@@ -263,6 +263,23 @@ func Test_audioQueryBuilder_FindByFingerprints(t *testing.T) {
 	})
 }
 
+func Test_audioQueryBuilder_FindByFingerprintsEmpty(t *testing.T) {
+	qb := db.Audio
+
+	withRollbackTxn(func(ctx context.Context) error {
+		got, err := qb.FindByFingerprints(ctx, nil)
+		if err != nil {
+			return err
+		}
+
+		// An empty fingerprint list must never match every audio in the
+		// database (regression test: goqu.Or() with no expressions used to
+		// render an empty WHERE clause, matching everything).
+		assert.Len(t, got, 0)
+		return nil
+	})
+}
+
 func Test_audioQueryBuilder_FindByFileID(t *testing.T) {
 	const audioIdx = 0
 
