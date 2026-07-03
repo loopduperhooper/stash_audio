@@ -19,7 +19,7 @@ interface IAddSavedFilterModalProps {
   candidates: GQL.FindSavedFiltersQuery;
 }
 
-const FilterModeToMessageID = {
+const FilterModeToMessageID: Partial<Record<GQL.FilterMode, string>> = {
   [GQL.FilterMode.Audios]: "audios",
   [GQL.FilterMode.Movies]: "groups",
   [GQL.FilterMode.Groups]: "groups",
@@ -31,7 +31,8 @@ const FilterModeToMessageID = {
 type SavedFilter = Pick<GQL.SavedFilter, "id" | "mode" | "name">;
 
 function filterTitle(intl: IntlShape, f: SavedFilter) {
-  const typeMessage = intl.formatMessage({ id: FilterModeToMessageID[f.mode] });
+  const messageID = FilterModeToMessageID[f.mode] ?? "unknown";
+  const typeMessage = intl.formatMessage({ id: messageID });
   return `${typeMessage}: ${f.name}`;
 }
 

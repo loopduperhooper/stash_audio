@@ -22,3 +22,75 @@ query ListGroupScrapers {
     ...ScraperData
   }
 }
+
+query ScrapeSingleStudio(
+  $source: ScraperSourceInput!
+  $input: ScrapeSingleStudioInput!
+) {
+  scrapeSingleStudio(source: $source, input: $input) {
+    ...ScrapedStudioData
+  }
+}
+
+query ScrapeSingleTag(
+  $source: ScraperSourceInput!
+  $input: ScrapeSingleTagInput!
+) {
+  scrapeSingleTag(source: $source, input: $input) {
+    ...ScrapedSceneTagData
+  }
+}
+
+query ScrapeSinglePerformer(
+  $source: ScraperSourceInput!
+  $input: ScrapeSinglePerformerInput!
+) {
+  scrapeSinglePerformer(source: $source, input: $input) {
+    ...ScrapedPerformerData
+  }
+}
+
+query ScrapeMultiPerformers(
+  $source: ScraperSourceInput!
+  $input: ScrapeMultiPerformersInput!
+) {
+  scrapeMultiPerformers(source: $source, input: $input) {
+    ...ScrapedPerformerData
+  }
+}
+
+query ScrapePerformerURL($url: String!) {
+  scrapePerformerURL(url: $url) {
+    ...ScrapedPerformerData
+  }
+}
+
+query ScrapeGroupURL($url: String!) {
+  scrapeGroupURL(url: $url) {
+    ...ScrapedGroupData
+  }
+}
+
+query InstalledScraperPackages {
+  installedPackages(type: Scraper) {
+    ...PackageData
+  }
+}
+
+query InstalledScraperPackagesStatus {
+  installedPackages(type: Scraper) {
+    ...PackageData
+    source_package {
+      ...PackageData
+    }
+  }
+}
+
+query AvailableScraperPackages($source: String!) {
+  availablePackages(source: $source, type: Scraper) {
+    ...PackageData
+    requires {
+      package_id
+    }
+  }
+}

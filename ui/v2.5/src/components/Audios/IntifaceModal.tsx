@@ -15,7 +15,7 @@ function statusBadge(status: ConnectionStatus): React.ReactElement {
     error:        { bg: "danger",    label: "Error"        },
   };
   const { bg, label } = map[status];
-  return <Badge bg={bg}>{label}</Badge>;
+  return <Badge variant={bg}>{label}</Badge>;
 }
 
 export const IntifaceModal: React.FC<IProps> = ({ show, onHide }) => {

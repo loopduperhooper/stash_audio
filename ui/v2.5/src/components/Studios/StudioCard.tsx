@@ -14,7 +14,6 @@ import { RatingBanner } from "../Shared/RatingBanner";
 import { FavoriteIcon } from "../Shared/FavoriteIcon";
 import { useStudioUpdate } from "src/core/StashService";
 import { faTag, faBox } from "@fortawesome/free-solid-svg-icons";
-import { OCounterButton } from "../Shared/CountButton";
 
 interface IProps {
   studio: GQL.StudioDataFragment;
@@ -97,41 +96,15 @@ export const StudioCard: React.FC<IProps> = PatchComponent(
       }
     }
 
-    function maybeRenderScenesPopoverButton() {
-      if (!studio.scene_count) return;
+    function maybeRenderAudiosPopoverButton() {
+      if (!studio.audio_count) return;
 
       return (
         <PopoverCountButton
-          className="scene-count"
-          type="scene"
-          count={studio.scene_count}
-          url={NavUtils.makeStudioScenesUrl(studio)}
-        />
-      );
-    }
-
-    function maybeRenderImagesPopoverButton() {
-      if (!studio.image_count) return;
-
-      return (
-        <PopoverCountButton
-          className="image-count"
-          type="image"
-          count={studio.image_count}
-          url={NavUtils.makeStudioImagesUrl(studio)}
-        />
-      );
-    }
-
-    function maybeRenderGalleriesPopoverButton() {
-      if (!studio.gallery_count) return;
-
-      return (
-        <PopoverCountButton
-          className="gallery-count"
-          type="gallery"
-          count={studio.gallery_count}
-          url={NavUtils.makeStudioGalleriesUrl(studio)}
+          className="audio-count"
+          type="audio"
+          count={studio.audio_count}
+          url={NavUtils.makeStudioAudiosUrl(studio)}
         />
       );
     }
@@ -179,12 +152,6 @@ export const StudioCard: React.FC<IProps> = PatchComponent(
       );
     }
 
-    function maybeRenderOCounter() {
-      if (!studio.o_counter) return;
-
-      return <OCounterButton value={studio.o_counter} />;
-    }
-
     function maybeRenderOrganized() {
       if (studio.organized) {
         return (
@@ -208,12 +175,9 @@ export const StudioCard: React.FC<IProps> = PatchComponent(
 
     function maybeRenderPopoverButtonGroup() {
       if (
-        studio.scene_count ||
-        studio.image_count ||
-        studio.gallery_count ||
+        studio.audio_count ||
         studio.group_count ||
         studio.performer_count ||
-        studio.o_counter ||
         studio.tags.length > 0 ||
         studio.organized
       ) {
@@ -221,13 +185,10 @@ export const StudioCard: React.FC<IProps> = PatchComponent(
           <>
             <hr />
             <ButtonGroup className="card-popovers">
-              {maybeRenderScenesPopoverButton()}
+              {maybeRenderAudiosPopoverButton()}
               {maybeRenderGroupsPopoverButton()}
-              {maybeRenderImagesPopoverButton()}
-              {maybeRenderGalleriesPopoverButton()}
               {maybeRenderPerformersPopoverButton()}
               {maybeRenderTagPopoverButton()}
-              {maybeRenderOCounter()}
               {maybeRenderOrganized()}
             </ButtonGroup>
           </>

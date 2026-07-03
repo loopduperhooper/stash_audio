@@ -91,70 +91,21 @@ const TagList: React.FC<{
               </Button>
               <Button variant="secondary" className="tag-list-button">
                 <Link
-                  to={NavUtils.makeTagScenesUrl(tag)}
+                  to={NavUtils.makeTagAudiosUrl(tag)}
                   className="tag-list-anchor"
                 >
                   <FormattedMessage
-                    id="countables.scenes"
+                    id="countables.audios"
                     values={{
-                      count: tag.scene_count ?? 0,
+                      count: tag.audio_count ?? 0,
                     }}
                   />
-                  : <FormattedNumber value={tag.scene_count ?? 0} />
-                </Link>
-              </Button>
-              <Button variant="secondary" className="tag-list-button">
-                <Link
-                  to={NavUtils.makeTagImagesUrl(tag)}
-                  className="tag-list-anchor"
-                >
-                  <FormattedMessage
-                    id="countables.images"
-                    values={{
-                      count: tag.image_count ?? 0,
-                    }}
-                  />
-                  : <FormattedNumber value={tag.image_count ?? 0} />
-                </Link>
-              </Button>
-              <Button variant="secondary" className="tag-list-button">
-                <Link
-                  to={NavUtils.makeTagGalleriesUrl(tag)}
-                  className="tag-list-anchor"
-                >
-                  <FormattedMessage
-                    id="countables.galleries"
-                    values={{
-                      count: tag.gallery_count ?? 0,
-                    }}
-                  />
-                  : <FormattedNumber value={tag.gallery_count ?? 0} />
-                </Link>
-              </Button>
-              <Button variant="secondary" className="tag-list-button">
-                <Link
-                  to={NavUtils.makeTagSceneMarkersUrl(tag)}
-                  className="tag-list-anchor"
-                >
-                  <FormattedMessage
-                    id="countables.markers"
-                    values={{
-                      count: tag.scene_marker_count ?? 0,
-                    }}
-                  />
-                  : <FormattedNumber value={tag.scene_marker_count ?? 0} />
+                  : <FormattedNumber value={tag.audio_count ?? 0} />
                 </Link>
               </Button>
               <span className="tag-list-count">
                 <FormattedMessage id="total" />:{" "}
-                <FormattedNumber
-                  value={
-                    (tag.scene_count || 0) +
-                    (tag.scene_marker_count || 0) +
-                    (tag.image_count || 0) +
-                    (tag.gallery_count || 0)
-                  }
-                />
+                <FormattedNumber value={tag.audio_count || 0} />
               </span>
               <Button variant="danger" onClick={() => onDelete(tag)}>
                 <Icon icon={faTrashAlt} color="danger" />

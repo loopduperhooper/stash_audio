@@ -192,26 +192,10 @@ export const PerformerListTable: React.FC<IPerformerListTableProps> = (
     <>{formatYearRange(performer.career_start, performer.career_end) ?? ""}</>
   );
 
-  const SceneCountCell = (performer: GQL.PerformerDataFragment) => (
-    <Link to={NavUtils.makePerformerScenesUrl(performer)}>
-      <span>{performer.scene_count}</span>
+  const AudioCountCell = (performer: GQL.PerformerDataFragment) => (
+    <Link to={NavUtils.makePerformerAudiosUrl(performer)}>
+      <span>{performer.audio_count}</span>
     </Link>
-  );
-
-  const GalleryCountCell = (performer: GQL.PerformerDataFragment) => (
-    <Link to={NavUtils.makePerformerGalleriesUrl(performer)}>
-      <span>{performer.gallery_count}</span>
-    </Link>
-  );
-
-  const ImageCountCell = (performer: GQL.PerformerDataFragment) => (
-    <Link to={NavUtils.makePerformerImagesUrl(performer)}>
-      <span>{performer.image_count}</span>
-    </Link>
-  );
-
-  const OCounterCell = (performer: GQL.PerformerDataFragment) => (
-    <>{performer.o_counter}</>
   );
 
   interface IColumnSpec {
@@ -333,28 +317,10 @@ export const PerformerListTable: React.FC<IPerformerListTableProps> = (
       render: CareerLengthCell,
     },
     {
-      value: "scene_count",
-      label: intl.formatMessage({ id: "scene_count" }),
+      value: "audio_count",
+      label: intl.formatMessage({ id: "audio_count" }),
       defaultShow: true,
-      render: SceneCountCell,
-    },
-    {
-      value: "gallery_count",
-      label: intl.formatMessage({ id: "gallery_count" }),
-      defaultShow: true,
-      render: GalleryCountCell,
-    },
-    {
-      value: "image_count",
-      label: intl.formatMessage({ id: "image_count" }),
-      defaultShow: true,
-      render: ImageCountCell,
-    },
-    {
-      value: "o_counter",
-      label: intl.formatMessage({ id: "o_count" }),
-      defaultShow: true,
-      render: OCounterCell,
+      render: AudioCountCell,
     },
   ];
 

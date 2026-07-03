@@ -1,11 +1,8 @@
 import {
   faFilm,
-  faImage,
-  faImages,
-  faPlayCircle,
+  faMusic,
   faUser,
   faVideo,
-  faMapMarkerAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import React from "react";
 import { Button, OverlayTrigger, Tooltip } from "react-bootstrap";
@@ -39,10 +36,7 @@ export const Count: React.FC<{
 };
 
 type PopoverLinkType =
-  | "scene"
-  | "image"
-  | "gallery"
-  | "marker"
+  | "audio"
   | "group"
   | "sub_group"
   | "performer"
@@ -69,17 +63,10 @@ export const PopoverCountButton: React.FC<IProps> = ({
     return null;
   }
 
-  // TODO - refactor - create SceneIcon, ImageIcon etc components
   function getIcon() {
     switch (type) {
-      case "scene":
-        return faPlayCircle;
-      case "image":
-        return faImage;
-      case "gallery":
-        return faImages;
-      case "marker":
-        return faMapMarkerAlt;
+      case "audio":
+        return faMusic;
       case "group":
       case "sub_group":
         return faFilm;
@@ -92,25 +79,10 @@ export const PopoverCountButton: React.FC<IProps> = ({
 
   function getPluralOptions() {
     switch (type) {
-      case "scene":
+      case "audio":
         return {
-          one: "scene",
-          other: "scenes",
-        };
-      case "image":
-        return {
-          one: "image",
-          other: "images",
-        };
-      case "gallery":
-        return {
-          one: "gallery",
-          other: "galleries",
-        };
-      case "marker":
-        return {
-          one: "marker",
-          other: "markers",
+          one: "audio",
+          other: "audios",
         };
       case "group":
         return {

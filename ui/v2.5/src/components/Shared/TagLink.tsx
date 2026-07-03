@@ -63,7 +63,7 @@ const CommonLinkComponent: React.FC<ICommonLinkProps> = ({
 
 interface IPerformerLinkProps {
   performer: INamedObject & { disambiguation?: string | null };
-  linkType?: "scene" | "gallery" | "image" | "scene_marker";
+  linkType?: "audio" | "scene_marker";
   className?: string;
 }
 
@@ -71,20 +71,16 @@ export type PerformerLinkType = IPerformerLinkProps["linkType"];
 
 export const PerformerLink: React.FC<IPerformerLinkProps> = ({
   performer,
-  linkType = "scene",
+  linkType = "audio",
   className,
 }) => {
   const link = useMemo(() => {
     switch (linkType) {
-      case "gallery":
-        return NavUtils.makePerformerGalleriesUrl(performer);
-      case "image":
-        return NavUtils.makePerformerImagesUrl(performer);
       case "scene_marker":
         return NavUtils.makePerformerSceneMarkersUrl(performer);
-      case "scene":
+      case "audio":
       default:
-        return NavUtils.makePerformerScenesUrl(performer);
+        return NavUtils.makePerformerAudiosUrl(performer);
     }
   }, [performer, linkType]);
 
@@ -230,9 +226,7 @@ export const GalleryLink: React.FC<IGalleryLinkProps> = ({
 interface ITagLinkProps {
   tag: INamedObject;
   linkType?:
-    | "scene"
-    | "gallery"
-    | "image"
+    | "audio"
     | "details"
     | "performer"
     | "group"
@@ -248,7 +242,7 @@ export const TagLink: React.FC<ITagLinkProps> = PatchComponent(
   "TagLink",
   ({
     tag,
-    linkType = "scene",
+    linkType = "audio",
     className,
     hoverPlacement,
     showHierarchyIcon = false,
@@ -256,16 +250,12 @@ export const TagLink: React.FC<ITagLinkProps> = PatchComponent(
   }) => {
     const link = useMemo(() => {
       switch (linkType) {
-        case "scene":
-          return NavUtils.makeTagScenesUrl(tag);
+        case "audio":
+          return NavUtils.makeTagAudiosUrl(tag);
         case "performer":
           return NavUtils.makeTagPerformersUrl(tag);
         case "studio":
           return NavUtils.makeTagStudiosUrl(tag);
-        case "gallery":
-          return NavUtils.makeTagGalleriesUrl(tag);
-        case "image":
-          return NavUtils.makeTagImagesUrl(tag);
         case "group":
           return NavUtils.makeTagGroupsUrl(tag);
         case "scene_marker":

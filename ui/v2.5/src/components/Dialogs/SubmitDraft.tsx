@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Form } from "react-bootstrap";
 import * as GQL from "src/core/generated-graphql";
-import {
-  mutateSubmitStashBoxPerformerDraft,
-  mutateSubmitStashBoxSceneDraft,
-} from "src/core/StashService";
+import { mutateSubmitStashBoxPerformerDraft } from "src/core/StashService";
 import { ModalComponent } from "src/components/Shared/Modal";
 import { getStashboxBase } from "src/utils/stashbox";
 import { FormattedMessage, useIntl } from "react-intl";
@@ -12,11 +9,8 @@ import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { ExternalLink } from "../Shared/ExternalLink";
 
 interface IProps {
-  type: "scene" | "performer";
-  entity: Pick<
-    GQL.SceneDataFragment | GQL.PerformerDataFragment,
-    "id" | "stash_ids"
-  >;
+  type: "performer";
+  entity: Pick<GQL.PerformerDataFragment, "id" | "stash_ids">;
   boxes: Pick<GQL.StashBox, "name" | "endpoint">[];
   show: boolean;
   onHide: () => void;
@@ -59,13 +53,8 @@ export const SubmitStashBoxDraft: React.FC<IProps> = ({
       stash_box_endpoint: selectedBox.endpoint,
     };
 
-    if (type === "scene") {
-      const r = await mutateSubmitStashBoxSceneDraft(input);
-      return r.data?.submitStashBoxSceneDraft;
-    } else if (type === "performer") {
-      const r = await mutateSubmitStashBoxPerformerDraft(input);
-      return r.data?.submitStashBoxPerformerDraft;
-    }
+    const r = await mutateSubmitStashBoxPerformerDraft(input);
+    return r.data?.submitStashBoxPerformerDraft;
   }
 
   async function onSubmit() {

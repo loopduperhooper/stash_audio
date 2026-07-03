@@ -3,13 +3,3 @@ query Configuration {
     ...ConfigData
   }
 }
-
-query SystemStatus {
-  systemStatus {
-    databaseSchema
-    databasePath
-    configPath
-    appSchema
-    status
-  }
-}

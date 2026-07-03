@@ -46,7 +46,6 @@ import { LightboxLink } from "src/hooks/Lightbox/LightboxLink";
 import { PatchComponent } from "src/patch";
 import { ILightboxImage } from "src/hooks/Lightbox/types";
 import { goBackOrReplace } from "src/utils/history";
-import { OCounterButton } from "src/components/Shared/CountButton";
 
 interface IProps {
   performer: GQL.PerformerDataFragment;
@@ -391,9 +390,6 @@ const PerformerPage: React.FC<IProps> = PatchComponent(
                     clickToRate
                     withoutContext
                   />
-                  {!!performer.o_counter && (
-                    <OCounterButton value={performer.o_counter} />
-                  )}
                 </div>
                 {!isEditing && (
                   <PerformerDetailsPanel

@@ -30,24 +30,10 @@ const TagCardPopovers: React.FC<IProps> = PatchComponent(
         <hr />
         <ButtonGroup className="card-popovers">
           <PopoverCountButton
-            className="scene-count"
-            type="scene"
-            count={tag.scene_count}
-            url={NavUtils.makeTagScenesUrl(tag)}
-            showZero={false}
-          />
-          <PopoverCountButton
-            className="image-count"
-            type="image"
-            count={tag.image_count}
-            url={NavUtils.makeTagImagesUrl(tag)}
-            showZero={false}
-          />
-          <PopoverCountButton
-            className="gallery-count"
-            type="gallery"
-            count={tag.gallery_count}
-            url={NavUtils.makeTagGalleriesUrl(tag)}
+            className="audio-count"
+            type="audio"
+            count={tag.audio_count}
+            url={NavUtils.makeTagAudiosUrl(tag)}
             showZero={false}
           />
           <PopoverCountButton
@@ -55,13 +41,6 @@ const TagCardPopovers: React.FC<IProps> = PatchComponent(
             type="group"
             count={tag.group_count}
             url={NavUtils.makeTagGroupsUrl(tag)}
-            showZero={false}
-          />
-          <PopoverCountButton
-            className="marker-count"
-            type="marker"
-            count={tag.scene_marker_count}
-            url={NavUtils.makeTagSceneMarkersUrl(tag)}
             showZero={false}
           />
           <PopoverCountButton

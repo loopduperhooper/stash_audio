@@ -13,7 +13,6 @@ import { CountryFlag } from "src/components/Shared/CountryFlag";
 import { Icon } from "src/components/Shared/Icon";
 import {
   stashBoxPerformerQuery,
-  stashBoxSceneQuery,
   stashBoxStudioQuery,
   stashBoxTagQuery,
 } from "src/core/StashService";
@@ -22,11 +21,10 @@ import { stringToGender } from "src/utils/gender";
 
 type SearchResultItem =
   | GQL.ScrapedPerformerDataFragment
-  | GQL.ScrapedSceneDataFragment
   | GQL.ScrapedStudioDataFragment
   | GQL.ScrapedSceneTagDataFragment;
 
-export type StashBoxEntityType = "performer" | "scene" | "studio" | "tag";
+export type StashBoxEntityType = "performer" | "studio" | "tag";
 
 interface IProps {
   entityType: StashBoxEntityType;
@@ -147,54 +145,6 @@ export const PerformerSearchResult: React.FC<IPerformerResultProps> = ({
   );
 };
 
-// Scene Result Component
-interface ISceneResultProps {
-  scene: GQL.ScrapedSceneDataFragment;
-}
-
-const SceneSearchResultDetails: React.FC<ISceneResultProps> = ({ scene }) => {
-  return (
-    <div className="scene-result">
-      <Row>
-        <SearchResultImage imageUrl={scene.image} />
-        <div className="col flex-column">
-          <h4 className="scene-title">
-            <span>{scene.title}</span>
-            {scene.code && (
-              <span className="scene-code">{` (${scene.code})`}</span>
-            )}
-          </h4>
-          <h5 className="scene-details">
-            {scene.studio?.name && <span>{scene.studio.name}</span>}
-            {scene.date && (
-              <span className="scene-date">{` • ${scene.date}`}</span>
-            )}
-          </h5>
-          {scene.performers && scene.performers.length > 0 && (
-            <div className="scene-performers">
-              {scene.performers.map((p) => p.name).join(", ")}
-            </div>
-          )}
-        </div>
-      </Row>
-      <Row>
-        <Col>
-          <TruncatedText text={scene.details ?? ""} lineCount={3} />
-        </Col>
-      </Row>
-      <SearchResultTags tags={scene.tags} />
-    </div>
-  );
-};
-
-export const SceneSearchResult: React.FC<ISceneResultProps> = ({ scene }) => {
-  return (
-    <div className="mt-3 search-item" style={{ cursor: "pointer" }}>
-      <SceneSearchResultDetails scene={scene} />
-    </div>
-  );
-};
-
 // Studio Result Component
 interface IStudioResultProps {
   studio: GQL.ScrapedStudioDataFragment;
@@ -261,8 +211,6 @@ function getEntityTypeMessageId(entityType: StashBoxEntityType): string {
   switch (entityType) {
     case "performer":
       return "performer";
-    case "scene":
-      return "scene";
     case "studio":
       return "studio";
     case "tag":
@@ -275,8 +223,6 @@ function getFoundMessageId(entityType: StashBoxEntityType): string {
   switch (entityType) {
     case "performer":
       return "dialogs.performers_found";
-    case "scene":
-      return "dialogs.scenes_found";
     case "studio":
       return "dialogs.studios_found";
     case "tag":
@@ -331,14 +277,6 @@ export const StashBoxIDSearchModal: React.FC<IProps> = ({
           setResults(queryData.data?.scrapeSinglePerformer ?? []);
           break;
         }
-        case "scene": {
-          const queryData = await stashBoxSceneQuery(
-            query,
-            selectedStashBox.endpoint
-          );
-          setResults(queryData.data?.scrapeSingleScene ?? []);
-          break;
-        }
         case "studio": {
           const queryData = await stashBoxStudioQuery(
             query,
@@ -385,10 +323,6 @@ export const StashBoxIDSearchModal: React.FC<IProps> = ({
           <PerformerSearchResult
             performer={item as GQL.ScrapedPerformerDataFragment}
           />
-        );
-      case "scene":
-        return (
-          <SceneSearchResult scene={item as GQL.ScrapedSceneDataFragment} />
         );
       case "studio":
         return (

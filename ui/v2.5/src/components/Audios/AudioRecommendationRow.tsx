@@ -32,7 +32,7 @@ export const AudioRecommendationRow: React.FC<IProps> = PatchComponent(
               <div key={`_${i}`} className="audio-skeleton skeleton-card"></div>
             ))
           : result.data?.findAudios.audios.map((a) => (
-              <AudioCard key={a.id} audio={a} />
+              <AudioCard key={a.id} audio={a} zoomIndex={0} />
             ))}
       </FilteredRecommendationRow>
     );

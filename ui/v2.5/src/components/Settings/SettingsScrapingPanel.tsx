@@ -5,9 +5,6 @@ import {
   mutateReloadScrapers,
   useListGroupScrapers,
   useListPerformerScrapers,
-  useListSceneScrapers,
-  useListGalleryScrapers,
-  useListImageScrapers,
 } from "src/core/StashService";
 import { useToast } from "src/hooks/Toast";
 import TextUtils from "src/utils/text";
@@ -175,12 +172,6 @@ const ScrapersSection: React.FC = () => {
 
   const { data: performerScrapers, loading: loadingPerformers } =
     useListPerformerScrapers();
-  const { data: sceneScrapers, loading: loadingScenes } =
-    useListSceneScrapers();
-  const { data: galleryScrapers, loading: loadingGalleries } =
-    useListGalleryScrapers();
-  const { data: imageScrapers, loading: loadingImages } =
-    useListImageScrapers();
   const { data: groupScrapers, loading: loadingGroups } =
     useListGroupScrapers();
 
@@ -190,27 +181,11 @@ const ScrapersSection: React.FC = () => {
       performers: performerScrapers?.listScrapers.filter((s) =>
         filterFn(s.name, s.performer?.urls)
       ),
-      scenes: sceneScrapers?.listScrapers.filter((s) =>
-        filterFn(s.name, s.scene?.urls)
-      ),
-      galleries: galleryScrapers?.listScrapers.filter((s) =>
-        filterFn(s.name, s.gallery?.urls)
-      ),
-      images: imageScrapers?.listScrapers.filter((s) =>
-        filterFn(s.name, s.image?.urls)
-      ),
       groups: groupScrapers?.listScrapers.filter((s) =>
         filterFn(s.name, s.group?.urls)
       ),
     };
-  }, [
-    performerScrapers,
-    sceneScrapers,
-    galleryScrapers,
-    imageScrapers,
-    groupScrapers,
-    filter,
-  ]);
+  }, [performerScrapers, groupScrapers, filter]);
 
   async function onReloadScrapers() {
     try {
@@ -220,13 +195,7 @@ const ScrapersSection: React.FC = () => {
     }
   }
 
-  if (
-    loadingScenes ||
-    loadingGalleries ||
-    loadingPerformers ||
-    loadingGroups ||
-    loadingImages
-  )
+  if (loadingPerformers || loadingGroups)
     return (
       <SettingSection headingID="config.scraping.scrapers">
         <LoadingIndicator />
@@ -253,57 +222,6 @@ const ScrapersSection: React.FC = () => {
       </div>
 
       <div className="content">
-        {!!filteredScrapers.scenes?.length && (
-          <ScraperTable
-            entityType="scene"
-            count={filteredScrapers.scenes?.length}
-          >
-            {filteredScrapers.scenes?.map((scraper) => (
-              <ScraperTableRow
-                key={scraper.id}
-                name={scraper.name}
-                entityType="scene"
-                supportedScrapes={scraper.scene?.supported_scrapes ?? []}
-                urls={scraper.scene?.urls ?? []}
-              />
-            ))}
-          </ScraperTable>
-        )}
-
-        {!!filteredScrapers.galleries?.length && (
-          <ScraperTable
-            entityType="gallery"
-            count={filteredScrapers.galleries?.length}
-          >
-            {filteredScrapers.galleries?.map((scraper) => (
-              <ScraperTableRow
-                key={scraper.id}
-                name={scraper.name}
-                entityType="gallery"
-                supportedScrapes={scraper.gallery?.supported_scrapes ?? []}
-                urls={scraper.gallery?.urls ?? []}
-              />
-            ))}
-          </ScraperTable>
-        )}
-
-        {!!filteredScrapers.images?.length && (
-          <ScraperTable
-            entityType="image"
-            count={filteredScrapers.images?.length}
-          >
-            {filteredScrapers.images?.map((scraper) => (
-              <ScraperTableRow
-                key={scraper.id}
-                name={scraper.name}
-                entityType="image"
-                supportedScrapes={scraper.image?.supported_scrapes ?? []}
-                urls={scraper.image?.urls ?? []}
-              />
-            ))}
-          </ScraperTable>
-        )}
-
         {!!filteredScrapers.performers?.length && (
           <ScraperTable
             entityType="performer"

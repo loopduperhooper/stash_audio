@@ -45,7 +45,6 @@ import { ExternalLinkButtons } from "src/components/Shared/ExternalLinksButton";
 import { AliasList } from "src/components/Shared/DetailsPage/AliasList";
 import { HeaderImage } from "src/components/Shared/DetailsPage/HeaderImage";
 import { goBackOrReplace } from "src/utils/history";
-import { OCounterButton } from "src/components/Shared/CountButton";
 import { OrganizedButton } from "src/components/Shared/OrganizedButton";
 
 interface IProps {
@@ -431,9 +430,6 @@ const StudioPage: React.FC<IProps> = ({ studio, tabKey }) => {
                   clickToRate
                   withoutContext
                 />
-                {!!studio.o_counter && (
-                  <OCounterButton value={studio.o_counter} />
-                )}
               </div>
               {!isEditing && (
                 <StudioDetailsPanel

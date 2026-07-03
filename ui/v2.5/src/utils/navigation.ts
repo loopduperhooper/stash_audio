@@ -27,7 +27,6 @@ import {
   Criterion,
 } from "src/models/list-filter/criteria/criterion";
 import { GalleriesCriterion } from "src/models/list-filter/criteria/galleries";
-import { PhashCriterion } from "src/models/list-filter/criteria/phash";
 import { ILabeledId } from "src/models/list-filter/types";
 import { IntlShape } from "react-intl";
 import { galleryTitle } from "src/core/galleries";
@@ -40,61 +39,19 @@ function addExtraCriteria(dest: Criterion[], src?: Criterion[]) {
   }
 }
 
-const makePerformerScenesUrl = (
-  performer: Partial<GQL.PerformerDataFragment>,
-  extraPerformer?: ILabeledId,
-  extraCriteria?: ModifierCriterion<CriterionValue>[]
-) => {
-  if (!performer.id) return "#";
-  const filter = new ListFilterModel(GQL.FilterMode.Scenes, undefined);
-  const criterion = new PerformersCriterion();
-  criterion.value.items = [
-    { id: performer.id, label: performer.name || `Performer ${performer.id}` },
-  ];
-
-  if (extraPerformer) {
-    criterion.value.items.push(extraPerformer);
-  }
-
-  filter.criteria.push(criterion);
-  addExtraCriteria(filter.criteria, extraCriteria);
-  return `/scenes?${filter.makeQueryParameters()}`;
-};
-
-const makePerformerImagesUrl = (
-  performer: Partial<GQL.PerformerDataFragment>,
-  extraPerformer?: ILabeledId,
-  extraCriteria?: ModifierCriterion<CriterionValue>[]
-) => {
-  if (!performer.id) return "#";
-  const filter = new ListFilterModel(GQL.FilterMode.Images, undefined);
-  const criterion = new PerformersCriterion();
-  criterion.value.items = [
-    { id: performer.id, label: performer.name || `Performer ${performer.id}` },
-  ];
-
-  if (extraPerformer) {
-    criterion.value.items.push(extraPerformer);
-  }
-
-  filter.criteria.push(criterion);
-  addExtraCriteria(filter.criteria, extraCriteria);
-  return `/images?${filter.makeQueryParameters()}`;
-};
-
 export interface INamedObject {
   id: string;
   name?: string;
   sort_name?: string | null;
 }
 
-const makePerformerGalleriesUrl = (
-  performer: INamedObject,
+const makePerformerAudiosUrl = (
+  performer: Partial<GQL.PerformerDataFragment>,
   extraPerformer?: ILabeledId,
   extraCriteria?: ModifierCriterion<CriterionValue>[]
 ) => {
   if (!performer.id) return "#";
-  const filter = new ListFilterModel(GQL.FilterMode.Galleries, undefined);
+  const filter = new ListFilterModel(GQL.FilterMode.Audios, undefined);
   const criterion = new PerformersCriterion();
   criterion.value.items = [
     { id: performer.id, label: performer.name || `Performer ${performer.id}` },
@@ -106,7 +63,7 @@ const makePerformerGalleriesUrl = (
 
   filter.criteria.push(criterion);
   addExtraCriteria(filter.criteria, extraCriteria);
-  return `/galleries?${filter.makeQueryParameters()}`;
+  return `/audios?${filter.makeQueryParameters()}`;
 };
 
 const makePerformerGroupsUrl = (
@@ -155,9 +112,9 @@ const makePerformersCountryUrl = (
   return `/performers?${filter.makeQueryParameters()}`;
 };
 
-const makeStudioScenesUrl = (studio: Partial<GQL.StudioDataFragment>) => {
+const makeStudioAudiosUrl = (studio: Partial<GQL.StudioDataFragment>) => {
   if (!studio.id) return "#";
-  const filter = new ListFilterModel(GQL.FilterMode.Scenes, undefined);
+  const filter = new ListFilterModel(GQL.FilterMode.Audios, undefined);
   const criterion = new StudiosCriterion();
   criterion.value = {
     items: [{ id: studio.id, label: studio.name || `Studio ${studio.id}` }],
@@ -165,33 +122,7 @@ const makeStudioScenesUrl = (studio: Partial<GQL.StudioDataFragment>) => {
     depth: 0,
   };
   filter.criteria.push(criterion);
-  return `/scenes?${filter.makeQueryParameters()}`;
-};
-
-const makeStudioImagesUrl = (studio: Partial<GQL.StudioDataFragment>) => {
-  if (!studio.id) return "#";
-  const filter = new ListFilterModel(GQL.FilterMode.Images, undefined);
-  const criterion = new StudiosCriterion();
-  criterion.value = {
-    items: [{ id: studio.id, label: studio.name || `Studio ${studio.id}` }],
-    excluded: [],
-    depth: 0,
-  };
-  filter.criteria.push(criterion);
-  return `/images?${filter.makeQueryParameters()}`;
-};
-
-const makeStudioGalleriesUrl = (studio: Partial<GQL.StudioDataFragment>) => {
-  if (!studio.id) return "#";
-  const filter = new ListFilterModel(GQL.FilterMode.Galleries, undefined);
-  const criterion = new StudiosCriterion();
-  criterion.value = {
-    items: [{ id: studio.id, label: studio.name || `Studio ${studio.id}` }],
-    excluded: [],
-    depth: 0,
-  };
-  filter.criteria.push(criterion);
-  return `/galleries?${filter.makeQueryParameters()}`;
+  return `/audios?${filter.makeQueryParameters()}`;
 };
 
 const makeStudioGroupsUrl = (studio: Partial<GQL.StudioDataFragment>) => {
@@ -296,8 +227,8 @@ function makeTagFilter(mode: GQL.FilterMode, tag: INamedObject) {
   return filter.makeQueryParameters();
 }
 
-const makeTagScenesUrl = (tag: INamedObject) => {
-  return `/scenes?${makeTagFilter(GQL.FilterMode.Scenes, tag)}`;
+const makeTagAudiosUrl = (tag: INamedObject) => {
+  return `/audios?${makeTagFilter(GQL.FilterMode.Audios, tag)}`;
 };
 
 const makeTagPerformersUrl = (tag: INamedObject) => {
@@ -312,14 +243,6 @@ const makeTagSceneMarkersUrl = (tag: INamedObject) => {
   return `/scenes/markers?${makeTagFilter(GQL.FilterMode.SceneMarkers, tag)}`;
 };
 
-const makeTagGalleriesUrl = (tag: INamedObject) => {
-  return `/galleries?${makeTagFilter(GQL.FilterMode.Galleries, tag)}`;
-};
-
-const makeTagImagesUrl = (tag: INamedObject) => {
-  return `/images?${makeTagFilter(GQL.FilterMode.Images, tag)}`;
-};
-
 const makeTagGroupsUrl = (tag: INamedObject) => {
   return `/groups?${makeTagFilter(GQL.FilterMode.Groups, tag)}`;
 };
@@ -331,24 +254,6 @@ type SceneMarkerDataFragment = Pick<GQL.SceneMarker, "id" | "seconds"> & {
 const makeSceneMarkerUrl = (sceneMarker: SceneMarkerDataFragment) => {
   if (!sceneMarker.id || !sceneMarker.scene) return "#";
   return `/scenes/${sceneMarker.scene.id}?t=${sceneMarker.seconds}`;
-};
-
-const makeScenesPHashMatchUrl = (phash: GQL.Maybe<string> | undefined) => {
-  if (!phash) return "#";
-  const filter = new ListFilterModel(GQL.FilterMode.Scenes, undefined);
-  const criterion = new PhashCriterion();
-  criterion.value = { value: phash };
-  filter.criteria.push(criterion);
-  return `/scenes?${filter.makeQueryParameters()}`;
-};
-
-const makeImagesPHashMatchUrl = (phash: GQL.Maybe<string> | undefined) => {
-  if (!phash) return "#";
-  const filter = new ListFilterModel(GQL.FilterMode.Images, undefined);
-  const criterion = new PhashCriterion();
-  criterion.value = { value: phash };
-  filter.criteria.push(criterion);
-  return `/images?${filter.makeQueryParameters()}`;
 };
 
 const makeGalleryImagesUrl = (
@@ -478,15 +383,11 @@ export function handleUnsavedChanges(
 }
 
 const NavUtils = {
-  makePerformerScenesUrl,
-  makePerformerImagesUrl,
-  makePerformerGalleriesUrl,
+  makePerformerAudiosUrl,
   makePerformerGroupsUrl,
   makePerformerSceneMarkersUrl,
   makePerformersCountryUrl,
-  makeStudioScenesUrl,
-  makeStudioImagesUrl,
-  makeStudioGalleriesUrl,
+  makeStudioAudiosUrl,
   makeStudioGroupsUrl: makeStudioGroupsUrl,
   makeStudioPerformersUrl,
   makeTagUrl,
@@ -494,15 +395,11 @@ const NavUtils = {
   makeParentTagsUrl,
   makeChildTagsUrl,
   makeTagSceneMarkersUrl,
-  makeTagScenesUrl,
+  makeTagAudiosUrl,
   makeTagPerformersUrl,
   makeTagStudiosUrl,
-  makeTagGalleriesUrl,
-  makeTagImagesUrl,
   makeTagGroupsUrl,
-  makeScenesPHashMatchUrl,
   makeSceneMarkerUrl,
-  makeImagesPHashMatchUrl,
   makeGroupScenesUrl,
   makeChildStudiosUrl,
   makeGalleryImagesUrl,

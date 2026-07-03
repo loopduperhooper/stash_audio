@@ -11,7 +11,7 @@ export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Mayb
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 const defaultOptions = {} as const;
-// Generated on 2026-06-28T14:23:58-04:00
+// Generated on 2026-07-03T00:04:45-04:00
 
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -56,6 +56,11 @@ export type AnonymiseDatabaseInput = {
 export type AssignAudioFileInput = {
   audio_id: Scalars['ID']['input'];
   file_id: Scalars['ID']['input'];
+};
+
+export type AssignSceneFileInput = {
+  file_id: Scalars['ID']['input'];
+  scene_id: Scalars['ID']['input'];
 };
 
 export type Audio = {
@@ -336,6 +341,25 @@ export type BulkAudioUpdateInput = {
   urls?: InputMaybe<BulkUpdateStrings>;
 };
 
+export type BulkGalleryUpdateInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  custom_fields?: InputMaybe<CustomFieldsInput>;
+  date?: InputMaybe<Scalars['String']['input']>;
+  details?: InputMaybe<Scalars['String']['input']>;
+  ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  organized?: InputMaybe<Scalars['Boolean']['input']>;
+  performer_ids?: InputMaybe<BulkUpdateIds>;
+  photographer?: InputMaybe<Scalars['String']['input']>;
+  rating100?: InputMaybe<Scalars['Int']['input']>;
+  scene_ids?: InputMaybe<BulkUpdateIds>;
+  studio_id?: InputMaybe<Scalars['ID']['input']>;
+  tag_ids?: InputMaybe<BulkUpdateIds>;
+  /** @deprecated Use urls */
+  url?: InputMaybe<Scalars['String']['input']>;
+  urls?: InputMaybe<BulkUpdateStrings>;
+};
+
 export type BulkGroupUpdateInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
   containing_groups?: InputMaybe<BulkUpdateGroupDescriptionsInput>;
@@ -348,6 +372,26 @@ export type BulkGroupUpdateInput = {
   sub_groups?: InputMaybe<BulkUpdateGroupDescriptionsInput>;
   synopsis?: InputMaybe<Scalars['String']['input']>;
   tag_ids?: InputMaybe<BulkUpdateIds>;
+  urls?: InputMaybe<BulkUpdateStrings>;
+};
+
+export type BulkImageUpdateInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  custom_fields?: InputMaybe<CustomFieldsInput>;
+  date?: InputMaybe<Scalars['String']['input']>;
+  details?: InputMaybe<Scalars['String']['input']>;
+  gallery_ids?: InputMaybe<BulkUpdateIds>;
+  ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  organized?: InputMaybe<Scalars['Boolean']['input']>;
+  performer_ids?: InputMaybe<BulkUpdateIds>;
+  photographer?: InputMaybe<Scalars['String']['input']>;
+  rating100?: InputMaybe<Scalars['Int']['input']>;
+  studio_id?: InputMaybe<Scalars['ID']['input']>;
+  tag_ids?: InputMaybe<BulkUpdateIds>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use urls */
+  url?: InputMaybe<Scalars['String']['input']>;
   urls?: InputMaybe<BulkUpdateStrings>;
 };
 
@@ -399,6 +443,36 @@ export type BulkPerformerUpdateInput = {
   url?: InputMaybe<Scalars['String']['input']>;
   urls?: InputMaybe<BulkUpdateStrings>;
   weight?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type BulkSceneMarkerUpdateInput = {
+  ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  primary_tag_id?: InputMaybe<Scalars['ID']['input']>;
+  tag_ids?: InputMaybe<BulkUpdateIds>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type BulkSceneUpdateInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  custom_fields?: InputMaybe<CustomFieldsInput>;
+  date?: InputMaybe<Scalars['String']['input']>;
+  details?: InputMaybe<Scalars['String']['input']>;
+  director?: InputMaybe<Scalars['String']['input']>;
+  gallery_ids?: InputMaybe<BulkUpdateIds>;
+  group_ids?: InputMaybe<BulkUpdateIds>;
+  ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  /** @deprecated Use group_ids */
+  movie_ids?: InputMaybe<BulkUpdateIds>;
+  organized?: InputMaybe<Scalars['Boolean']['input']>;
+  performer_ids?: InputMaybe<BulkUpdateIds>;
+  rating100?: InputMaybe<Scalars['Int']['input']>;
+  studio_id?: InputMaybe<Scalars['ID']['input']>;
+  tag_ids?: InputMaybe<BulkUpdateIds>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use urls */
+  url?: InputMaybe<Scalars['String']['input']>;
+  urls?: InputMaybe<BulkUpdateStrings>;
 };
 
 export type BulkStudioUpdateInput = {
@@ -1175,10 +1249,32 @@ export type FindFoldersResultType = {
   folders: Array<Folder>;
 };
 
+export type FindGalleriesResultType = {
+  __typename?: 'FindGalleriesResultType';
+  count: Scalars['Int']['output'];
+  galleries: Array<Gallery>;
+};
+
+export type FindGalleryChaptersResultType = {
+  __typename?: 'FindGalleryChaptersResultType';
+  chapters: Array<GalleryChapter>;
+  count: Scalars['Int']['output'];
+};
+
 export type FindGroupsResultType = {
   __typename?: 'FindGroupsResultType';
   count: Scalars['Int']['output'];
   groups: Array<Group>;
+};
+
+export type FindImagesResultType = {
+  __typename?: 'FindImagesResultType';
+  count: Scalars['Int']['output'];
+  /** Total file size in bytes */
+  filesize: Scalars['Float']['output'];
+  images: Array<Image>;
+  /** Total megapixels of the images */
+  megapixels: Scalars['Float']['output'];
 };
 
 export type FindJobInput = {
@@ -1195,6 +1291,22 @@ export type FindPerformersResultType = {
   __typename?: 'FindPerformersResultType';
   count: Scalars['Int']['output'];
   performers: Array<Performer>;
+};
+
+export type FindSceneMarkersResultType = {
+  __typename?: 'FindSceneMarkersResultType';
+  count: Scalars['Int']['output'];
+  scene_markers: Array<SceneMarker>;
+};
+
+export type FindScenesResultType = {
+  __typename?: 'FindScenesResultType';
+  count: Scalars['Int']['output'];
+  /** Total duration in seconds */
+  duration: Scalars['Float']['output'];
+  /** Total file size in bytes */
+  filesize: Scalars['Float']['output'];
+  scenes: Array<Scene>;
 };
 
 export type FindStudiosResultType = {
@@ -1264,6 +1376,101 @@ export type FolderFilterType = {
   zip_file?: InputMaybe<MultiCriterionInput>;
 };
 
+/** Gallery type */
+export type Gallery = {
+  __typename?: 'Gallery';
+  chapters: Array<GalleryChapter>;
+  code?: Maybe<Scalars['String']['output']>;
+  cover?: Maybe<Image>;
+  created_at: Scalars['Time']['output'];
+  custom_fields: Scalars['Map']['output'];
+  date?: Maybe<Scalars['String']['output']>;
+  details?: Maybe<Scalars['String']['output']>;
+  files: Array<GalleryFile>;
+  folder?: Maybe<Folder>;
+  id: Scalars['ID']['output'];
+  image: Image;
+  image_count: Scalars['Int']['output'];
+  organized: Scalars['Boolean']['output'];
+  paths: GalleryPathsType;
+  performers: Array<Performer>;
+  photographer?: Maybe<Scalars['String']['output']>;
+  rating100?: Maybe<Scalars['Int']['output']>;
+  scenes: Array<Scene>;
+  studio?: Maybe<Studio>;
+  tags: Array<Tag>;
+  title?: Maybe<Scalars['String']['output']>;
+  updated_at: Scalars['Time']['output'];
+  /** @deprecated Use urls */
+  url?: Maybe<Scalars['String']['output']>;
+  urls: Array<Scalars['String']['output']>;
+};
+
+
+/** Gallery type */
+export type GalleryImageArgs = {
+  index: Scalars['Int']['input'];
+};
+
+export type GalleryAddInput = {
+  gallery_id: Scalars['ID']['input'];
+  image_ids: Array<Scalars['ID']['input']>;
+};
+
+export type GalleryChapter = {
+  __typename?: 'GalleryChapter';
+  created_at: Scalars['Time']['output'];
+  gallery: Gallery;
+  id: Scalars['ID']['output'];
+  image_index: Scalars['Int']['output'];
+  title: Scalars['String']['output'];
+  updated_at: Scalars['Time']['output'];
+};
+
+export type GalleryChapterCreateInput = {
+  gallery_id: Scalars['ID']['input'];
+  image_index: Scalars['Int']['input'];
+  title: Scalars['String']['input'];
+};
+
+export type GalleryChapterUpdateInput = {
+  gallery_id?: InputMaybe<Scalars['ID']['input']>;
+  id: Scalars['ID']['input'];
+  image_index?: InputMaybe<Scalars['Int']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type GalleryCreateInput = {
+  code?: InputMaybe<Scalars['String']['input']>;
+  custom_fields?: InputMaybe<Scalars['Map']['input']>;
+  date?: InputMaybe<Scalars['String']['input']>;
+  details?: InputMaybe<Scalars['String']['input']>;
+  organized?: InputMaybe<Scalars['Boolean']['input']>;
+  performer_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  photographer?: InputMaybe<Scalars['String']['input']>;
+  rating100?: InputMaybe<Scalars['Int']['input']>;
+  scene_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  studio_id?: InputMaybe<Scalars['ID']['input']>;
+  tag_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  title: Scalars['String']['input'];
+  /** @deprecated Use urls */
+  url?: InputMaybe<Scalars['String']['input']>;
+  urls?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type GalleryDestroyInput = {
+  /**
+   * If true, then the zip file will be deleted if the gallery is zip-file-based.
+   * If gallery is folder-based, then any files not associated with other
+   * galleries will be deleted, along with the folder, if it is not empty.
+   */
+  delete_file?: InputMaybe<Scalars['Boolean']['input']>;
+  delete_generated?: InputMaybe<Scalars['Boolean']['input']>;
+  /** If true, delete the file entry from the database if the file is not assigned to any other objects */
+  destroy_file_entry?: InputMaybe<Scalars['Boolean']['input']>;
+  ids: Array<Scalars['ID']['input']>;
+};
+
 export type GalleryFile = BaseFile & {
   __typename?: 'GalleryFile';
   basename: Scalars['String']['output'];
@@ -1286,6 +1493,47 @@ export type GalleryFile = BaseFile & {
 
 export type GalleryFileFingerprintArgs = {
   type: Scalars['String']['input'];
+};
+
+export type GalleryPathsType = {
+  __typename?: 'GalleryPathsType';
+  cover: Scalars['String']['output'];
+  preview: Scalars['String']['output'];
+};
+
+export type GalleryRemoveInput = {
+  gallery_id: Scalars['ID']['input'];
+  image_ids: Array<Scalars['ID']['input']>;
+};
+
+export type GalleryResetCoverInput = {
+  gallery_id: Scalars['ID']['input'];
+};
+
+export type GallerySetCoverInput = {
+  cover_image_id: Scalars['ID']['input'];
+  gallery_id: Scalars['ID']['input'];
+};
+
+export type GalleryUpdateInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  custom_fields?: InputMaybe<CustomFieldsInput>;
+  date?: InputMaybe<Scalars['String']['input']>;
+  details?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  organized?: InputMaybe<Scalars['Boolean']['input']>;
+  performer_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  photographer?: InputMaybe<Scalars['String']['input']>;
+  primary_file_id?: InputMaybe<Scalars['ID']['input']>;
+  rating100?: InputMaybe<Scalars['Int']['input']>;
+  scene_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  studio_id?: InputMaybe<Scalars['ID']['input']>;
+  tag_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use urls */
+  url?: InputMaybe<Scalars['String']['input']>;
+  urls?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type GenderCriterionInput = {
@@ -1556,6 +1804,12 @@ export type HierarchicalMultiCriterionInput = {
   value?: InputMaybe<Array<Scalars['ID']['input']>>;
 };
 
+export type HistoryMutationResult = {
+  __typename?: 'HistoryMutationResult';
+  count: Scalars['Int']['output'];
+  history: Array<Scalars['Time']['output']>;
+};
+
 export type IdentifyFieldOptions = {
   __typename?: 'IdentifyFieldOptions';
   /** creates missing objects if needed - only applicable for performers, tags and studios */
@@ -1666,6 +1920,41 @@ export type IdentifySourceInput = {
   source: ScraperSourceInput;
 };
 
+export type Image = {
+  __typename?: 'Image';
+  code?: Maybe<Scalars['String']['output']>;
+  created_at: Scalars['Time']['output'];
+  custom_fields: Scalars['Map']['output'];
+  date?: Maybe<Scalars['String']['output']>;
+  details?: Maybe<Scalars['String']['output']>;
+  /** @deprecated Use visual_files */
+  files: Array<ImageFile>;
+  galleries: Array<Gallery>;
+  id: Scalars['ID']['output'];
+  o_counter?: Maybe<Scalars['Int']['output']>;
+  organized: Scalars['Boolean']['output'];
+  paths: ImagePathsType;
+  performers: Array<Performer>;
+  photographer?: Maybe<Scalars['String']['output']>;
+  rating100?: Maybe<Scalars['Int']['output']>;
+  studio?: Maybe<Studio>;
+  tags: Array<Tag>;
+  title?: Maybe<Scalars['String']['output']>;
+  updated_at: Scalars['Time']['output'];
+  /** @deprecated Use urls */
+  url?: Maybe<Scalars['String']['output']>;
+  urls: Array<Scalars['String']['output']>;
+  visual_files: Array<VisualFile>;
+};
+
+export type ImageDestroyInput = {
+  delete_file?: InputMaybe<Scalars['Boolean']['input']>;
+  delete_generated?: InputMaybe<Scalars['Boolean']['input']>;
+  /** If true, delete the file entry from the database if the file is not assigned to any other objects */
+  destroy_file_entry?: InputMaybe<Scalars['Boolean']['input']>;
+  id: Scalars['ID']['input'];
+};
+
 export type ImageFile = BaseFile & {
   __typename?: 'ImageFile';
   basename: Scalars['String']['output'];
@@ -1693,6 +1982,14 @@ export type ImageFileFingerprintArgs = {
   type: Scalars['String']['input'];
 };
 
+export type ImageFileType = {
+  __typename?: 'ImageFileType';
+  height: Scalars['Int']['output'];
+  mod_time: Scalars['Time']['output'];
+  size: Scalars['Int']['output'];
+  width: Scalars['Int']['output'];
+};
+
 export enum ImageLightboxDisplayMode {
   FitX = 'FIT_X',
   FitXy = 'FIT_XY',
@@ -1703,6 +2000,42 @@ export enum ImageLightboxScrollMode {
   PanY = 'PAN_Y',
   Zoom = 'ZOOM'
 }
+
+export type ImagePathsType = {
+  __typename?: 'ImagePathsType';
+  image?: Maybe<Scalars['String']['output']>;
+  preview?: Maybe<Scalars['String']['output']>;
+  thumbnail?: Maybe<Scalars['String']['output']>;
+};
+
+export type ImageUpdateInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  custom_fields?: InputMaybe<CustomFieldsInput>;
+  date?: InputMaybe<Scalars['String']['input']>;
+  details?: InputMaybe<Scalars['String']['input']>;
+  gallery_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id: Scalars['ID']['input'];
+  organized?: InputMaybe<Scalars['Boolean']['input']>;
+  performer_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  photographer?: InputMaybe<Scalars['String']['input']>;
+  primary_file_id?: InputMaybe<Scalars['ID']['input']>;
+  rating100?: InputMaybe<Scalars['Int']['input']>;
+  studio_id?: InputMaybe<Scalars['ID']['input']>;
+  tag_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use urls */
+  url?: InputMaybe<Scalars['String']['input']>;
+  urls?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type ImagesDestroyInput = {
+  delete_file?: InputMaybe<Scalars['Boolean']['input']>;
+  delete_generated?: InputMaybe<Scalars['Boolean']['input']>;
+  /** If true, delete the file entry from the database if the file is not assigned to any other objects */
+  destroy_file_entry?: InputMaybe<Scalars['Boolean']['input']>;
+  ids: Array<Scalars['ID']['input']>;
+};
 
 export enum ImportDuplicateEnum {
   Fail = 'FAIL',
@@ -1785,6 +2118,13 @@ export enum LogLevel {
   Trace = 'Trace',
   Warning = 'Warning'
 }
+
+export type MarkerStringsResultType = {
+  __typename?: 'MarkerStringsResultType';
+  count: Scalars['Int']['output'];
+  id: Scalars['ID']['output'];
+  title: Scalars['String']['output'];
+};
 
 export type MigrateBlobsInput = {
   deleteOld?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3403,6 +3743,296 @@ export type ScanMetadataOptions = {
   scanGenerateThumbnails: Scalars['Boolean']['output'];
 };
 
+export type Scene = {
+  __typename?: 'Scene';
+  captions?: Maybe<Array<VideoCaption>>;
+  code?: Maybe<Scalars['String']['output']>;
+  created_at: Scalars['Time']['output'];
+  custom_fields: Scalars['Map']['output'];
+  date?: Maybe<Scalars['String']['output']>;
+  details?: Maybe<Scalars['String']['output']>;
+  director?: Maybe<Scalars['String']['output']>;
+  files: Array<VideoFile>;
+  galleries: Array<Gallery>;
+  groups: Array<SceneGroup>;
+  id: Scalars['ID']['output'];
+  interactive: Scalars['Boolean']['output'];
+  interactive_speed?: Maybe<Scalars['Int']['output']>;
+  /** The last time play count was updated */
+  last_played_at?: Maybe<Scalars['Time']['output']>;
+  /** @deprecated Use groups */
+  movies: Array<SceneMovie>;
+  o_counter?: Maybe<Scalars['Int']['output']>;
+  /** Times the o counter was incremented */
+  o_history: Array<Scalars['Time']['output']>;
+  organized: Scalars['Boolean']['output'];
+  paths: ScenePathsType;
+  performers: Array<Performer>;
+  /** The number ot times a scene has been played */
+  play_count?: Maybe<Scalars['Int']['output']>;
+  /** The total time a scene has spent playing */
+  play_duration?: Maybe<Scalars['Float']['output']>;
+  /** Times a scene was played */
+  play_history: Array<Scalars['Time']['output']>;
+  rating100?: Maybe<Scalars['Int']['output']>;
+  /** The time index a scene was left at */
+  resume_time?: Maybe<Scalars['Float']['output']>;
+  /** Return valid stream paths */
+  sceneStreams: Array<SceneStreamEndpoint>;
+  scene_markers: Array<SceneMarker>;
+  stash_ids: Array<StashId>;
+  studio?: Maybe<Studio>;
+  tags: Array<Tag>;
+  title?: Maybe<Scalars['String']['output']>;
+  updated_at: Scalars['Time']['output'];
+  /** @deprecated Use urls */
+  url?: Maybe<Scalars['String']['output']>;
+  urls: Array<Scalars['String']['output']>;
+};
+
+export type SceneCreateInput = {
+  code?: InputMaybe<Scalars['String']['input']>;
+  /** This should be a URL or a base64 encoded data URL */
+  cover_image?: InputMaybe<Scalars['String']['input']>;
+  custom_fields?: InputMaybe<Scalars['Map']['input']>;
+  date?: InputMaybe<Scalars['String']['input']>;
+  details?: InputMaybe<Scalars['String']['input']>;
+  director?: InputMaybe<Scalars['String']['input']>;
+  /**
+   * The first id will be assigned as primary.
+   * Files will be reassigned from existing scenes if applicable.
+   * Files must not already be primary for another scene.
+   */
+  file_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  gallery_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  groups?: InputMaybe<Array<SceneGroupInput>>;
+  /** @deprecated Use groups */
+  movies?: InputMaybe<Array<SceneMovieInput>>;
+  organized?: InputMaybe<Scalars['Boolean']['input']>;
+  performer_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  rating100?: InputMaybe<Scalars['Int']['input']>;
+  stash_ids?: InputMaybe<Array<StashIdInput>>;
+  studio_id?: InputMaybe<Scalars['ID']['input']>;
+  tag_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use urls */
+  url?: InputMaybe<Scalars['String']['input']>;
+  urls?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type SceneDestroyInput = {
+  delete_file?: InputMaybe<Scalars['Boolean']['input']>;
+  delete_generated?: InputMaybe<Scalars['Boolean']['input']>;
+  /** If true, delete the file entry from the database if the file is not assigned to any other objects */
+  destroy_file_entry?: InputMaybe<Scalars['Boolean']['input']>;
+  id: Scalars['ID']['input'];
+};
+
+export type SceneFileType = {
+  __typename?: 'SceneFileType';
+  audio_codec?: Maybe<Scalars['String']['output']>;
+  bitrate?: Maybe<Scalars['Int']['output']>;
+  duration?: Maybe<Scalars['Float']['output']>;
+  framerate?: Maybe<Scalars['Float']['output']>;
+  height?: Maybe<Scalars['Int']['output']>;
+  size?: Maybe<Scalars['String']['output']>;
+  video_codec?: Maybe<Scalars['String']['output']>;
+  width?: Maybe<Scalars['Int']['output']>;
+};
+
+export type SceneGroup = {
+  __typename?: 'SceneGroup';
+  group: Group;
+  scene_index?: Maybe<Scalars['Int']['output']>;
+};
+
+export type SceneGroupInput = {
+  group_id: Scalars['ID']['input'];
+  scene_index?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type SceneHashInput = {
+  checksum?: InputMaybe<Scalars['String']['input']>;
+  oshash?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SceneMarker = {
+  __typename?: 'SceneMarker';
+  created_at: Scalars['Time']['output'];
+  /** The optional end time of the marker (in seconds). Supports decimals. */
+  end_seconds?: Maybe<Scalars['Float']['output']>;
+  id: Scalars['ID']['output'];
+  /** The path to the preview image for this marker */
+  preview: Scalars['String']['output'];
+  primary_tag: Tag;
+  scene: Scene;
+  /** The path to the screenshot image for this marker */
+  screenshot: Scalars['String']['output'];
+  /** The required start time of the marker (in seconds). Supports decimals. */
+  seconds: Scalars['Float']['output'];
+  /** The path to stream this marker */
+  stream: Scalars['String']['output'];
+  tags: Array<Tag>;
+  title: Scalars['String']['output'];
+  updated_at: Scalars['Time']['output'];
+};
+
+export type SceneMarkerCreateInput = {
+  /** The optional end time of the marker (in seconds). Supports decimals. */
+  end_seconds?: InputMaybe<Scalars['Float']['input']>;
+  primary_tag_id: Scalars['ID']['input'];
+  scene_id: Scalars['ID']['input'];
+  /** The required start time of the marker (in seconds). Supports decimals. */
+  seconds: Scalars['Float']['input'];
+  tag_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  title: Scalars['String']['input'];
+};
+
+export type SceneMarkerTag = {
+  __typename?: 'SceneMarkerTag';
+  scene_markers: Array<SceneMarker>;
+  tag: Tag;
+};
+
+export type SceneMarkerUpdateInput = {
+  /** The end time of the marker (in seconds). Supports decimals. */
+  end_seconds?: InputMaybe<Scalars['Float']['input']>;
+  id: Scalars['ID']['input'];
+  primary_tag_id?: InputMaybe<Scalars['ID']['input']>;
+  scene_id?: InputMaybe<Scalars['ID']['input']>;
+  /** The start time of the marker (in seconds). Supports decimals. */
+  seconds?: InputMaybe<Scalars['Float']['input']>;
+  tag_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SceneMergeInput = {
+  destination: Scalars['ID']['input'];
+  o_history?: InputMaybe<Scalars['Boolean']['input']>;
+  play_history?: InputMaybe<Scalars['Boolean']['input']>;
+  /**
+   * If destination scene has no files, then the primary file of the
+   * first source scene will be assigned as primary
+   */
+  source: Array<Scalars['ID']['input']>;
+  values?: InputMaybe<SceneUpdateInput>;
+};
+
+export type SceneMovie = {
+  __typename?: 'SceneMovie';
+  movie: Movie;
+  scene_index?: Maybe<Scalars['Int']['output']>;
+};
+
+export type SceneMovieId = {
+  __typename?: 'SceneMovieID';
+  movie_id: Scalars['ID']['output'];
+  scene_index?: Maybe<Scalars['String']['output']>;
+};
+
+export type SceneMovieInput = {
+  movie_id: Scalars['ID']['input'];
+  scene_index?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type SceneParserInput = {
+  capitalizeTitle?: InputMaybe<Scalars['Boolean']['input']>;
+  ignoreOrganized?: InputMaybe<Scalars['Boolean']['input']>;
+  ignoreWords?: InputMaybe<Array<Scalars['String']['input']>>;
+  whitespaceCharacters?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SceneParserResult = {
+  __typename?: 'SceneParserResult';
+  code?: Maybe<Scalars['String']['output']>;
+  date?: Maybe<Scalars['String']['output']>;
+  details?: Maybe<Scalars['String']['output']>;
+  director?: Maybe<Scalars['String']['output']>;
+  gallery_ids?: Maybe<Array<Scalars['ID']['output']>>;
+  movies?: Maybe<Array<SceneMovieId>>;
+  performer_ids?: Maybe<Array<Scalars['ID']['output']>>;
+  /** @deprecated Use 1-100 range with rating100 */
+  rating?: Maybe<Scalars['Int']['output']>;
+  rating100?: Maybe<Scalars['Int']['output']>;
+  scene: Scene;
+  studio_id?: Maybe<Scalars['ID']['output']>;
+  tag_ids?: Maybe<Array<Scalars['ID']['output']>>;
+  title?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export type SceneParserResultType = {
+  __typename?: 'SceneParserResultType';
+  count: Scalars['Int']['output'];
+  results: Array<SceneParserResult>;
+};
+
+export type ScenePathsType = {
+  __typename?: 'ScenePathsType';
+  caption?: Maybe<Scalars['String']['output']>;
+  funscript?: Maybe<Scalars['String']['output']>;
+  interactive_heatmap?: Maybe<Scalars['String']['output']>;
+  preview?: Maybe<Scalars['String']['output']>;
+  screenshot?: Maybe<Scalars['String']['output']>;
+  sprite?: Maybe<Scalars['String']['output']>;
+  stream?: Maybe<Scalars['String']['output']>;
+  vtt?: Maybe<Scalars['String']['output']>;
+  webp?: Maybe<Scalars['String']['output']>;
+};
+
+export type SceneStreamEndpoint = {
+  __typename?: 'SceneStreamEndpoint';
+  label?: Maybe<Scalars['String']['output']>;
+  mime_type?: Maybe<Scalars['String']['output']>;
+  url: Scalars['String']['output'];
+};
+
+export type SceneUpdateInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  /** This should be a URL or a base64 encoded data URL */
+  cover_image?: InputMaybe<Scalars['String']['input']>;
+  custom_fields?: InputMaybe<CustomFieldsInput>;
+  date?: InputMaybe<Scalars['String']['input']>;
+  details?: InputMaybe<Scalars['String']['input']>;
+  director?: InputMaybe<Scalars['String']['input']>;
+  gallery_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  groups?: InputMaybe<Array<SceneGroupInput>>;
+  id: Scalars['ID']['input'];
+  /** @deprecated Use groups */
+  movies?: InputMaybe<Array<SceneMovieInput>>;
+  /** @deprecated Unsupported - Use sceneIncrementO/sceneDecrementO */
+  o_counter?: InputMaybe<Scalars['Int']['input']>;
+  organized?: InputMaybe<Scalars['Boolean']['input']>;
+  performer_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  /**
+   * The number ot times a scene has been played
+   * @deprecated Unsupported - Use sceneIncrementPlayCount/sceneDecrementPlayCount
+   */
+  play_count?: InputMaybe<Scalars['Int']['input']>;
+  /** The total time a scene has spent playing */
+  play_duration?: InputMaybe<Scalars['Float']['input']>;
+  primary_file_id?: InputMaybe<Scalars['ID']['input']>;
+  rating100?: InputMaybe<Scalars['Int']['input']>;
+  /** The time index a scene was left at */
+  resume_time?: InputMaybe<Scalars['Float']['input']>;
+  stash_ids?: InputMaybe<Array<StashIdInput>>;
+  studio_id?: InputMaybe<Scalars['ID']['input']>;
+  tag_ids?: InputMaybe<Array<Scalars['ID']['input']>>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Use urls */
+  url?: InputMaybe<Scalars['String']['input']>;
+  urls?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type ScenesDestroyInput = {
+  delete_file?: InputMaybe<Scalars['Boolean']['input']>;
+  delete_generated?: InputMaybe<Scalars['Boolean']['input']>;
+  /** If true, delete the file entry from the database if the file is not assigned to any other objects */
+  destroy_file_entry?: InputMaybe<Scalars['Boolean']['input']>;
+  ids: Array<Scalars['ID']['input']>;
+};
+
 /** Type of the content a scraper generates */
 export enum ScrapeContentType {
   Gallery = 'GALLERY',
@@ -4373,6 +5003,12 @@ export type Version = {
   version?: Maybe<Scalars['String']['output']>;
 };
 
+export type VideoCaption = {
+  __typename?: 'VideoCaption';
+  caption_type: Scalars['String']['output'];
+  language_code: Scalars['String']['output'];
+};
+
 export type VideoFile = BaseFile & {
   __typename?: 'VideoFile';
   audio_codec: Scalars['String']['output'];
@@ -4451,6 +5087,14 @@ export type RecursiveFolderDataFragment = { __typename?: 'Folder', id: string, p
 
 export type SavedFilterDataFragment = { __typename?: 'SavedFilter', id: string, mode: FilterMode, name: string, object_filter?: SavedObjectFilter | null, ui_options?: SavedUIOptions | null, find_filter?: { __typename?: 'SavedFindFilterType', q?: string | null, page?: number | null, per_page?: number | null, sort?: string | null, direction?: SortDirectionEnum | null } | null };
 
+export type GalleryChapterDataFragment = { __typename?: 'GalleryChapter', id: string, title: string, image_index: number, gallery: { __typename?: 'Gallery', id: string } };
+
+export type SlimGalleryDataFragment = { __typename?: 'Gallery', id: string, title?: string | null, code?: string | null, date?: string | null, urls: Array<string>, details?: string | null, photographer?: string | null, rating100?: number | null, organized: boolean, image_count: number, files: Array<{ __typename?: 'GalleryFile', id: string, path: string, size: number, mod_time: string, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }>, folder?: { __typename?: 'Folder', id: string, basename: string, path: string } | null, chapters: Array<{ __typename?: 'GalleryChapter', id: string, title: string, image_index: number }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, scenes: Array<{ __typename?: 'Scene', id: string, title?: string | null, code?: string | null, details?: string | null, director?: string | null, urls: Array<string>, date?: string | null, rating100?: number | null, o_counter?: number | null, organized: boolean, interactive: boolean, interactive_speed?: number | null, resume_time?: number | null, play_duration?: number | null, play_count?: number | null, files: Array<{ __typename?: 'VideoFile', id: string, path: string, size: number, mod_time: string, duration: number, video_codec: string, audio_codec: string, width: number, height: number, frame_rate: number, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }>, paths: { __typename?: 'ScenePathsType', screenshot?: string | null, preview?: string | null, stream?: string | null, webp?: string | null, vtt?: string | null, sprite?: string | null, funscript?: string | null, interactive_heatmap?: string | null, caption?: string | null }, scene_markers: Array<{ __typename?: 'SceneMarker', id: string, title: string, seconds: number, primary_tag: { __typename?: 'Tag', id: string, name: string } }>, galleries: Array<{ __typename?: 'Gallery', id: string, title?: string | null, files: Array<{ __typename?: 'GalleryFile', path: string }>, folder?: { __typename?: 'Folder', path: string } | null }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, groups: Array<{ __typename?: 'SceneGroup', scene_index?: number | null, group: { __typename?: 'Group', id: string, name: string, front_image_path?: string | null } }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, paths: { __typename?: 'GalleryPathsType', cover: string, preview: string } };
+
+export type GalleryDataFragment = { __typename?: 'Gallery', id: string, created_at: string, updated_at: string, title?: string | null, code?: string | null, date?: string | null, urls: Array<string>, details?: string | null, photographer?: string | null, rating100?: number | null, organized: boolean, image_count: number, custom_fields: { [key: string]: unknown }, paths: { __typename?: 'GalleryPathsType', cover: string, preview: string }, files: Array<{ __typename?: 'GalleryFile', id: string, path: string, size: number, mod_time: string, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }>, folder?: { __typename?: 'Folder', id: string, basename: string, path: string } | null, chapters: Array<{ __typename?: 'GalleryChapter', id: string, title: string, image_index: number, gallery: { __typename?: 'Gallery', id: string } }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null, details?: string | null, rating100?: number | null, aliases: Array<string>, favorite: boolean, ignore_auto_tag: boolean, organized: boolean, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }>, parent_studio?: { __typename?: 'Studio', id: string } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, urls?: Array<string> | null, gender?: GenderEnum | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height_cm?: number | null, measurements?: string | null, fake_tits?: string | null, penis_length?: number | null, circumcised?: CircumisedEnum | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, alias_list: Array<string>, favorite: boolean, ignore_auto_tag: boolean, image_path?: string | null, audio_count: number, group_count: number, performer_count: number, rating100?: number | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: number | null, custom_fields: { [key: string]: unknown }, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, stash_ids: Array<{ __typename?: 'StashID', stash_id: string, endpoint: string, updated_at: string }> }>, scenes: Array<{ __typename?: 'Scene', id: string, title?: string | null, code?: string | null, details?: string | null, director?: string | null, urls: Array<string>, date?: string | null, rating100?: number | null, o_counter?: number | null, organized: boolean, interactive: boolean, interactive_speed?: number | null, resume_time?: number | null, play_duration?: number | null, play_count?: number | null, files: Array<{ __typename?: 'VideoFile', id: string, path: string, size: number, mod_time: string, duration: number, video_codec: string, audio_codec: string, width: number, height: number, frame_rate: number, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }>, paths: { __typename?: 'ScenePathsType', screenshot?: string | null, preview?: string | null, stream?: string | null, webp?: string | null, vtt?: string | null, sprite?: string | null, funscript?: string | null, interactive_heatmap?: string | null, caption?: string | null }, scene_markers: Array<{ __typename?: 'SceneMarker', id: string, title: string, seconds: number, primary_tag: { __typename?: 'Tag', id: string, name: string } }>, galleries: Array<{ __typename?: 'Gallery', id: string, title?: string | null, files: Array<{ __typename?: 'GalleryFile', path: string }>, folder?: { __typename?: 'Folder', path: string } | null }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, groups: Array<{ __typename?: 'SceneGroup', scene_index?: number | null, group: { __typename?: 'Group', id: string, name: string, front_image_path?: string | null } }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }> };
+
+export type SelectGalleryDataFragment = { __typename?: 'Gallery', id: string, title?: string | null, date?: string | null, code?: string | null, studio?: { __typename?: 'Studio', name: string } | null, cover?: { __typename?: 'Image', paths: { __typename?: 'ImagePathsType', thumbnail?: string | null } } | null, paths: { __typename?: 'GalleryPathsType', preview: string }, files: Array<{ __typename?: 'GalleryFile', path: string }>, folder?: { __typename?: 'Folder', path: string } | null };
+
 export type SlimGroupDataFragment = { __typename?: 'Group', id: string, name: string, front_image_path?: string | null, rating100?: number | null };
 
 export type SelectGroupDataFragment = { __typename?: 'Group', id: string, name: string, aliases?: string | null, date?: string | null, front_image_path?: string | null, studio?: { __typename?: 'Studio', name: string } | null };
@@ -4458,6 +5102,10 @@ export type SelectGroupDataFragment = { __typename?: 'Group', id: string, name: 
 export type GroupDataFragment = { __typename?: 'Group', id: string, name: string, aliases?: string | null, duration?: number | null, date?: string | null, rating100?: number | null, director?: string | null, synopsis?: string | null, urls: Array<string>, front_image_path?: string | null, back_image_path?: string | null, audio_count: number, performer_count: number, sub_group_count: number, custom_fields: { [key: string]: unknown }, performer_count_all: number, sub_group_count_all: number, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null, details?: string | null, rating100?: number | null, aliases: Array<string>, favorite: boolean, ignore_auto_tag: boolean, organized: boolean, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }>, parent_studio?: { __typename?: 'Studio', id: string } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, containing_groups: Array<{ __typename?: 'GroupDescription', description?: string | null, group: { __typename?: 'Group', id: string, name: string, front_image_path?: string | null, rating100?: number | null } }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, gender?: GenderEnum | null, urls?: Array<string> | null, image_path?: string | null, favorite: boolean, ignore_auto_tag: boolean, country?: string | null, birthdate?: string | null, ethnicity?: string | null, hair_color?: string | null, eye_color?: string | null, height_cm?: number | null, fake_tits?: string | null, penis_length?: number | null, circumcised?: CircumisedEnum | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, alias_list: Array<string>, rating100?: number | null, death_date?: string | null, weight?: number | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, audios: Array<{ __typename?: 'Audio', id: string, title?: string | null, date?: string | null, rating100?: number | null, organized: boolean, o_counter: number, play_count: number, paths: { __typename?: 'AudioPathsType', cover?: string | null, stream?: string | null }, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, files: Array<{ __typename?: 'AudioFile', id: string, path: string, size: number, mod_time: string, duration: number, audio_codec: string, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }> }> };
 
 export type ListGroupDataFragment = { __typename?: 'Group', id: string, name: string, aliases?: string | null, duration?: number | null, date?: string | null, rating100?: number | null, director?: string | null, synopsis?: string | null, urls: Array<string>, front_image_path?: string | null, back_image_path?: string | null, audio_count: number, performer_count: number, sub_group_count: number, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null, details?: string | null, rating100?: number | null, aliases: Array<string>, favorite: boolean, ignore_auto_tag: boolean, organized: boolean, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }>, parent_studio?: { __typename?: 'Studio', id: string } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, containing_groups: Array<{ __typename?: 'GroupDescription', description?: string | null, group: { __typename?: 'Group', id: string, name: string, front_image_path?: string | null, rating100?: number | null } }>, audios: Array<{ __typename?: 'Audio', id: string, title?: string | null, date?: string | null, rating100?: number | null, organized: boolean, o_counter: number, play_count: number, paths: { __typename?: 'AudioPathsType', cover?: string | null, stream?: string | null }, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, files: Array<{ __typename?: 'AudioFile', id: string, path: string, size: number, mod_time: string, duration: number, audio_codec: string, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }> }> };
+
+export type SlimImageDataFragment = { __typename?: 'Image', id: string, title?: string | null, code?: string | null, date?: string | null, urls: Array<string>, details?: string | null, photographer?: string | null, rating100?: number | null, organized: boolean, o_counter?: number | null, paths: { __typename?: 'ImagePathsType', thumbnail?: string | null, preview?: string | null, image?: string | null }, galleries: Array<{ __typename?: 'Gallery', id: string, title?: string | null, files: Array<{ __typename?: 'GalleryFile', path: string }>, folder?: { __typename?: 'Folder', path: string } | null }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, visual_files: Array<{ __typename?: 'ImageFile', id: string, path: string, size: number, mod_time: string, width: number, height: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> } | { __typename?: 'VideoFile', id: string, path: string, size: number, mod_time: string, duration: number, video_codec: string, audio_codec: string, width: number, height: number, frame_rate: number, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }> };
+
+export type ImageDataFragment = { __typename?: 'Image', id: string, title?: string | null, code?: string | null, rating100?: number | null, date?: string | null, urls: Array<string>, details?: string | null, photographer?: string | null, organized: boolean, o_counter?: number | null, created_at: string, updated_at: string, custom_fields: { [key: string]: unknown }, paths: { __typename?: 'ImagePathsType', thumbnail?: string | null, preview?: string | null, image?: string | null }, galleries: Array<{ __typename?: 'Gallery', id: string, created_at: string, updated_at: string, title?: string | null, code?: string | null, date?: string | null, urls: Array<string>, details?: string | null, photographer?: string | null, rating100?: number | null, organized: boolean, image_count: number, custom_fields: { [key: string]: unknown }, paths: { __typename?: 'GalleryPathsType', cover: string, preview: string }, files: Array<{ __typename?: 'GalleryFile', id: string, path: string, size: number, mod_time: string, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }>, folder?: { __typename?: 'Folder', id: string, basename: string, path: string } | null, chapters: Array<{ __typename?: 'GalleryChapter', id: string, title: string, image_index: number, gallery: { __typename?: 'Gallery', id: string } }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null, details?: string | null, rating100?: number | null, aliases: Array<string>, favorite: boolean, ignore_auto_tag: boolean, organized: boolean, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }>, parent_studio?: { __typename?: 'Studio', id: string } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, urls?: Array<string> | null, gender?: GenderEnum | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height_cm?: number | null, measurements?: string | null, fake_tits?: string | null, penis_length?: number | null, circumcised?: CircumisedEnum | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, alias_list: Array<string>, favorite: boolean, ignore_auto_tag: boolean, image_path?: string | null, audio_count: number, group_count: number, performer_count: number, rating100?: number | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: number | null, custom_fields: { [key: string]: unknown }, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, stash_ids: Array<{ __typename?: 'StashID', stash_id: string, endpoint: string, updated_at: string }> }>, scenes: Array<{ __typename?: 'Scene', id: string, title?: string | null, code?: string | null, details?: string | null, director?: string | null, urls: Array<string>, date?: string | null, rating100?: number | null, o_counter?: number | null, organized: boolean, interactive: boolean, interactive_speed?: number | null, resume_time?: number | null, play_duration?: number | null, play_count?: number | null, files: Array<{ __typename?: 'VideoFile', id: string, path: string, size: number, mod_time: string, duration: number, video_codec: string, audio_codec: string, width: number, height: number, frame_rate: number, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }>, paths: { __typename?: 'ScenePathsType', screenshot?: string | null, preview?: string | null, stream?: string | null, webp?: string | null, vtt?: string | null, sprite?: string | null, funscript?: string | null, interactive_heatmap?: string | null, caption?: string | null }, scene_markers: Array<{ __typename?: 'SceneMarker', id: string, title: string, seconds: number, primary_tag: { __typename?: 'Tag', id: string, name: string } }>, galleries: Array<{ __typename?: 'Gallery', id: string, title?: string | null, files: Array<{ __typename?: 'GalleryFile', path: string }>, folder?: { __typename?: 'Folder', path: string } | null }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, groups: Array<{ __typename?: 'SceneGroup', scene_index?: number | null, group: { __typename?: 'Group', id: string, name: string, front_image_path?: string | null } }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }> }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null, details?: string | null, rating100?: number | null, aliases: Array<string>, favorite: boolean, ignore_auto_tag: boolean, organized: boolean, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }>, parent_studio?: { __typename?: 'Studio', id: string } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, urls?: Array<string> | null, gender?: GenderEnum | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height_cm?: number | null, measurements?: string | null, fake_tits?: string | null, penis_length?: number | null, circumcised?: CircumisedEnum | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, alias_list: Array<string>, favorite: boolean, ignore_auto_tag: boolean, image_path?: string | null, audio_count: number, group_count: number, performer_count: number, rating100?: number | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: number | null, custom_fields: { [key: string]: unknown }, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, stash_ids: Array<{ __typename?: 'StashID', stash_id: string, endpoint: string, updated_at: string }> }>, visual_files: Array<{ __typename?: 'ImageFile', id: string, path: string, size: number, mod_time: string, width: number, height: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> } | { __typename?: 'VideoFile', id: string, path: string, size: number, mod_time: string, duration: number, video_codec: string, audio_codec: string, width: number, height: number, frame_rate: number, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }> };
 
 export type JobDataFragment = { __typename?: 'Job', id: string, status: JobStatus, subTasks?: Array<string> | null, description: string, progress?: number | null, startTime?: string | null, endTime?: string | null, addTime: string, error?: string | null };
 
@@ -4470,6 +5118,30 @@ export type SlimPerformerDataFragment = { __typename?: 'Performer', id: string, 
 export type SelectPerformerDataFragment = { __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, alias_list: Array<string>, image_path?: string | null, birthdate?: string | null, death_date?: string | null };
 
 export type PerformerDataFragment = { __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, urls?: Array<string> | null, gender?: GenderEnum | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height_cm?: number | null, measurements?: string | null, fake_tits?: string | null, penis_length?: number | null, circumcised?: CircumisedEnum | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, alias_list: Array<string>, favorite: boolean, ignore_auto_tag: boolean, image_path?: string | null, audio_count: number, group_count: number, performer_count: number, rating100?: number | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: number | null, custom_fields: { [key: string]: unknown }, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, stash_ids: Array<{ __typename?: 'StashID', stash_id: string, endpoint: string, updated_at: string }> };
+
+export type SceneMarkerDataFragment = { __typename?: 'SceneMarker', id: string, title: string, seconds: number, end_seconds?: number | null, stream: string, preview: string, screenshot: string, scene: { __typename?: 'Scene', id: string, title?: string | null, files: Array<{ __typename?: 'VideoFile', width: number, height: number, path: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, image_path?: string | null }> }, primary_tag: { __typename?: 'Tag', id: string, name: string }, tags: Array<{ __typename?: 'Tag', id: string, name: string }> };
+
+export type SceneMarkerSceneDataFragment = { __typename?: 'Scene', id: string, title?: string | null, files: Array<{ __typename?: 'VideoFile', width: number, height: number, path: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, image_path?: string | null }> };
+
+export type SlimSceneDataFragment = { __typename?: 'Scene', id: string, title?: string | null, code?: string | null, details?: string | null, director?: string | null, urls: Array<string>, date?: string | null, rating100?: number | null, o_counter?: number | null, organized: boolean, interactive: boolean, interactive_speed?: number | null, resume_time?: number | null, play_duration?: number | null, play_count?: number | null, files: Array<{ __typename?: 'VideoFile', id: string, path: string, size: number, mod_time: string, duration: number, video_codec: string, audio_codec: string, width: number, height: number, frame_rate: number, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }>, paths: { __typename?: 'ScenePathsType', screenshot?: string | null, preview?: string | null, stream?: string | null, webp?: string | null, vtt?: string | null, sprite?: string | null, funscript?: string | null, interactive_heatmap?: string | null, caption?: string | null }, scene_markers: Array<{ __typename?: 'SceneMarker', id: string, title: string, seconds: number, primary_tag: { __typename?: 'Tag', id: string, name: string } }>, galleries: Array<{ __typename?: 'Gallery', id: string, title?: string | null, files: Array<{ __typename?: 'GalleryFile', path: string }>, folder?: { __typename?: 'Folder', path: string } | null }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, groups: Array<{ __typename?: 'SceneGroup', scene_index?: number | null, group: { __typename?: 'Group', id: string, name: string, front_image_path?: string | null } }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> };
+
+export type SceneDataFragment = { __typename?: 'Scene', id: string, title?: string | null, code?: string | null, details?: string | null, director?: string | null, urls: Array<string>, date?: string | null, rating100?: number | null, o_counter?: number | null, organized: boolean, interactive: boolean, interactive_speed?: number | null, created_at: string, updated_at: string, resume_time?: number | null, last_played_at?: string | null, play_duration?: number | null, play_count?: number | null, play_history: Array<string>, o_history: Array<string>, custom_fields: { [key: string]: unknown }, captions?: Array<{ __typename?: 'VideoCaption', language_code: string, caption_type: string }> | null, files: Array<{ __typename?: 'VideoFile', id: string, path: string, size: number, mod_time: string, duration: number, video_codec: string, audio_codec: string, width: number, height: number, frame_rate: number, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }>, paths: { __typename?: 'ScenePathsType', screenshot?: string | null, preview?: string | null, stream?: string | null, webp?: string | null, vtt?: string | null, sprite?: string | null, funscript?: string | null, interactive_heatmap?: string | null, caption?: string | null }, scene_markers: Array<{ __typename?: 'SceneMarker', id: string, title: string, seconds: number, end_seconds?: number | null, stream: string, preview: string, screenshot: string, scene: { __typename?: 'Scene', id: string, title?: string | null, files: Array<{ __typename?: 'VideoFile', width: number, height: number, path: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, image_path?: string | null }> }, primary_tag: { __typename?: 'Tag', id: string, name: string }, tags: Array<{ __typename?: 'Tag', id: string, name: string }> }>, galleries: Array<{ __typename?: 'Gallery', id: string, title?: string | null, code?: string | null, date?: string | null, urls: Array<string>, details?: string | null, photographer?: string | null, rating100?: number | null, organized: boolean, image_count: number, files: Array<{ __typename?: 'GalleryFile', id: string, path: string, size: number, mod_time: string, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }>, folder?: { __typename?: 'Folder', id: string, basename: string, path: string } | null, chapters: Array<{ __typename?: 'GalleryChapter', id: string, title: string, image_index: number }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, scenes: Array<{ __typename?: 'Scene', id: string, title?: string | null, code?: string | null, details?: string | null, director?: string | null, urls: Array<string>, date?: string | null, rating100?: number | null, o_counter?: number | null, organized: boolean, interactive: boolean, interactive_speed?: number | null, resume_time?: number | null, play_duration?: number | null, play_count?: number | null, files: Array<{ __typename?: 'VideoFile', id: string, path: string, size: number, mod_time: string, duration: number, video_codec: string, audio_codec: string, width: number, height: number, frame_rate: number, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }>, paths: { __typename?: 'ScenePathsType', screenshot?: string | null, preview?: string | null, stream?: string | null, webp?: string | null, vtt?: string | null, sprite?: string | null, funscript?: string | null, interactive_heatmap?: string | null, caption?: string | null }, scene_markers: Array<{ __typename?: 'SceneMarker', id: string, title: string, seconds: number, primary_tag: { __typename?: 'Tag', id: string, name: string } }>, galleries: Array<{ __typename?: 'Gallery', id: string, title?: string | null, files: Array<{ __typename?: 'GalleryFile', path: string }>, folder?: { __typename?: 'Folder', path: string } | null }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, groups: Array<{ __typename?: 'SceneGroup', scene_index?: number | null, group: { __typename?: 'Group', id: string, name: string, front_image_path?: string | null } }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, paths: { __typename?: 'GalleryPathsType', cover: string, preview: string } }>, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null, details?: string | null, rating100?: number | null, aliases: Array<string>, favorite: boolean, ignore_auto_tag: boolean, organized: boolean, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }>, parent_studio?: { __typename?: 'Studio', id: string } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> } | null, groups: Array<{ __typename?: 'SceneGroup', scene_index?: number | null, group: { __typename?: 'Group', id: string, name: string, aliases?: string | null, duration?: number | null, date?: string | null, rating100?: number | null, director?: string | null, synopsis?: string | null, urls: Array<string>, front_image_path?: string | null, back_image_path?: string | null, audio_count: number, performer_count: number, sub_group_count: number, custom_fields: { [key: string]: unknown }, performer_count_all: number, sub_group_count_all: number, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null, details?: string | null, rating100?: number | null, aliases: Array<string>, favorite: boolean, ignore_auto_tag: boolean, organized: boolean, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }>, parent_studio?: { __typename?: 'Studio', id: string } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, containing_groups: Array<{ __typename?: 'GroupDescription', description?: string | null, group: { __typename?: 'Group', id: string, name: string, front_image_path?: string | null, rating100?: number | null } }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, gender?: GenderEnum | null, urls?: Array<string> | null, image_path?: string | null, favorite: boolean, ignore_auto_tag: boolean, country?: string | null, birthdate?: string | null, ethnicity?: string | null, hair_color?: string | null, eye_color?: string | null, height_cm?: number | null, fake_tits?: string | null, penis_length?: number | null, circumcised?: CircumisedEnum | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, alias_list: Array<string>, rating100?: number | null, death_date?: string | null, weight?: number | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, audios: Array<{ __typename?: 'Audio', id: string, title?: string | null, date?: string | null, rating100?: number | null, organized: boolean, o_counter: number, play_count: number, paths: { __typename?: 'AudioPathsType', cover?: string | null, stream?: string | null }, studio?: { __typename?: 'Studio', id: string, name: string, image_path?: string | null } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, gender?: GenderEnum | null, favorite: boolean, image_path?: string | null }>, files: Array<{ __typename?: 'AudioFile', id: string, path: string, size: number, mod_time: string, duration: number, audio_codec: string, bit_rate: number, fingerprints: Array<{ __typename?: 'Fingerprint', type: string, value: string }> }> }> } }>, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, performers: Array<{ __typename?: 'Performer', id: string, name: string, disambiguation?: string | null, urls?: Array<string> | null, gender?: GenderEnum | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height_cm?: number | null, measurements?: string | null, fake_tits?: string | null, penis_length?: number | null, circumcised?: CircumisedEnum | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, alias_list: Array<string>, favorite: boolean, ignore_auto_tag: boolean, image_path?: string | null, audio_count: number, group_count: number, performer_count: number, rating100?: number | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: number | null, custom_fields: { [key: string]: unknown }, tags: Array<{ __typename?: 'Tag', id: string, name: string, sort_name?: string | null, aliases: Array<string>, image_path?: string | null, parent_count: number, child_count: number, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }> }>, stash_ids: Array<{ __typename?: 'StashID', stash_id: string, endpoint: string, updated_at: string }> }>, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }>, sceneStreams: Array<{ __typename?: 'SceneStreamEndpoint', url: string, mime_type?: string | null, label?: string | null }> };
+
+export type SelectSceneDataFragment = { __typename?: 'Scene', id: string, title?: string | null, date?: string | null, code?: string | null, studio?: { __typename?: 'Studio', name: string } | null, files: Array<{ __typename?: 'VideoFile', path: string }>, paths: { __typename?: 'ScenePathsType', screenshot?: string | null } };
+
+export type ScrapedStudioDataFragment = { __typename?: 'ScrapedStudio', stored_id?: string | null, name: string, urls?: Array<string> | null, image?: string | null, details?: string | null, aliases?: string | null, remote_site_id?: string | null, parent?: { __typename?: 'ScrapedStudio', stored_id?: string | null, name: string, urls?: Array<string> | null, image?: string | null, details?: string | null, aliases?: string | null, remote_site_id?: string | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null } | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null };
+
+export type ScrapedPerformerDataFragment = { __typename?: 'ScrapedPerformer', stored_id?: string | null, name?: string | null, disambiguation?: string | null, gender?: string | null, urls?: Array<string> | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height?: string | null, measurements?: string | null, fake_tits?: string | null, penis_length?: string | null, circumcised?: string | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, aliases?: string | null, images?: Array<string> | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: string | null, remote_site_id?: string | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null };
+
+export type ScrapedScenePerformerDataFragment = { __typename?: 'ScrapedPerformer', stored_id?: string | null, name?: string | null, disambiguation?: string | null, gender?: string | null, urls?: Array<string> | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height?: string | null, measurements?: string | null, fake_tits?: string | null, penis_length?: string | null, circumcised?: string | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, aliases?: string | null, remote_site_id?: string | null, images?: Array<string> | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: string | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null };
+
+export type ScrapedGroupStudioDataFragment = { __typename?: 'ScrapedStudio', stored_id?: string | null, name: string, urls?: Array<string> | null };
+
+export type ScrapedGroupDataFragment = { __typename?: 'ScrapedGroup', name?: string | null, aliases?: string | null, duration?: string | null, date?: string | null, rating?: string | null, director?: string | null, urls?: Array<string> | null, synopsis?: string | null, front_image?: string | null, back_image?: string | null, studio?: { __typename?: 'ScrapedStudio', stored_id?: string | null, name: string, urls?: Array<string> | null } | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null };
+
+export type ScrapedSceneTagDataFragment = { __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null };
+
+export type ScrapedStashBoxPerformerDataFragment = { __typename?: 'StashBoxPerformerQueryResult', query: string, results: Array<{ __typename?: 'ScrapedPerformer', stored_id?: string | null, name?: string | null, disambiguation?: string | null, gender?: string | null, urls?: Array<string> | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height?: string | null, measurements?: string | null, fake_tits?: string | null, penis_length?: string | null, circumcised?: string | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, aliases?: string | null, remote_site_id?: string | null, images?: Array<string> | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: string | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null }> };
 
 export type SlimStudioDataFragment = { __typename?: 'Studio', id: string, name: string, image_path?: string | null, details?: string | null, rating100?: number | null, aliases: Array<string>, favorite: boolean, ignore_auto_tag: boolean, organized: boolean, stash_ids: Array<{ __typename?: 'StashID', endpoint: string, stash_id: string, updated_at: string }>, parent_studio?: { __typename?: 'Studio', id: string } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }> };
 
@@ -4925,6 +5597,67 @@ export type UninstallPluginPackagesMutationVariables = Exact<{
 
 export type UninstallPluginPackagesMutation = { __typename?: 'Mutation', uninstallPackages: string };
 
+export type ReloadScrapersMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ReloadScrapersMutation = { __typename?: 'Mutation', reloadScrapers: boolean };
+
+export type InstallScraperPackagesMutationVariables = Exact<{
+  packages: Array<PackageSpecInput> | PackageSpecInput;
+}>;
+
+
+export type InstallScraperPackagesMutation = { __typename?: 'Mutation', installPackages: string };
+
+export type UpdateScraperPackagesMutationVariables = Exact<{
+  packages: Array<PackageSpecInput> | PackageSpecInput;
+}>;
+
+
+export type UpdateScraperPackagesMutation = { __typename?: 'Mutation', updatePackages: string };
+
+export type UninstallScraperPackagesMutationVariables = Exact<{
+  packages: Array<PackageSpecInput> | PackageSpecInput;
+}>;
+
+
+export type UninstallScraperPackagesMutation = { __typename?: 'Mutation', uninstallPackages: string };
+
+export type SubmitStashBoxFingerprintsMutationVariables = Exact<{
+  input: StashBoxFingerprintSubmissionInput;
+}>;
+
+
+export type SubmitStashBoxFingerprintsMutation = { __typename?: 'Mutation', submitStashBoxFingerprints: boolean };
+
+export type StashBoxBatchPerformerTagMutationVariables = Exact<{
+  input: StashBoxBatchTagInput;
+}>;
+
+
+export type StashBoxBatchPerformerTagMutation = { __typename?: 'Mutation', stashBoxBatchPerformerTag: string };
+
+export type StashBoxBatchStudioTagMutationVariables = Exact<{
+  input: StashBoxBatchTagInput;
+}>;
+
+
+export type StashBoxBatchStudioTagMutation = { __typename?: 'Mutation', stashBoxBatchStudioTag: string };
+
+export type StashBoxBatchTagTagMutationVariables = Exact<{
+  input: StashBoxBatchTagInput;
+}>;
+
+
+export type StashBoxBatchTagTagMutation = { __typename?: 'Mutation', stashBoxBatchTagTag: string };
+
+export type SubmitStashBoxPerformerDraftMutationVariables = Exact<{
+  input: StashBoxDraftSubmissionInput;
+}>;
+
+
+export type SubmitStashBoxPerformerDraftMutation = { __typename?: 'Mutation', submitStashBoxPerformerDraft?: string | null };
+
 export type StudioCreateMutationVariables = Exact<{
   input: StudioCreateInput;
 }>;
@@ -5034,11 +5767,6 @@ export type ConfigurationQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ConfigurationQuery = { __typename?: 'Query', configuration: { __typename?: 'ConfigResult', ui: IUIConfig, plugins: { [id: string]: { [key: string]: unknown } }, general: { __typename?: 'ConfigGeneralResult', databasePath: string, backupDirectoryPath: string, deleteTrashPath: string, generatedPath: string, metadataPath: string, scrapersPath: string, pluginsPath: string, cachePath: string, blobsPath: string, blobsStorage: BlobsStorageType, ffmpegPath: string, ffprobePath: string, calculateMD5: boolean, videoFileNamingAlgorithm: HashAlgorithm, parallelTasks: number, previewAudio: boolean, previewSegments: number, previewSegmentDuration: number, previewExcludeStart: string, previewExcludeEnd: string, previewPreset: PreviewPreset, transcodeHardwareAcceleration: boolean, maxTranscodeSize?: StreamingResolutionEnum | null, maxStreamingTranscodeSize?: StreamingResolutionEnum | null, writeImageThumbnails: boolean, createImageClipsFromVideos: boolean, apiKey: string, username: string, password: string, maxSessionAge: number, logFile?: string | null, logOut: boolean, logLevel: string, logAccess: boolean, logFileMaxSize: number, useCustomSpriteInterval: boolean, spriteInterval: number, minimumSprites: number, maximumSprites: number, spriteScreenshotSize: number, createGalleriesFromFolders: boolean, galleryCoverRegex: string, videoExtensions: Array<string>, imageExtensions: Array<string>, galleryExtensions: Array<string>, audioExtensions: Array<string>, excludes: Array<string>, imageExcludes: Array<string>, audioExcludes: Array<string>, customPerformerImageLocation?: string | null, pythonPath: string, transcodeInputArgs: Array<string>, transcodeOutputArgs: Array<string>, liveTranscodeInputArgs: Array<string>, liveTranscodeOutputArgs: Array<string>, drawFunscriptHeatmapRange: boolean, stashes: Array<{ __typename?: 'StashConfig', path: string, excludeVideo: boolean, excludeImage: boolean, excludeAudio: boolean }>, stashBoxes: Array<{ __typename?: 'StashBox', name: string, endpoint: string, api_key: string, max_requests_per_minute: number }>, scraperPackageSources: Array<{ __typename?: 'PackageSource', name?: string | null, url: string, local_path?: string | null }>, pluginPackageSources: Array<{ __typename?: 'PackageSource', name?: string | null, url: string, local_path?: string | null }> }, interface: { __typename?: 'ConfigInterfaceResult', sfwContentMode: boolean, menuItems?: Array<string> | null, soundOnPreview?: boolean | null, wallShowTitle?: boolean | null, wallPlayback?: string | null, showScrubber?: boolean | null, maximumLoopDuration?: number | null, noBrowser?: boolean | null, notificationsEnabled?: boolean | null, autostartVideo?: boolean | null, autostartVideoOnPlaySelected?: boolean | null, continuePlaylistDefault?: boolean | null, showStudioAsText?: boolean | null, css?: string | null, cssEnabled?: boolean | null, javascript?: string | null, javascriptEnabled?: boolean | null, customLocales?: string | null, customLocalesEnabled?: boolean | null, disableCustomizations?: boolean | null, language?: string | null, handyKey?: string | null, funscriptOffset?: number | null, useStashHostedFunscript?: boolean | null, imageLightbox: { __typename?: 'ConfigImageLightboxResult', slideshowDelay?: number | null, displayMode?: ImageLightboxDisplayMode | null, scaleUp?: boolean | null, resetZoomOnNav?: boolean | null, scrollMode?: ImageLightboxScrollMode | null, scrollAttemptsBeforeChange: number, disableAnimation?: boolean | null }, disableDropdownCreate: { __typename?: 'ConfigDisableDropdownCreate', performer: boolean, tag: boolean, studio: boolean, movie: boolean, gallery: boolean } }, dlna: { __typename?: 'ConfigDLNAResult', serverName: string, enabled: boolean, port: number, whitelistedIPs: Array<string>, interfaces: Array<string>, videoSortOrder: string }, scraping: { __typename?: 'ConfigScrapingResult', scraperUserAgent?: string | null, scraperCertCheck: boolean, scraperCDPPath?: string | null, excludeTagPatterns: Array<string> }, defaults: { __typename?: 'ConfigDefaultSettingsResult', deleteFile?: boolean | null, deleteGenerated?: boolean | null, scan?: { __typename?: 'ScanMetadataOptions', scanGenerateCovers: boolean, scanGeneratePreviews: boolean, scanGenerateImagePreviews: boolean, scanGenerateSprites: boolean, scanGeneratePhashes: boolean, scanGenerateThumbnails: boolean, scanGenerateClipPreviews: boolean } | null, identify?: { __typename?: 'IdentifyMetadataTaskOptions', sources: Array<{ __typename?: 'IdentifySource', source: { __typename?: 'ScraperSource', stash_box_index?: number | null, stash_box_endpoint?: string | null, scraper_id?: string | null }, options?: { __typename?: 'IdentifyMetadataOptions', setCoverImage?: boolean | null, setOrganized?: boolean | null, performerGenders?: Array<GenderEnum> | null, skipMultipleMatches?: boolean | null, skipMultipleMatchTag?: string | null, skipSingleNamePerformers?: boolean | null, skipSingleNamePerformerTag?: string | null, fieldOptions?: Array<{ __typename?: 'IdentifyFieldOptions', field: string, strategy: IdentifyFieldStrategy, createMissing?: boolean | null }> | null } | null }>, options?: { __typename?: 'IdentifyMetadataOptions', setCoverImage?: boolean | null, setOrganized?: boolean | null, performerGenders?: Array<GenderEnum> | null, skipMultipleMatches?: boolean | null, skipMultipleMatchTag?: string | null, skipSingleNamePerformers?: boolean | null, skipSingleNamePerformerTag?: string | null, fieldOptions?: Array<{ __typename?: 'IdentifyFieldOptions', field: string, strategy: IdentifyFieldStrategy, createMissing?: boolean | null }> | null } | null } | null, autoTag?: { __typename?: 'AutoTagMetadataOptions', performers?: Array<string> | null, studios?: Array<string> | null, tags?: Array<string> | null } | null, generate?: { __typename?: 'GenerateMetadataOptions', covers?: boolean | null, sprites?: boolean | null, previews?: boolean | null, imagePreviews?: boolean | null, markers?: boolean | null, markerImagePreviews?: boolean | null, markerScreenshots?: boolean | null, transcodes?: boolean | null, phashes?: boolean | null, interactiveHeatmapsSpeeds?: boolean | null, clipPreviews?: boolean | null, imageThumbnails?: boolean | null, previewOptions?: { __typename?: 'GeneratePreviewOptions', previewSegments?: number | null, previewSegmentDuration?: number | null, previewExcludeStart?: string | null, previewExcludeEnd?: string | null, previewPreset?: PreviewPreset | null } | null } | null } } };
-
-export type SystemStatusQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type SystemStatusQuery = { __typename?: 'Query', systemStatus: { __typename?: 'SystemStatus', databaseSchema?: number | null, databasePath?: string | null, configPath?: string | null, appSchema: number, status: SystemStatusEnum } };
 
 export type FindSavedFilterQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -5194,6 +5922,81 @@ export type ListGroupScrapersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ListGroupScrapersQuery = { __typename?: 'Query', listScrapers: Array<{ __typename?: 'Scraper', id: string, name: string, performer?: { __typename?: 'ScraperSpec', urls?: Array<string> | null, supported_scrapes: Array<ScrapeType> } | null, group?: { __typename?: 'ScraperSpec', urls?: Array<string> | null, supported_scrapes: Array<ScrapeType> } | null }> };
+
+export type ScrapeSingleStudioQueryVariables = Exact<{
+  source: ScraperSourceInput;
+  input: ScrapeSingleStudioInput;
+}>;
+
+
+export type ScrapeSingleStudioQuery = { __typename?: 'Query', scrapeSingleStudio: Array<{ __typename?: 'ScrapedStudio', stored_id?: string | null, name: string, urls?: Array<string> | null, image?: string | null, details?: string | null, aliases?: string | null, remote_site_id?: string | null, parent?: { __typename?: 'ScrapedStudio', stored_id?: string | null, name: string, urls?: Array<string> | null, image?: string | null, details?: string | null, aliases?: string | null, remote_site_id?: string | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null } | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null }> };
+
+export type ScrapeSingleTagQueryVariables = Exact<{
+  source: ScraperSourceInput;
+  input: ScrapeSingleTagInput;
+}>;
+
+
+export type ScrapeSingleTagQuery = { __typename?: 'Query', scrapeSingleTag: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> };
+
+export type ScrapeSinglePerformerQueryVariables = Exact<{
+  source: ScraperSourceInput;
+  input: ScrapeSinglePerformerInput;
+}>;
+
+
+export type ScrapeSinglePerformerQuery = { __typename?: 'Query', scrapeSinglePerformer: Array<{ __typename?: 'ScrapedPerformer', stored_id?: string | null, name?: string | null, disambiguation?: string | null, gender?: string | null, urls?: Array<string> | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height?: string | null, measurements?: string | null, fake_tits?: string | null, penis_length?: string | null, circumcised?: string | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, aliases?: string | null, images?: Array<string> | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: string | null, remote_site_id?: string | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null }> };
+
+export type ScrapeMultiPerformersQueryVariables = Exact<{
+  source: ScraperSourceInput;
+  input: ScrapeMultiPerformersInput;
+}>;
+
+
+export type ScrapeMultiPerformersQuery = { __typename?: 'Query', scrapeMultiPerformers: Array<Array<{ __typename?: 'ScrapedPerformer', stored_id?: string | null, name?: string | null, disambiguation?: string | null, gender?: string | null, urls?: Array<string> | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height?: string | null, measurements?: string | null, fake_tits?: string | null, penis_length?: string | null, circumcised?: string | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, aliases?: string | null, images?: Array<string> | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: string | null, remote_site_id?: string | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null }>> };
+
+export type ScrapePerformerUrlQueryVariables = Exact<{
+  url: Scalars['String']['input'];
+}>;
+
+
+export type ScrapePerformerUrlQuery = { __typename?: 'Query', scrapePerformerURL?: { __typename?: 'ScrapedPerformer', stored_id?: string | null, name?: string | null, disambiguation?: string | null, gender?: string | null, urls?: Array<string> | null, birthdate?: string | null, ethnicity?: string | null, country?: string | null, eye_color?: string | null, height?: string | null, measurements?: string | null, fake_tits?: string | null, penis_length?: string | null, circumcised?: string | null, career_start?: number | null, career_end?: number | null, tattoos?: string | null, piercings?: string | null, aliases?: string | null, images?: Array<string> | null, details?: string | null, death_date?: string | null, hair_color?: string | null, weight?: string | null, remote_site_id?: string | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null } | null };
+
+export type ScrapeGroupUrlQueryVariables = Exact<{
+  url: Scalars['String']['input'];
+}>;
+
+
+export type ScrapeGroupUrlQuery = { __typename?: 'Query', scrapeGroupURL?: { __typename?: 'ScrapedGroup', name?: string | null, aliases?: string | null, duration?: string | null, date?: string | null, rating?: string | null, director?: string | null, urls?: Array<string> | null, synopsis?: string | null, front_image?: string | null, back_image?: string | null, studio?: { __typename?: 'ScrapedStudio', stored_id?: string | null, name: string, urls?: Array<string> | null } | null, tags?: Array<{ __typename?: 'ScrapedTag', stored_id?: string | null, name: string, description?: string | null, alias_list?: Array<string> | null, remote_site_id?: string | null }> | null } | null };
+
+export type InstalledScraperPackagesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type InstalledScraperPackagesQuery = { __typename?: 'Query', installedPackages: Array<{ __typename?: 'Package', package_id: string, name: string, version?: string | null, date?: string | null, metadata: { [key: string]: unknown }, sourceURL: string }> };
+
+export type InstalledScraperPackagesStatusQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type InstalledScraperPackagesStatusQuery = { __typename?: 'Query', installedPackages: Array<{ __typename?: 'Package', package_id: string, name: string, version?: string | null, date?: string | null, metadata: { [key: string]: unknown }, sourceURL: string, source_package?: { __typename?: 'Package', package_id: string, name: string, version?: string | null, date?: string | null, metadata: { [key: string]: unknown }, sourceURL: string } | null }> };
+
+export type AvailableScraperPackagesQueryVariables = Exact<{
+  source: Scalars['String']['input'];
+}>;
+
+
+export type AvailableScraperPackagesQuery = { __typename?: 'Query', availablePackages: Array<{ __typename?: 'Package', package_id: string, name: string, version?: string | null, date?: string | null, metadata: { [key: string]: unknown }, sourceURL: string, requires: Array<{ __typename?: 'Package', package_id: string }> }> };
+
+export type ValidateStashBoxQueryVariables = Exact<{
+  input: StashBoxInput;
+}>;
+
+
+export type ValidateStashBoxQuery = { __typename?: 'Query', validateStashBoxCredentials: { __typename?: 'StashBoxValidationResult', valid: boolean, status: string } };
+
+export type SystemStatusQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SystemStatusQuery = { __typename?: 'Query', systemStatus: { __typename?: 'SystemStatus', databaseSchema?: number | null, databasePath?: string | null, appSchema: number, status: SystemStatusEnum, configPath?: string | null, os: string, workingDir: string, homeDir: string, ffmpegPath?: string | null, ffprobePath?: string | null } };
 
 export type FindStudiosQueryVariables = Exact<{
   filter?: InputMaybe<FindFilterType>;
@@ -5436,6 +6239,9 @@ export const ListGroupDataFragmentDoc = gql`
   audio_count
   performer_count
   sub_group_count
+  audios {
+    ...SlimAudioData
+  }
   audios {
     ...SlimAudioData
   }
@@ -5744,32 +6550,6 @@ ${ConfigInterfaceDataFragmentDoc}
 ${ConfigDlnaDataFragmentDoc}
 ${ConfigScrapingDataFragmentDoc}
 ${ConfigDefaultSettingsDataFragmentDoc}`;
-export const FolderDataFragmentDoc = gql`
-    fragment FolderData on Folder {
-  id
-  basename
-  path
-}
-    `;
-export const VideoFileDataFragmentDoc = gql`
-    fragment VideoFileData on VideoFile {
-  id
-  path
-  size
-  mod_time
-  duration
-  video_codec
-  audio_codec
-  width
-  height
-  frame_rate
-  bit_rate
-  fingerprints {
-    type
-    value
-  }
-}
-    `;
 export const ImageFileDataFragmentDoc = gql`
     fragment ImageFileData on ImageFile {
   id
@@ -5784,16 +6564,72 @@ export const ImageFileDataFragmentDoc = gql`
   }
 }
     `;
-export const GalleryFileDataFragmentDoc = gql`
-    fragment GalleryFileData on GalleryFile {
+export const SelectFolderDataFragmentDoc = gql`
+    fragment SelectFolderData on Folder {
   id
   path
-  size
-  mod_time
-  fingerprints {
-    type
-    value
+  basename
+}
+    `;
+export const RecursiveFolderDataFragmentDoc = gql`
+    fragment RecursiveFolderData on Folder {
+  ...SelectFolderData
+  parent_folders {
+    ...SelectFolderData
   }
+}
+    ${SelectFolderDataFragmentDoc}`;
+export const SavedFilterDataFragmentDoc = gql`
+    fragment SavedFilterData on SavedFilter {
+  id
+  mode
+  name
+  find_filter {
+    q
+    page
+    per_page
+    sort
+    direction
+  }
+  object_filter
+  ui_options
+}
+    `;
+export const SelectGalleryDataFragmentDoc = gql`
+    fragment SelectGalleryData on Gallery {
+  id
+  title
+  date
+  code
+  studio {
+    name
+  }
+  cover {
+    paths {
+      thumbnail
+    }
+  }
+  paths {
+    preview
+  }
+  files {
+    path
+  }
+  folder {
+    path
+  }
+}
+    `;
+export const SelectGroupDataFragmentDoc = gql`
+    fragment SelectGroupData on Group {
+  id
+  name
+  aliases
+  date
+  studio {
+    name
+  }
+  front_image_path
 }
     `;
 export const VisualFileDataFragmentDoc = gql`
@@ -5839,49 +6675,402 @@ export const VisualFileDataFragmentDoc = gql`
   }
 }
     `;
-export const SelectFolderDataFragmentDoc = gql`
-    fragment SelectFolderData on Folder {
+export const SlimImageDataFragmentDoc = gql`
+    fragment SlimImageData on Image {
   id
-  path
-  basename
-}
-    `;
-export const RecursiveFolderDataFragmentDoc = gql`
-    fragment RecursiveFolderData on Folder {
-  ...SelectFolderData
-  parent_folders {
-    ...SelectFolderData
-  }
-}
-    ${SelectFolderDataFragmentDoc}`;
-export const SavedFilterDataFragmentDoc = gql`
-    fragment SavedFilterData on SavedFilter {
-  id
-  mode
-  name
-  find_filter {
-    q
-    page
-    per_page
-    sort
-    direction
-  }
-  object_filter
-  ui_options
-}
-    `;
-export const SelectGroupDataFragmentDoc = gql`
-    fragment SelectGroupData on Group {
-  id
-  name
-  aliases
+  title
+  code
   date
+  urls
+  details
+  photographer
+  rating100
+  organized
+  o_counter
+  paths {
+    thumbnail
+    preview
+    image
+  }
+  galleries {
+    id
+    title
+    files {
+      path
+    }
+    folder {
+      path
+    }
+  }
   studio {
+    id
+    name
+    image_path
+  }
+  tags {
+    id
     name
   }
-  front_image_path
+  performers {
+    id
+    name
+    gender
+    favorite
+    image_path
+  }
+  visual_files {
+    ...VisualFileData
+  }
+}
+    ${VisualFileDataFragmentDoc}`;
+export const GalleryFileDataFragmentDoc = gql`
+    fragment GalleryFileData on GalleryFile {
+  id
+  path
+  size
+  mod_time
+  fingerprints {
+    type
+    value
+  }
 }
     `;
+export const FolderDataFragmentDoc = gql`
+    fragment FolderData on Folder {
+  id
+  basename
+  path
+}
+    `;
+export const GalleryChapterDataFragmentDoc = gql`
+    fragment GalleryChapterData on GalleryChapter {
+  id
+  title
+  image_index
+  gallery {
+    id
+  }
+}
+    `;
+export const VideoFileDataFragmentDoc = gql`
+    fragment VideoFileData on VideoFile {
+  id
+  path
+  size
+  mod_time
+  duration
+  video_codec
+  audio_codec
+  width
+  height
+  frame_rate
+  bit_rate
+  fingerprints {
+    type
+    value
+  }
+}
+    `;
+export const SlimSceneDataFragmentDoc = gql`
+    fragment SlimSceneData on Scene {
+  id
+  title
+  code
+  details
+  director
+  urls
+  date
+  rating100
+  o_counter
+  organized
+  interactive
+  interactive_speed
+  resume_time
+  play_duration
+  play_count
+  files {
+    ...VideoFileData
+  }
+  paths {
+    screenshot
+    preview
+    stream
+    webp
+    vtt
+    sprite
+    funscript
+    interactive_heatmap
+    caption
+  }
+  scene_markers {
+    id
+    title
+    seconds
+    primary_tag {
+      id
+      name
+    }
+  }
+  galleries {
+    id
+    files {
+      path
+    }
+    folder {
+      path
+    }
+    title
+  }
+  studio {
+    id
+    name
+    image_path
+  }
+  groups {
+    group {
+      id
+      name
+      front_image_path
+    }
+    scene_index
+  }
+  tags {
+    id
+    name
+  }
+  performers {
+    id
+    name
+    disambiguation
+    gender
+    favorite
+    image_path
+  }
+  stash_ids {
+    endpoint
+    stash_id
+    updated_at
+  }
+}
+    ${VideoFileDataFragmentDoc}`;
+export const GalleryDataFragmentDoc = gql`
+    fragment GalleryData on Gallery {
+  id
+  created_at
+  updated_at
+  title
+  code
+  date
+  urls
+  details
+  photographer
+  rating100
+  organized
+  paths {
+    cover
+    preview
+  }
+  files {
+    ...GalleryFileData
+  }
+  folder {
+    ...FolderData
+  }
+  image_count
+  chapters {
+    ...GalleryChapterData
+  }
+  studio {
+    ...SlimStudioData
+  }
+  tags {
+    ...SlimTagData
+  }
+  performers {
+    ...PerformerData
+  }
+  scenes {
+    ...SlimSceneData
+  }
+  custom_fields
+}
+    ${GalleryFileDataFragmentDoc}
+${FolderDataFragmentDoc}
+${GalleryChapterDataFragmentDoc}
+${SlimStudioDataFragmentDoc}
+${SlimTagDataFragmentDoc}
+${PerformerDataFragmentDoc}
+${SlimSceneDataFragmentDoc}`;
+export const ImageDataFragmentDoc = gql`
+    fragment ImageData on Image {
+  id
+  title
+  code
+  rating100
+  date
+  urls
+  details
+  photographer
+  organized
+  o_counter
+  created_at
+  updated_at
+  paths {
+    thumbnail
+    preview
+    image
+  }
+  galleries {
+    ...GalleryData
+  }
+  studio {
+    ...SlimStudioData
+  }
+  tags {
+    ...SlimTagData
+  }
+  performers {
+    ...PerformerData
+  }
+  visual_files {
+    ...VisualFileData
+  }
+  custom_fields
+}
+    ${GalleryDataFragmentDoc}
+${SlimStudioDataFragmentDoc}
+${SlimTagDataFragmentDoc}
+${PerformerDataFragmentDoc}
+${VisualFileDataFragmentDoc}`;
+export const JobDataFragmentDoc = gql`
+    fragment JobData on Job {
+  id
+  status
+  subTasks
+  description
+  progress
+  startTime
+  endTime
+  addTime
+  error
+}
+    `;
+export const LogEntryDataFragmentDoc = gql`
+    fragment LogEntryData on LogEntry {
+  time
+  level
+  message
+}
+    `;
+export const PackageDataFragmentDoc = gql`
+    fragment PackageData on Package {
+  package_id
+  name
+  version
+  date
+  metadata
+  sourceURL
+}
+    `;
+export const SelectPerformerDataFragmentDoc = gql`
+    fragment SelectPerformerData on Performer {
+  id
+  name
+  disambiguation
+  alias_list
+  image_path
+  birthdate
+  death_date
+}
+    `;
+export const SceneMarkerSceneDataFragmentDoc = gql`
+    fragment SceneMarkerSceneData on Scene {
+  id
+  title
+  files {
+    width
+    height
+    path
+  }
+  performers {
+    id
+    name
+    image_path
+  }
+}
+    `;
+export const SceneMarkerDataFragmentDoc = gql`
+    fragment SceneMarkerData on SceneMarker {
+  id
+  title
+  seconds
+  end_seconds
+  stream
+  preview
+  screenshot
+  scene {
+    ...SceneMarkerSceneData
+  }
+  primary_tag {
+    id
+    name
+  }
+  tags {
+    id
+    name
+  }
+}
+    ${SceneMarkerSceneDataFragmentDoc}`;
+export const SlimGalleryDataFragmentDoc = gql`
+    fragment SlimGalleryData on Gallery {
+  id
+  title
+  code
+  date
+  urls
+  details
+  photographer
+  rating100
+  organized
+  files {
+    ...GalleryFileData
+  }
+  folder {
+    ...FolderData
+  }
+  image_count
+  chapters {
+    id
+    title
+    image_index
+  }
+  studio {
+    id
+    name
+    image_path
+  }
+  tags {
+    id
+    name
+  }
+  performers {
+    id
+    name
+    gender
+    favorite
+    image_path
+  }
+  scenes {
+    ...SlimSceneData
+  }
+  paths {
+    cover
+    preview
+  }
+}
+    ${GalleryFileDataFragmentDoc}
+${FolderDataFragmentDoc}
+${SlimSceneDataFragmentDoc}`;
 export const SlimPerformerDataFragmentDoc = gql`
     fragment SlimPerformerData on Performer {
   id
@@ -5956,6 +7145,9 @@ export const GroupDataFragmentDoc = gql`
   audios {
     ...SlimAudioData
   }
+  audios {
+    ...SlimAudioData
+  }
   custom_fields
 }
     ${SlimStudioDataFragmentDoc}
@@ -5963,47 +7155,238 @@ ${SlimTagDataFragmentDoc}
 ${SlimGroupDataFragmentDoc}
 ${SlimPerformerDataFragmentDoc}
 ${SlimAudioDataFragmentDoc}`;
-export const JobDataFragmentDoc = gql`
-    fragment JobData on Job {
+export const SceneDataFragmentDoc = gql`
+    fragment SceneData on Scene {
   id
-  status
-  subTasks
-  description
-  progress
-  startTime
-  endTime
-  addTime
-  error
-}
-    `;
-export const LogEntryDataFragmentDoc = gql`
-    fragment LogEntryData on LogEntry {
-  time
-  level
-  message
-}
-    `;
-export const PackageDataFragmentDoc = gql`
-    fragment PackageData on Package {
-  package_id
-  name
-  version
+  title
+  code
+  details
+  director
+  urls
   date
-  metadata
-  sourceURL
+  rating100
+  o_counter
+  organized
+  interactive
+  interactive_speed
+  captions {
+    language_code
+    caption_type
+  }
+  created_at
+  updated_at
+  resume_time
+  last_played_at
+  play_duration
+  play_count
+  play_history
+  o_history
+  files {
+    ...VideoFileData
+  }
+  paths {
+    screenshot
+    preview
+    stream
+    webp
+    vtt
+    sprite
+    funscript
+    interactive_heatmap
+    caption
+  }
+  scene_markers {
+    ...SceneMarkerData
+  }
+  galleries {
+    ...SlimGalleryData
+  }
+  studio {
+    ...SlimStudioData
+  }
+  groups {
+    group {
+      ...GroupData
+    }
+    scene_index
+  }
+  tags {
+    ...SlimTagData
+  }
+  performers {
+    ...PerformerData
+  }
+  stash_ids {
+    endpoint
+    stash_id
+    updated_at
+  }
+  sceneStreams {
+    url
+    mime_type
+    label
+  }
+  custom_fields
+}
+    ${VideoFileDataFragmentDoc}
+${SceneMarkerDataFragmentDoc}
+${SlimGalleryDataFragmentDoc}
+${SlimStudioDataFragmentDoc}
+${GroupDataFragmentDoc}
+${SlimTagDataFragmentDoc}
+${PerformerDataFragmentDoc}`;
+export const SelectSceneDataFragmentDoc = gql`
+    fragment SelectSceneData on Scene {
+  id
+  title
+  date
+  code
+  studio {
+    name
+  }
+  files {
+    path
+  }
+  paths {
+    screenshot
+  }
 }
     `;
-export const SelectPerformerDataFragmentDoc = gql`
-    fragment SelectPerformerData on Performer {
-  id
+export const ScrapedSceneTagDataFragmentDoc = gql`
+    fragment ScrapedSceneTagData on ScrapedTag {
+  stored_id
+  name
+  description
+  alias_list
+  remote_site_id
+}
+    `;
+export const ScrapedStudioDataFragmentDoc = gql`
+    fragment ScrapedStudioData on ScrapedStudio {
+  stored_id
+  name
+  urls
+  parent {
+    stored_id
+    name
+    urls
+    image
+    details
+    aliases
+    tags {
+      ...ScrapedSceneTagData
+    }
+    remote_site_id
+  }
+  image
+  details
+  aliases
+  tags {
+    ...ScrapedSceneTagData
+  }
+  remote_site_id
+}
+    ${ScrapedSceneTagDataFragmentDoc}`;
+export const ScrapedPerformerDataFragmentDoc = gql`
+    fragment ScrapedPerformerData on ScrapedPerformer {
+  stored_id
   name
   disambiguation
-  alias_list
-  image_path
+  gender
+  urls
   birthdate
+  ethnicity
+  country
+  eye_color
+  height
+  measurements
+  fake_tits
+  penis_length
+  circumcised
+  career_start
+  career_end
+  tattoos
+  piercings
+  aliases
+  tags {
+    ...ScrapedSceneTagData
+  }
+  images
+  details
   death_date
+  hair_color
+  weight
+  remote_site_id
+}
+    ${ScrapedSceneTagDataFragmentDoc}`;
+export const ScrapedGroupStudioDataFragmentDoc = gql`
+    fragment ScrapedGroupStudioData on ScrapedStudio {
+  stored_id
+  name
+  urls
 }
     `;
+export const ScrapedGroupDataFragmentDoc = gql`
+    fragment ScrapedGroupData on ScrapedGroup {
+  name
+  aliases
+  duration
+  date
+  rating
+  director
+  urls
+  synopsis
+  front_image
+  back_image
+  studio {
+    ...ScrapedGroupStudioData
+  }
+  tags {
+    ...ScrapedSceneTagData
+  }
+}
+    ${ScrapedGroupStudioDataFragmentDoc}
+${ScrapedSceneTagDataFragmentDoc}`;
+export const ScrapedScenePerformerDataFragmentDoc = gql`
+    fragment ScrapedScenePerformerData on ScrapedPerformer {
+  stored_id
+  name
+  disambiguation
+  gender
+  urls
+  birthdate
+  ethnicity
+  country
+  eye_color
+  height
+  measurements
+  fake_tits
+  penis_length
+  circumcised
+  career_start
+  career_end
+  tattoos
+  piercings
+  aliases
+  tags {
+    ...ScrapedSceneTagData
+  }
+  remote_site_id
+  images
+  details
+  death_date
+  hair_color
+  weight
+}
+    ${ScrapedSceneTagDataFragmentDoc}`;
+export const ScrapedStashBoxPerformerDataFragmentDoc = gql`
+    fragment ScrapedStashBoxPerformerData on StashBoxPerformerQueryResult {
+  query
+  results {
+    ...ScrapedScenePerformerData
+  }
+}
+    ${ScrapedScenePerformerDataFragmentDoc}`;
 export const StudioDataFragmentDoc = gql`
     fragment StudioData on Studio {
   id
@@ -8149,6 +9532,284 @@ export function useUninstallPluginPackagesMutation(baseOptions?: Apollo.Mutation
 export type UninstallPluginPackagesMutationHookResult = ReturnType<typeof useUninstallPluginPackagesMutation>;
 export type UninstallPluginPackagesMutationResult = Apollo.MutationResult<UninstallPluginPackagesMutation>;
 export type UninstallPluginPackagesMutationOptions = Apollo.BaseMutationOptions<UninstallPluginPackagesMutation, UninstallPluginPackagesMutationVariables>;
+export const ReloadScrapersDocument = gql`
+    mutation ReloadScrapers {
+  reloadScrapers
+}
+    `;
+export type ReloadScrapersMutationFn = Apollo.MutationFunction<ReloadScrapersMutation, ReloadScrapersMutationVariables>;
+
+/**
+ * __useReloadScrapersMutation__
+ *
+ * To run a mutation, you first call `useReloadScrapersMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReloadScrapersMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reloadScrapersMutation, { data, loading, error }] = useReloadScrapersMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useReloadScrapersMutation(baseOptions?: Apollo.MutationHookOptions<ReloadScrapersMutation, ReloadScrapersMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReloadScrapersMutation, ReloadScrapersMutationVariables>(ReloadScrapersDocument, options);
+      }
+export type ReloadScrapersMutationHookResult = ReturnType<typeof useReloadScrapersMutation>;
+export type ReloadScrapersMutationResult = Apollo.MutationResult<ReloadScrapersMutation>;
+export type ReloadScrapersMutationOptions = Apollo.BaseMutationOptions<ReloadScrapersMutation, ReloadScrapersMutationVariables>;
+export const InstallScraperPackagesDocument = gql`
+    mutation InstallScraperPackages($packages: [PackageSpecInput!]!) {
+  installPackages(type: Scraper, packages: $packages)
+}
+    `;
+export type InstallScraperPackagesMutationFn = Apollo.MutationFunction<InstallScraperPackagesMutation, InstallScraperPackagesMutationVariables>;
+
+/**
+ * __useInstallScraperPackagesMutation__
+ *
+ * To run a mutation, you first call `useInstallScraperPackagesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInstallScraperPackagesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [installScraperPackagesMutation, { data, loading, error }] = useInstallScraperPackagesMutation({
+ *   variables: {
+ *      packages: // value for 'packages'
+ *   },
+ * });
+ */
+export function useInstallScraperPackagesMutation(baseOptions?: Apollo.MutationHookOptions<InstallScraperPackagesMutation, InstallScraperPackagesMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InstallScraperPackagesMutation, InstallScraperPackagesMutationVariables>(InstallScraperPackagesDocument, options);
+      }
+export type InstallScraperPackagesMutationHookResult = ReturnType<typeof useInstallScraperPackagesMutation>;
+export type InstallScraperPackagesMutationResult = Apollo.MutationResult<InstallScraperPackagesMutation>;
+export type InstallScraperPackagesMutationOptions = Apollo.BaseMutationOptions<InstallScraperPackagesMutation, InstallScraperPackagesMutationVariables>;
+export const UpdateScraperPackagesDocument = gql`
+    mutation UpdateScraperPackages($packages: [PackageSpecInput!]!) {
+  updatePackages(type: Scraper, packages: $packages)
+}
+    `;
+export type UpdateScraperPackagesMutationFn = Apollo.MutationFunction<UpdateScraperPackagesMutation, UpdateScraperPackagesMutationVariables>;
+
+/**
+ * __useUpdateScraperPackagesMutation__
+ *
+ * To run a mutation, you first call `useUpdateScraperPackagesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateScraperPackagesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateScraperPackagesMutation, { data, loading, error }] = useUpdateScraperPackagesMutation({
+ *   variables: {
+ *      packages: // value for 'packages'
+ *   },
+ * });
+ */
+export function useUpdateScraperPackagesMutation(baseOptions?: Apollo.MutationHookOptions<UpdateScraperPackagesMutation, UpdateScraperPackagesMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateScraperPackagesMutation, UpdateScraperPackagesMutationVariables>(UpdateScraperPackagesDocument, options);
+      }
+export type UpdateScraperPackagesMutationHookResult = ReturnType<typeof useUpdateScraperPackagesMutation>;
+export type UpdateScraperPackagesMutationResult = Apollo.MutationResult<UpdateScraperPackagesMutation>;
+export type UpdateScraperPackagesMutationOptions = Apollo.BaseMutationOptions<UpdateScraperPackagesMutation, UpdateScraperPackagesMutationVariables>;
+export const UninstallScraperPackagesDocument = gql`
+    mutation UninstallScraperPackages($packages: [PackageSpecInput!]!) {
+  uninstallPackages(type: Scraper, packages: $packages)
+}
+    `;
+export type UninstallScraperPackagesMutationFn = Apollo.MutationFunction<UninstallScraperPackagesMutation, UninstallScraperPackagesMutationVariables>;
+
+/**
+ * __useUninstallScraperPackagesMutation__
+ *
+ * To run a mutation, you first call `useUninstallScraperPackagesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUninstallScraperPackagesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [uninstallScraperPackagesMutation, { data, loading, error }] = useUninstallScraperPackagesMutation({
+ *   variables: {
+ *      packages: // value for 'packages'
+ *   },
+ * });
+ */
+export function useUninstallScraperPackagesMutation(baseOptions?: Apollo.MutationHookOptions<UninstallScraperPackagesMutation, UninstallScraperPackagesMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UninstallScraperPackagesMutation, UninstallScraperPackagesMutationVariables>(UninstallScraperPackagesDocument, options);
+      }
+export type UninstallScraperPackagesMutationHookResult = ReturnType<typeof useUninstallScraperPackagesMutation>;
+export type UninstallScraperPackagesMutationResult = Apollo.MutationResult<UninstallScraperPackagesMutation>;
+export type UninstallScraperPackagesMutationOptions = Apollo.BaseMutationOptions<UninstallScraperPackagesMutation, UninstallScraperPackagesMutationVariables>;
+export const SubmitStashBoxFingerprintsDocument = gql`
+    mutation SubmitStashBoxFingerprints($input: StashBoxFingerprintSubmissionInput!) {
+  submitStashBoxFingerprints(input: $input)
+}
+    `;
+export type SubmitStashBoxFingerprintsMutationFn = Apollo.MutationFunction<SubmitStashBoxFingerprintsMutation, SubmitStashBoxFingerprintsMutationVariables>;
+
+/**
+ * __useSubmitStashBoxFingerprintsMutation__
+ *
+ * To run a mutation, you first call `useSubmitStashBoxFingerprintsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSubmitStashBoxFingerprintsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [submitStashBoxFingerprintsMutation, { data, loading, error }] = useSubmitStashBoxFingerprintsMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSubmitStashBoxFingerprintsMutation(baseOptions?: Apollo.MutationHookOptions<SubmitStashBoxFingerprintsMutation, SubmitStashBoxFingerprintsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SubmitStashBoxFingerprintsMutation, SubmitStashBoxFingerprintsMutationVariables>(SubmitStashBoxFingerprintsDocument, options);
+      }
+export type SubmitStashBoxFingerprintsMutationHookResult = ReturnType<typeof useSubmitStashBoxFingerprintsMutation>;
+export type SubmitStashBoxFingerprintsMutationResult = Apollo.MutationResult<SubmitStashBoxFingerprintsMutation>;
+export type SubmitStashBoxFingerprintsMutationOptions = Apollo.BaseMutationOptions<SubmitStashBoxFingerprintsMutation, SubmitStashBoxFingerprintsMutationVariables>;
+export const StashBoxBatchPerformerTagDocument = gql`
+    mutation StashBoxBatchPerformerTag($input: StashBoxBatchTagInput!) {
+  stashBoxBatchPerformerTag(input: $input)
+}
+    `;
+export type StashBoxBatchPerformerTagMutationFn = Apollo.MutationFunction<StashBoxBatchPerformerTagMutation, StashBoxBatchPerformerTagMutationVariables>;
+
+/**
+ * __useStashBoxBatchPerformerTagMutation__
+ *
+ * To run a mutation, you first call `useStashBoxBatchPerformerTagMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useStashBoxBatchPerformerTagMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [stashBoxBatchPerformerTagMutation, { data, loading, error }] = useStashBoxBatchPerformerTagMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useStashBoxBatchPerformerTagMutation(baseOptions?: Apollo.MutationHookOptions<StashBoxBatchPerformerTagMutation, StashBoxBatchPerformerTagMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<StashBoxBatchPerformerTagMutation, StashBoxBatchPerformerTagMutationVariables>(StashBoxBatchPerformerTagDocument, options);
+      }
+export type StashBoxBatchPerformerTagMutationHookResult = ReturnType<typeof useStashBoxBatchPerformerTagMutation>;
+export type StashBoxBatchPerformerTagMutationResult = Apollo.MutationResult<StashBoxBatchPerformerTagMutation>;
+export type StashBoxBatchPerformerTagMutationOptions = Apollo.BaseMutationOptions<StashBoxBatchPerformerTagMutation, StashBoxBatchPerformerTagMutationVariables>;
+export const StashBoxBatchStudioTagDocument = gql`
+    mutation StashBoxBatchStudioTag($input: StashBoxBatchTagInput!) {
+  stashBoxBatchStudioTag(input: $input)
+}
+    `;
+export type StashBoxBatchStudioTagMutationFn = Apollo.MutationFunction<StashBoxBatchStudioTagMutation, StashBoxBatchStudioTagMutationVariables>;
+
+/**
+ * __useStashBoxBatchStudioTagMutation__
+ *
+ * To run a mutation, you first call `useStashBoxBatchStudioTagMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useStashBoxBatchStudioTagMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [stashBoxBatchStudioTagMutation, { data, loading, error }] = useStashBoxBatchStudioTagMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useStashBoxBatchStudioTagMutation(baseOptions?: Apollo.MutationHookOptions<StashBoxBatchStudioTagMutation, StashBoxBatchStudioTagMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<StashBoxBatchStudioTagMutation, StashBoxBatchStudioTagMutationVariables>(StashBoxBatchStudioTagDocument, options);
+      }
+export type StashBoxBatchStudioTagMutationHookResult = ReturnType<typeof useStashBoxBatchStudioTagMutation>;
+export type StashBoxBatchStudioTagMutationResult = Apollo.MutationResult<StashBoxBatchStudioTagMutation>;
+export type StashBoxBatchStudioTagMutationOptions = Apollo.BaseMutationOptions<StashBoxBatchStudioTagMutation, StashBoxBatchStudioTagMutationVariables>;
+export const StashBoxBatchTagTagDocument = gql`
+    mutation StashBoxBatchTagTag($input: StashBoxBatchTagInput!) {
+  stashBoxBatchTagTag(input: $input)
+}
+    `;
+export type StashBoxBatchTagTagMutationFn = Apollo.MutationFunction<StashBoxBatchTagTagMutation, StashBoxBatchTagTagMutationVariables>;
+
+/**
+ * __useStashBoxBatchTagTagMutation__
+ *
+ * To run a mutation, you first call `useStashBoxBatchTagTagMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useStashBoxBatchTagTagMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [stashBoxBatchTagTagMutation, { data, loading, error }] = useStashBoxBatchTagTagMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useStashBoxBatchTagTagMutation(baseOptions?: Apollo.MutationHookOptions<StashBoxBatchTagTagMutation, StashBoxBatchTagTagMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<StashBoxBatchTagTagMutation, StashBoxBatchTagTagMutationVariables>(StashBoxBatchTagTagDocument, options);
+      }
+export type StashBoxBatchTagTagMutationHookResult = ReturnType<typeof useStashBoxBatchTagTagMutation>;
+export type StashBoxBatchTagTagMutationResult = Apollo.MutationResult<StashBoxBatchTagTagMutation>;
+export type StashBoxBatchTagTagMutationOptions = Apollo.BaseMutationOptions<StashBoxBatchTagTagMutation, StashBoxBatchTagTagMutationVariables>;
+export const SubmitStashBoxPerformerDraftDocument = gql`
+    mutation SubmitStashBoxPerformerDraft($input: StashBoxDraftSubmissionInput!) {
+  submitStashBoxPerformerDraft(input: $input)
+}
+    `;
+export type SubmitStashBoxPerformerDraftMutationFn = Apollo.MutationFunction<SubmitStashBoxPerformerDraftMutation, SubmitStashBoxPerformerDraftMutationVariables>;
+
+/**
+ * __useSubmitStashBoxPerformerDraftMutation__
+ *
+ * To run a mutation, you first call `useSubmitStashBoxPerformerDraftMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSubmitStashBoxPerformerDraftMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [submitStashBoxPerformerDraftMutation, { data, loading, error }] = useSubmitStashBoxPerformerDraftMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSubmitStashBoxPerformerDraftMutation(baseOptions?: Apollo.MutationHookOptions<SubmitStashBoxPerformerDraftMutation, SubmitStashBoxPerformerDraftMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SubmitStashBoxPerformerDraftMutation, SubmitStashBoxPerformerDraftMutationVariables>(SubmitStashBoxPerformerDraftDocument, options);
+      }
+export type SubmitStashBoxPerformerDraftMutationHookResult = ReturnType<typeof useSubmitStashBoxPerformerDraftMutation>;
+export type SubmitStashBoxPerformerDraftMutationResult = Apollo.MutationResult<SubmitStashBoxPerformerDraftMutation>;
+export type SubmitStashBoxPerformerDraftMutationOptions = Apollo.BaseMutationOptions<SubmitStashBoxPerformerDraftMutation, SubmitStashBoxPerformerDraftMutationVariables>;
 export const StudioCreateDocument = gql`
     mutation StudioCreate($input: StudioCreateInput!) {
   studioCreate(input: $input) {
@@ -8685,52 +10346,6 @@ export type ConfigurationSuspenseQueryHookResult = ReturnType<typeof useConfigur
 export type ConfigurationQueryResult = Apollo.QueryResult<ConfigurationQuery, ConfigurationQueryVariables>;
 export function refetchConfigurationQuery(variables?: ConfigurationQueryVariables) {
       return { query: ConfigurationDocument, variables: variables }
-    }
-export const SystemStatusDocument = gql`
-    query SystemStatus {
-  systemStatus {
-    databaseSchema
-    databasePath
-    configPath
-    appSchema
-    status
-  }
-}
-    `;
-
-/**
- * __useSystemStatusQuery__
- *
- * To run a query within a React component, call `useSystemStatusQuery` and pass it any options that fit your needs.
- * When your component renders, `useSystemStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useSystemStatusQuery({
- *   variables: {
- *   },
- * });
- */
-export function useSystemStatusQuery(baseOptions?: Apollo.QueryHookOptions<SystemStatusQuery, SystemStatusQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<SystemStatusQuery, SystemStatusQueryVariables>(SystemStatusDocument, options);
-      }
-export function useSystemStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SystemStatusQuery, SystemStatusQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<SystemStatusQuery, SystemStatusQueryVariables>(SystemStatusDocument, options);
-        }
-export function useSystemStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SystemStatusQuery, SystemStatusQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<SystemStatusQuery, SystemStatusQueryVariables>(SystemStatusDocument, options);
-        }
-export type SystemStatusQueryHookResult = ReturnType<typeof useSystemStatusQuery>;
-export type SystemStatusLazyQueryHookResult = ReturnType<typeof useSystemStatusLazyQuery>;
-export type SystemStatusSuspenseQueryHookResult = ReturnType<typeof useSystemStatusSuspenseQuery>;
-export type SystemStatusQueryResult = Apollo.QueryResult<SystemStatusQuery, SystemStatusQueryVariables>;
-export function refetchSystemStatusQuery(variables?: SystemStatusQueryVariables) {
-      return { query: SystemStatusDocument, variables: variables }
     }
 export const FindSavedFilterDocument = gql`
     query FindSavedFilter($id: ID!) {
@@ -9836,6 +11451,496 @@ export type ListGroupScrapersQueryResult = Apollo.QueryResult<ListGroupScrapersQ
 export function refetchListGroupScrapersQuery(variables?: ListGroupScrapersQueryVariables) {
       return { query: ListGroupScrapersDocument, variables: variables }
     }
+export const ScrapeSingleStudioDocument = gql`
+    query ScrapeSingleStudio($source: ScraperSourceInput!, $input: ScrapeSingleStudioInput!) {
+  scrapeSingleStudio(source: $source, input: $input) {
+    ...ScrapedStudioData
+  }
+}
+    ${ScrapedStudioDataFragmentDoc}`;
+
+/**
+ * __useScrapeSingleStudioQuery__
+ *
+ * To run a query within a React component, call `useScrapeSingleStudioQuery` and pass it any options that fit your needs.
+ * When your component renders, `useScrapeSingleStudioQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useScrapeSingleStudioQuery({
+ *   variables: {
+ *      source: // value for 'source'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useScrapeSingleStudioQuery(baseOptions: Apollo.QueryHookOptions<ScrapeSingleStudioQuery, ScrapeSingleStudioQueryVariables> & ({ variables: ScrapeSingleStudioQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ScrapeSingleStudioQuery, ScrapeSingleStudioQueryVariables>(ScrapeSingleStudioDocument, options);
+      }
+export function useScrapeSingleStudioLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ScrapeSingleStudioQuery, ScrapeSingleStudioQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ScrapeSingleStudioQuery, ScrapeSingleStudioQueryVariables>(ScrapeSingleStudioDocument, options);
+        }
+export function useScrapeSingleStudioSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ScrapeSingleStudioQuery, ScrapeSingleStudioQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ScrapeSingleStudioQuery, ScrapeSingleStudioQueryVariables>(ScrapeSingleStudioDocument, options);
+        }
+export type ScrapeSingleStudioQueryHookResult = ReturnType<typeof useScrapeSingleStudioQuery>;
+export type ScrapeSingleStudioLazyQueryHookResult = ReturnType<typeof useScrapeSingleStudioLazyQuery>;
+export type ScrapeSingleStudioSuspenseQueryHookResult = ReturnType<typeof useScrapeSingleStudioSuspenseQuery>;
+export type ScrapeSingleStudioQueryResult = Apollo.QueryResult<ScrapeSingleStudioQuery, ScrapeSingleStudioQueryVariables>;
+export function refetchScrapeSingleStudioQuery(variables: ScrapeSingleStudioQueryVariables) {
+      return { query: ScrapeSingleStudioDocument, variables: variables }
+    }
+export const ScrapeSingleTagDocument = gql`
+    query ScrapeSingleTag($source: ScraperSourceInput!, $input: ScrapeSingleTagInput!) {
+  scrapeSingleTag(source: $source, input: $input) {
+    ...ScrapedSceneTagData
+  }
+}
+    ${ScrapedSceneTagDataFragmentDoc}`;
+
+/**
+ * __useScrapeSingleTagQuery__
+ *
+ * To run a query within a React component, call `useScrapeSingleTagQuery` and pass it any options that fit your needs.
+ * When your component renders, `useScrapeSingleTagQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useScrapeSingleTagQuery({
+ *   variables: {
+ *      source: // value for 'source'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useScrapeSingleTagQuery(baseOptions: Apollo.QueryHookOptions<ScrapeSingleTagQuery, ScrapeSingleTagQueryVariables> & ({ variables: ScrapeSingleTagQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ScrapeSingleTagQuery, ScrapeSingleTagQueryVariables>(ScrapeSingleTagDocument, options);
+      }
+export function useScrapeSingleTagLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ScrapeSingleTagQuery, ScrapeSingleTagQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ScrapeSingleTagQuery, ScrapeSingleTagQueryVariables>(ScrapeSingleTagDocument, options);
+        }
+export function useScrapeSingleTagSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ScrapeSingleTagQuery, ScrapeSingleTagQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ScrapeSingleTagQuery, ScrapeSingleTagQueryVariables>(ScrapeSingleTagDocument, options);
+        }
+export type ScrapeSingleTagQueryHookResult = ReturnType<typeof useScrapeSingleTagQuery>;
+export type ScrapeSingleTagLazyQueryHookResult = ReturnType<typeof useScrapeSingleTagLazyQuery>;
+export type ScrapeSingleTagSuspenseQueryHookResult = ReturnType<typeof useScrapeSingleTagSuspenseQuery>;
+export type ScrapeSingleTagQueryResult = Apollo.QueryResult<ScrapeSingleTagQuery, ScrapeSingleTagQueryVariables>;
+export function refetchScrapeSingleTagQuery(variables: ScrapeSingleTagQueryVariables) {
+      return { query: ScrapeSingleTagDocument, variables: variables }
+    }
+export const ScrapeSinglePerformerDocument = gql`
+    query ScrapeSinglePerformer($source: ScraperSourceInput!, $input: ScrapeSinglePerformerInput!) {
+  scrapeSinglePerformer(source: $source, input: $input) {
+    ...ScrapedPerformerData
+  }
+}
+    ${ScrapedPerformerDataFragmentDoc}`;
+
+/**
+ * __useScrapeSinglePerformerQuery__
+ *
+ * To run a query within a React component, call `useScrapeSinglePerformerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useScrapeSinglePerformerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useScrapeSinglePerformerQuery({
+ *   variables: {
+ *      source: // value for 'source'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useScrapeSinglePerformerQuery(baseOptions: Apollo.QueryHookOptions<ScrapeSinglePerformerQuery, ScrapeSinglePerformerQueryVariables> & ({ variables: ScrapeSinglePerformerQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ScrapeSinglePerformerQuery, ScrapeSinglePerformerQueryVariables>(ScrapeSinglePerformerDocument, options);
+      }
+export function useScrapeSinglePerformerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ScrapeSinglePerformerQuery, ScrapeSinglePerformerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ScrapeSinglePerformerQuery, ScrapeSinglePerformerQueryVariables>(ScrapeSinglePerformerDocument, options);
+        }
+export function useScrapeSinglePerformerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ScrapeSinglePerformerQuery, ScrapeSinglePerformerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ScrapeSinglePerformerQuery, ScrapeSinglePerformerQueryVariables>(ScrapeSinglePerformerDocument, options);
+        }
+export type ScrapeSinglePerformerQueryHookResult = ReturnType<typeof useScrapeSinglePerformerQuery>;
+export type ScrapeSinglePerformerLazyQueryHookResult = ReturnType<typeof useScrapeSinglePerformerLazyQuery>;
+export type ScrapeSinglePerformerSuspenseQueryHookResult = ReturnType<typeof useScrapeSinglePerformerSuspenseQuery>;
+export type ScrapeSinglePerformerQueryResult = Apollo.QueryResult<ScrapeSinglePerformerQuery, ScrapeSinglePerformerQueryVariables>;
+export function refetchScrapeSinglePerformerQuery(variables: ScrapeSinglePerformerQueryVariables) {
+      return { query: ScrapeSinglePerformerDocument, variables: variables }
+    }
+export const ScrapeMultiPerformersDocument = gql`
+    query ScrapeMultiPerformers($source: ScraperSourceInput!, $input: ScrapeMultiPerformersInput!) {
+  scrapeMultiPerformers(source: $source, input: $input) {
+    ...ScrapedPerformerData
+  }
+}
+    ${ScrapedPerformerDataFragmentDoc}`;
+
+/**
+ * __useScrapeMultiPerformersQuery__
+ *
+ * To run a query within a React component, call `useScrapeMultiPerformersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useScrapeMultiPerformersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useScrapeMultiPerformersQuery({
+ *   variables: {
+ *      source: // value for 'source'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useScrapeMultiPerformersQuery(baseOptions: Apollo.QueryHookOptions<ScrapeMultiPerformersQuery, ScrapeMultiPerformersQueryVariables> & ({ variables: ScrapeMultiPerformersQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ScrapeMultiPerformersQuery, ScrapeMultiPerformersQueryVariables>(ScrapeMultiPerformersDocument, options);
+      }
+export function useScrapeMultiPerformersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ScrapeMultiPerformersQuery, ScrapeMultiPerformersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ScrapeMultiPerformersQuery, ScrapeMultiPerformersQueryVariables>(ScrapeMultiPerformersDocument, options);
+        }
+export function useScrapeMultiPerformersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ScrapeMultiPerformersQuery, ScrapeMultiPerformersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ScrapeMultiPerformersQuery, ScrapeMultiPerformersQueryVariables>(ScrapeMultiPerformersDocument, options);
+        }
+export type ScrapeMultiPerformersQueryHookResult = ReturnType<typeof useScrapeMultiPerformersQuery>;
+export type ScrapeMultiPerformersLazyQueryHookResult = ReturnType<typeof useScrapeMultiPerformersLazyQuery>;
+export type ScrapeMultiPerformersSuspenseQueryHookResult = ReturnType<typeof useScrapeMultiPerformersSuspenseQuery>;
+export type ScrapeMultiPerformersQueryResult = Apollo.QueryResult<ScrapeMultiPerformersQuery, ScrapeMultiPerformersQueryVariables>;
+export function refetchScrapeMultiPerformersQuery(variables: ScrapeMultiPerformersQueryVariables) {
+      return { query: ScrapeMultiPerformersDocument, variables: variables }
+    }
+export const ScrapePerformerUrlDocument = gql`
+    query ScrapePerformerURL($url: String!) {
+  scrapePerformerURL(url: $url) {
+    ...ScrapedPerformerData
+  }
+}
+    ${ScrapedPerformerDataFragmentDoc}`;
+
+/**
+ * __useScrapePerformerUrlQuery__
+ *
+ * To run a query within a React component, call `useScrapePerformerUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useScrapePerformerUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useScrapePerformerUrlQuery({
+ *   variables: {
+ *      url: // value for 'url'
+ *   },
+ * });
+ */
+export function useScrapePerformerUrlQuery(baseOptions: Apollo.QueryHookOptions<ScrapePerformerUrlQuery, ScrapePerformerUrlQueryVariables> & ({ variables: ScrapePerformerUrlQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ScrapePerformerUrlQuery, ScrapePerformerUrlQueryVariables>(ScrapePerformerUrlDocument, options);
+      }
+export function useScrapePerformerUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ScrapePerformerUrlQuery, ScrapePerformerUrlQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ScrapePerformerUrlQuery, ScrapePerformerUrlQueryVariables>(ScrapePerformerUrlDocument, options);
+        }
+export function useScrapePerformerUrlSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ScrapePerformerUrlQuery, ScrapePerformerUrlQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ScrapePerformerUrlQuery, ScrapePerformerUrlQueryVariables>(ScrapePerformerUrlDocument, options);
+        }
+export type ScrapePerformerUrlQueryHookResult = ReturnType<typeof useScrapePerformerUrlQuery>;
+export type ScrapePerformerUrlLazyQueryHookResult = ReturnType<typeof useScrapePerformerUrlLazyQuery>;
+export type ScrapePerformerUrlSuspenseQueryHookResult = ReturnType<typeof useScrapePerformerUrlSuspenseQuery>;
+export type ScrapePerformerUrlQueryResult = Apollo.QueryResult<ScrapePerformerUrlQuery, ScrapePerformerUrlQueryVariables>;
+export function refetchScrapePerformerUrlQuery(variables: ScrapePerformerUrlQueryVariables) {
+      return { query: ScrapePerformerUrlDocument, variables: variables }
+    }
+export const ScrapeGroupUrlDocument = gql`
+    query ScrapeGroupURL($url: String!) {
+  scrapeGroupURL(url: $url) {
+    ...ScrapedGroupData
+  }
+}
+    ${ScrapedGroupDataFragmentDoc}`;
+
+/**
+ * __useScrapeGroupUrlQuery__
+ *
+ * To run a query within a React component, call `useScrapeGroupUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useScrapeGroupUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useScrapeGroupUrlQuery({
+ *   variables: {
+ *      url: // value for 'url'
+ *   },
+ * });
+ */
+export function useScrapeGroupUrlQuery(baseOptions: Apollo.QueryHookOptions<ScrapeGroupUrlQuery, ScrapeGroupUrlQueryVariables> & ({ variables: ScrapeGroupUrlQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ScrapeGroupUrlQuery, ScrapeGroupUrlQueryVariables>(ScrapeGroupUrlDocument, options);
+      }
+export function useScrapeGroupUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ScrapeGroupUrlQuery, ScrapeGroupUrlQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ScrapeGroupUrlQuery, ScrapeGroupUrlQueryVariables>(ScrapeGroupUrlDocument, options);
+        }
+export function useScrapeGroupUrlSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ScrapeGroupUrlQuery, ScrapeGroupUrlQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ScrapeGroupUrlQuery, ScrapeGroupUrlQueryVariables>(ScrapeGroupUrlDocument, options);
+        }
+export type ScrapeGroupUrlQueryHookResult = ReturnType<typeof useScrapeGroupUrlQuery>;
+export type ScrapeGroupUrlLazyQueryHookResult = ReturnType<typeof useScrapeGroupUrlLazyQuery>;
+export type ScrapeGroupUrlSuspenseQueryHookResult = ReturnType<typeof useScrapeGroupUrlSuspenseQuery>;
+export type ScrapeGroupUrlQueryResult = Apollo.QueryResult<ScrapeGroupUrlQuery, ScrapeGroupUrlQueryVariables>;
+export function refetchScrapeGroupUrlQuery(variables: ScrapeGroupUrlQueryVariables) {
+      return { query: ScrapeGroupUrlDocument, variables: variables }
+    }
+export const InstalledScraperPackagesDocument = gql`
+    query InstalledScraperPackages {
+  installedPackages(type: Scraper) {
+    ...PackageData
+  }
+}
+    ${PackageDataFragmentDoc}`;
+
+/**
+ * __useInstalledScraperPackagesQuery__
+ *
+ * To run a query within a React component, call `useInstalledScraperPackagesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useInstalledScraperPackagesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useInstalledScraperPackagesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useInstalledScraperPackagesQuery(baseOptions?: Apollo.QueryHookOptions<InstalledScraperPackagesQuery, InstalledScraperPackagesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<InstalledScraperPackagesQuery, InstalledScraperPackagesQueryVariables>(InstalledScraperPackagesDocument, options);
+      }
+export function useInstalledScraperPackagesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<InstalledScraperPackagesQuery, InstalledScraperPackagesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<InstalledScraperPackagesQuery, InstalledScraperPackagesQueryVariables>(InstalledScraperPackagesDocument, options);
+        }
+export function useInstalledScraperPackagesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<InstalledScraperPackagesQuery, InstalledScraperPackagesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<InstalledScraperPackagesQuery, InstalledScraperPackagesQueryVariables>(InstalledScraperPackagesDocument, options);
+        }
+export type InstalledScraperPackagesQueryHookResult = ReturnType<typeof useInstalledScraperPackagesQuery>;
+export type InstalledScraperPackagesLazyQueryHookResult = ReturnType<typeof useInstalledScraperPackagesLazyQuery>;
+export type InstalledScraperPackagesSuspenseQueryHookResult = ReturnType<typeof useInstalledScraperPackagesSuspenseQuery>;
+export type InstalledScraperPackagesQueryResult = Apollo.QueryResult<InstalledScraperPackagesQuery, InstalledScraperPackagesQueryVariables>;
+export function refetchInstalledScraperPackagesQuery(variables?: InstalledScraperPackagesQueryVariables) {
+      return { query: InstalledScraperPackagesDocument, variables: variables }
+    }
+export const InstalledScraperPackagesStatusDocument = gql`
+    query InstalledScraperPackagesStatus {
+  installedPackages(type: Scraper) {
+    ...PackageData
+    source_package {
+      ...PackageData
+    }
+  }
+}
+    ${PackageDataFragmentDoc}`;
+
+/**
+ * __useInstalledScraperPackagesStatusQuery__
+ *
+ * To run a query within a React component, call `useInstalledScraperPackagesStatusQuery` and pass it any options that fit your needs.
+ * When your component renders, `useInstalledScraperPackagesStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useInstalledScraperPackagesStatusQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useInstalledScraperPackagesStatusQuery(baseOptions?: Apollo.QueryHookOptions<InstalledScraperPackagesStatusQuery, InstalledScraperPackagesStatusQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<InstalledScraperPackagesStatusQuery, InstalledScraperPackagesStatusQueryVariables>(InstalledScraperPackagesStatusDocument, options);
+      }
+export function useInstalledScraperPackagesStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<InstalledScraperPackagesStatusQuery, InstalledScraperPackagesStatusQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<InstalledScraperPackagesStatusQuery, InstalledScraperPackagesStatusQueryVariables>(InstalledScraperPackagesStatusDocument, options);
+        }
+export function useInstalledScraperPackagesStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<InstalledScraperPackagesStatusQuery, InstalledScraperPackagesStatusQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<InstalledScraperPackagesStatusQuery, InstalledScraperPackagesStatusQueryVariables>(InstalledScraperPackagesStatusDocument, options);
+        }
+export type InstalledScraperPackagesStatusQueryHookResult = ReturnType<typeof useInstalledScraperPackagesStatusQuery>;
+export type InstalledScraperPackagesStatusLazyQueryHookResult = ReturnType<typeof useInstalledScraperPackagesStatusLazyQuery>;
+export type InstalledScraperPackagesStatusSuspenseQueryHookResult = ReturnType<typeof useInstalledScraperPackagesStatusSuspenseQuery>;
+export type InstalledScraperPackagesStatusQueryResult = Apollo.QueryResult<InstalledScraperPackagesStatusQuery, InstalledScraperPackagesStatusQueryVariables>;
+export function refetchInstalledScraperPackagesStatusQuery(variables?: InstalledScraperPackagesStatusQueryVariables) {
+      return { query: InstalledScraperPackagesStatusDocument, variables: variables }
+    }
+export const AvailableScraperPackagesDocument = gql`
+    query AvailableScraperPackages($source: String!) {
+  availablePackages(source: $source, type: Scraper) {
+    ...PackageData
+    requires {
+      package_id
+    }
+  }
+}
+    ${PackageDataFragmentDoc}`;
+
+/**
+ * __useAvailableScraperPackagesQuery__
+ *
+ * To run a query within a React component, call `useAvailableScraperPackagesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAvailableScraperPackagesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAvailableScraperPackagesQuery({
+ *   variables: {
+ *      source: // value for 'source'
+ *   },
+ * });
+ */
+export function useAvailableScraperPackagesQuery(baseOptions: Apollo.QueryHookOptions<AvailableScraperPackagesQuery, AvailableScraperPackagesQueryVariables> & ({ variables: AvailableScraperPackagesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AvailableScraperPackagesQuery, AvailableScraperPackagesQueryVariables>(AvailableScraperPackagesDocument, options);
+      }
+export function useAvailableScraperPackagesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AvailableScraperPackagesQuery, AvailableScraperPackagesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AvailableScraperPackagesQuery, AvailableScraperPackagesQueryVariables>(AvailableScraperPackagesDocument, options);
+        }
+export function useAvailableScraperPackagesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AvailableScraperPackagesQuery, AvailableScraperPackagesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AvailableScraperPackagesQuery, AvailableScraperPackagesQueryVariables>(AvailableScraperPackagesDocument, options);
+        }
+export type AvailableScraperPackagesQueryHookResult = ReturnType<typeof useAvailableScraperPackagesQuery>;
+export type AvailableScraperPackagesLazyQueryHookResult = ReturnType<typeof useAvailableScraperPackagesLazyQuery>;
+export type AvailableScraperPackagesSuspenseQueryHookResult = ReturnType<typeof useAvailableScraperPackagesSuspenseQuery>;
+export type AvailableScraperPackagesQueryResult = Apollo.QueryResult<AvailableScraperPackagesQuery, AvailableScraperPackagesQueryVariables>;
+export function refetchAvailableScraperPackagesQuery(variables: AvailableScraperPackagesQueryVariables) {
+      return { query: AvailableScraperPackagesDocument, variables: variables }
+    }
+export const ValidateStashBoxDocument = gql`
+    query ValidateStashBox($input: StashBoxInput!) {
+  validateStashBoxCredentials(input: $input) {
+    valid
+    status
+  }
+}
+    `;
+
+/**
+ * __useValidateStashBoxQuery__
+ *
+ * To run a query within a React component, call `useValidateStashBoxQuery` and pass it any options that fit your needs.
+ * When your component renders, `useValidateStashBoxQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useValidateStashBoxQuery({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useValidateStashBoxQuery(baseOptions: Apollo.QueryHookOptions<ValidateStashBoxQuery, ValidateStashBoxQueryVariables> & ({ variables: ValidateStashBoxQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ValidateStashBoxQuery, ValidateStashBoxQueryVariables>(ValidateStashBoxDocument, options);
+      }
+export function useValidateStashBoxLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ValidateStashBoxQuery, ValidateStashBoxQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ValidateStashBoxQuery, ValidateStashBoxQueryVariables>(ValidateStashBoxDocument, options);
+        }
+export function useValidateStashBoxSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ValidateStashBoxQuery, ValidateStashBoxQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ValidateStashBoxQuery, ValidateStashBoxQueryVariables>(ValidateStashBoxDocument, options);
+        }
+export type ValidateStashBoxQueryHookResult = ReturnType<typeof useValidateStashBoxQuery>;
+export type ValidateStashBoxLazyQueryHookResult = ReturnType<typeof useValidateStashBoxLazyQuery>;
+export type ValidateStashBoxSuspenseQueryHookResult = ReturnType<typeof useValidateStashBoxSuspenseQuery>;
+export type ValidateStashBoxQueryResult = Apollo.QueryResult<ValidateStashBoxQuery, ValidateStashBoxQueryVariables>;
+export function refetchValidateStashBoxQuery(variables: ValidateStashBoxQueryVariables) {
+      return { query: ValidateStashBoxDocument, variables: variables }
+    }
+export const SystemStatusDocument = gql`
+    query SystemStatus {
+  systemStatus {
+    databaseSchema
+    databasePath
+    appSchema
+    status
+    configPath
+    os
+    workingDir
+    homeDir
+    ffmpegPath
+    ffprobePath
+  }
+}
+    `;
+
+/**
+ * __useSystemStatusQuery__
+ *
+ * To run a query within a React component, call `useSystemStatusQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSystemStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSystemStatusQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSystemStatusQuery(baseOptions?: Apollo.QueryHookOptions<SystemStatusQuery, SystemStatusQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SystemStatusQuery, SystemStatusQueryVariables>(SystemStatusDocument, options);
+      }
+export function useSystemStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SystemStatusQuery, SystemStatusQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SystemStatusQuery, SystemStatusQueryVariables>(SystemStatusDocument, options);
+        }
+export function useSystemStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SystemStatusQuery, SystemStatusQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SystemStatusQuery, SystemStatusQueryVariables>(SystemStatusDocument, options);
+        }
+export type SystemStatusQueryHookResult = ReturnType<typeof useSystemStatusQuery>;
+export type SystemStatusLazyQueryHookResult = ReturnType<typeof useSystemStatusLazyQuery>;
+export type SystemStatusSuspenseQueryHookResult = ReturnType<typeof useSystemStatusSuspenseQuery>;
+export type SystemStatusQueryResult = Apollo.QueryResult<SystemStatusQuery, SystemStatusQueryVariables>;
+export function refetchSystemStatusQuery(variables?: SystemStatusQueryVariables) {
+      return { query: SystemStatusDocument, variables: variables }
+    }
 export const FindStudiosDocument = gql`
     query FindStudios($filter: FindFilterType, $studio_filter: StudioFilterType) {
   findStudios(filter: $filter, studio_filter: $studio_filter) {
@@ -10254,88 +12359,3 @@ export function useScanCompleteSubscribeSubscription(baseOptions?: Apollo.Subscr
       }
 export type ScanCompleteSubscribeSubscriptionHookResult = ReturnType<typeof useScanCompleteSubscribeSubscription>;
 export type ScanCompleteSubscribeSubscriptionResult = Apollo.SubscriptionResult<ScanCompleteSubscribeSubscription>;
-
-// ---- DLNA operations ----
-
-export type DlnaStatusQueryVariables = Exact<{ [key: string]: never; }>;
-export type DlnaStatusQuery = { __typename?: 'Query', dlnaStatus: { __typename?: 'DLNAStatus', running: boolean, until?: string | null, recentIPAddresses: Array<string>, allowedIPAddresses: Array<{ __typename?: 'DLNAIP', ipAddress: string, until?: string | null }> } };
-
-export const DlnaStatusDocument = gql`
-    query DLNAStatus {
-  dlnaStatus {
-    running
-    until
-    recentIPAddresses
-    allowedIPAddresses {
-      ipAddress
-      until
-    }
-  }
-}
-    `;
-export function useDlnaStatusQuery(baseOptions?: Apollo.QueryHookOptions<DlnaStatusQuery, DlnaStatusQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<DlnaStatusQuery, DlnaStatusQueryVariables>(DlnaStatusDocument, options);
-      }
-export type DlnaStatusQueryHookResult = ReturnType<typeof useDlnaStatusQuery>;
-export type DlnaStatusQueryResult = Apollo.QueryResult<DlnaStatusQuery, DlnaStatusQueryVariables>;
-
-export type EnableDlnaMutationVariables = Exact<{ input: EnableDlnaInput; }>;
-export type EnableDlnaMutation = { __typename?: 'Mutation', enableDLNA: boolean };
-export const EnableDlnaDocument = gql`
-    mutation EnableDLNA($input: EnableDLNAInput!) {
-  enableDLNA(input: $input)
-}
-    `;
-export type EnableDlnaMutationFn = Apollo.MutationFunction<EnableDlnaMutation, EnableDlnaMutationVariables>;
-export function useEnableDlnaMutation(baseOptions?: Apollo.MutationHookOptions<EnableDlnaMutation, EnableDlnaMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<EnableDlnaMutation, EnableDlnaMutationVariables>(EnableDlnaDocument, options);
-      }
-export type EnableDlnaMutationHookResult = ReturnType<typeof useEnableDlnaMutation>;
-export type EnableDlnaMutationResult = Apollo.MutationResult<EnableDlnaMutation>;
-
-export type DisableDlnaMutationVariables = Exact<{ input: DisableDlnaInput; }>;
-export type DisableDlnaMutation = { __typename?: 'Mutation', disableDLNA: boolean };
-export const DisableDlnaDocument = gql`
-    mutation DisableDLNA($input: DisableDLNAInput!) {
-  disableDLNA(input: $input)
-}
-    `;
-export type DisableDlnaMutationFn = Apollo.MutationFunction<DisableDlnaMutation, DisableDlnaMutationVariables>;
-export function useDisableDlnaMutation(baseOptions?: Apollo.MutationHookOptions<DisableDlnaMutation, DisableDlnaMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DisableDlnaMutation, DisableDlnaMutationVariables>(DisableDlnaDocument, options);
-      }
-export type DisableDlnaMutationHookResult = ReturnType<typeof useDisableDlnaMutation>;
-export type DisableDlnaMutationResult = Apollo.MutationResult<DisableDlnaMutation>;
-
-export type AddTempDlnaipMutationVariables = Exact<{ input: AddTempDlnaipInput; }>;
-export type AddTempDlnaipMutation = { __typename?: 'Mutation', addTempDLNAIP: boolean };
-export const AddTempDlnaipDocument = gql`
-    mutation AddTempDLNAIP($input: AddTempDLNAIPInput!) {
-  addTempDLNAIP(input: $input)
-}
-    `;
-export type AddTempDlnaipMutationFn = Apollo.MutationFunction<AddTempDlnaipMutation, AddTempDlnaipMutationVariables>;
-export function useAddTempDlnaipMutation(baseOptions?: Apollo.MutationHookOptions<AddTempDlnaipMutation, AddTempDlnaipMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<AddTempDlnaipMutation, AddTempDlnaipMutationVariables>(AddTempDlnaipDocument, options);
-      }
-export type AddTempDlnaipMutationHookResult = ReturnType<typeof useAddTempDlnaipMutation>;
-export type AddTempDlnaipMutationResult = Apollo.MutationResult<AddTempDlnaipMutation>;
-
-export type RemoveTempDlnaipMutationVariables = Exact<{ input: RemoveTempDlnaipInput; }>;
-export type RemoveTempDlnaipMutation = { __typename?: 'Mutation', removeTempDLNAIP: boolean };
-export const RemoveTempDlnaipDocument = gql`
-    mutation RemoveTempDLNAIP($input: RemoveTempDLNAIPInput!) {
-  removeTempDLNAIP(input: $input)
-}
-    `;
-export type RemoveTempDlnaipMutationFn = Apollo.MutationFunction<RemoveTempDlnaipMutation, RemoveTempDlnaipMutationVariables>;
-export function useRemoveTempDlnaipMutation(baseOptions?: Apollo.MutationHookOptions<RemoveTempDlnaipMutation, RemoveTempDlnaipMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RemoveTempDlnaipMutation, RemoveTempDlnaipMutationVariables>(RemoveTempDlnaipDocument, options);
-      }
-export type RemoveTempDlnaipMutationHookResult = ReturnType<typeof useRemoveTempDlnaipMutation>;
-export type RemoveTempDlnaipMutationResult = Apollo.MutationResult<RemoveTempDlnaipMutation>;

@@ -25,12 +25,9 @@ import { FavoriteIcon } from "../Shared/FavoriteIcon";
 import { PatchComponent } from "src/patch";
 import { ExternalLinksButton } from "../Shared/ExternalLinksButton";
 import { useConfigurationContext } from "src/hooks/Config";
-import { OCounterButton } from "../Shared/CountButton";
 
 export interface IPerformerCardExtraCriteria {
-  scenes?: ModifierCriterion<CriterionValue>[];
-  images?: ModifierCriterion<CriterionValue>[];
-  galleries?: ModifierCriterion<CriterionValue>[];
+  audios?: ModifierCriterion<CriterionValue>[];
   groups?: ModifierCriterion<CriterionValue>[];
   performer?: ILabeledId;
 }
@@ -49,61 +46,21 @@ interface IPerformerCardProps {
 const PerformerCardPopovers: React.FC<IPerformerCardProps> = PatchComponent(
   "PerformerCard.Popovers",
   ({ performer, extraCriteria }) => {
-    function maybeRenderScenesPopoverButton() {
-      if (!performer.scene_count) return;
+    function maybeRenderAudiosPopoverButton() {
+      if (!performer.audio_count) return;
 
       return (
         <PopoverCountButton
-          className="scene-count"
-          type="scene"
-          count={performer.scene_count}
-          url={NavUtils.makePerformerScenesUrl(
+          className="audio-count"
+          type="audio"
+          count={performer.audio_count}
+          url={NavUtils.makePerformerAudiosUrl(
             performer,
             extraCriteria?.performer,
-            extraCriteria?.scenes
+            extraCriteria?.audios
           )}
         />
       );
-    }
-
-    function maybeRenderImagesPopoverButton() {
-      if (!performer.image_count) return;
-
-      return (
-        <PopoverCountButton
-          className="image-count"
-          type="image"
-          count={performer.image_count}
-          url={NavUtils.makePerformerImagesUrl(
-            performer,
-            extraCriteria?.performer,
-            extraCriteria?.images
-          )}
-        />
-      );
-    }
-
-    function maybeRenderGalleriesPopoverButton() {
-      if (!performer.gallery_count) return;
-
-      return (
-        <PopoverCountButton
-          className="gallery-count"
-          type="gallery"
-          count={performer.gallery_count}
-          url={NavUtils.makePerformerGalleriesUrl(
-            performer,
-            extraCriteria?.performer,
-            extraCriteria?.galleries
-          )}
-        />
-      );
-    }
-
-    function maybeRenderOCounter() {
-      if (!performer.o_counter) return;
-
-      return <OCounterButton value={performer.o_counter} />;
     }
 
     function maybeRenderTagPopoverButton() {
@@ -141,23 +98,17 @@ const PerformerCardPopovers: React.FC<IPerformerCardProps> = PatchComponent(
     }
 
     if (
-      performer.scene_count ||
-      performer.image_count ||
-      performer.gallery_count ||
+      performer.audio_count ||
       performer.tags.length > 0 ||
-      performer.o_counter ||
       performer.group_count
     ) {
       return (
         <>
           <hr />
           <ButtonGroup className="card-popovers">
-            {maybeRenderScenesPopoverButton()}
+            {maybeRenderAudiosPopoverButton()}
             {maybeRenderGroupsPopoverButton()}
-            {maybeRenderImagesPopoverButton()}
-            {maybeRenderGalleriesPopoverButton()}
             {maybeRenderTagPopoverButton()}
-            {maybeRenderOCounter()}
           </ButtonGroup>
         </>
       );

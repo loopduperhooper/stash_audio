@@ -24,9 +24,7 @@ export const StudioPerformersPanel: React.FC<IStudioPerformersPanel> = ({
   };
 
   const extraCriteria = {
-    scenes: [studioCriterion],
-    images: [studioCriterion],
-    galleries: [studioCriterion],
+    audios: [studioCriterion],
     groups: [studioCriterion],
   };
 

@@ -1,8 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Form } from "react-bootstrap";
 import { FilterSelect, SelectObject } from "src/components/Shared/Select";
-import { objectTitle } from "src/core/files";
-import { galleryTitle } from "src/core/galleries";
 import { ILoadResults, useCacheResults } from "src/hooks/data";
 import {
   CriterionOption,
@@ -16,16 +14,13 @@ import {
 } from "src/models/list-filter/types";
 import { Option } from "./SidebarListFilter";
 import {
+  AudioFilterType,
   CriterionModifier,
   FilterMode,
-  GalleryFilterType,
   GroupFilterType,
-  ImageFilterType,
   InputMaybe,
   IntCriterionInput,
   PerformerFilterType,
-  SceneFilterType,
-  SceneMarkerFilterType,
   StudioFilterType,
 } from "src/core/generated-graphql";
 import { useIntl } from "react-intl";
@@ -48,21 +43,12 @@ export const LabeledIdFilter: React.FC<ILabeledIdFilterProps> = ({
     inputType !== "scene_tags" &&
     inputType !== "performer_tags" &&
     inputType !== "tags" &&
-    inputType !== "scenes" &&
-    inputType !== "groups" &&
-    inputType !== "galleries"
+    inputType !== "groups"
   ) {
     return null;
   }
 
   function getLabel(i: SelectObject) {
-    switch (inputType) {
-      case "galleries":
-        return galleryTitle(i);
-      case "scenes":
-        return objectTitle(i);
-    }
-
     return i.name ?? i.title ?? "";
   }
 
@@ -519,45 +505,38 @@ export function makeQueryVariables(query: string, extraProps: {}) {
 }
 
 interface IFilterType {
-  scenes_filter?: InputMaybe<SceneFilterType>;
-  scene_count?: InputMaybe<IntCriterionInput>;
+  audios_filter?: InputMaybe<AudioFilterType>;
+  audio_count?: InputMaybe<IntCriterionInput>;
   performers_filter?: InputMaybe<PerformerFilterType>;
   performer_count?: InputMaybe<IntCriterionInput>;
-  galleries_filter?: InputMaybe<GalleryFilterType>;
-  gallery_count?: InputMaybe<IntCriterionInput>;
-  images_filter?: InputMaybe<ImageFilterType>;
-  image_count?: InputMaybe<IntCriterionInput>;
   groups_filter?: InputMaybe<GroupFilterType>;
   group_count?: InputMaybe<IntCriterionInput>;
   studios_filter?: InputMaybe<StudioFilterType>;
   studio_count?: InputMaybe<IntCriterionInput>;
-  marker_count?: InputMaybe<IntCriterionInput>;
-  markers_filter?: InputMaybe<SceneMarkerFilterType>;
 }
 
 export function setObjectFilter(
   out: IFilterType,
   mode: FilterMode,
   relatedFilterOutput:
-    | SceneFilterType
+    | AudioFilterType
     | PerformerFilterType
-    | GalleryFilterType
     | GroupFilterType
     | StudioFilterType
 ) {
   const empty = Object.keys(relatedFilterOutput).length === 0;
 
   switch (mode) {
-    case FilterMode.Scenes:
-      // if empty, only get objects with scenes
+    case FilterMode.Audios:
+      // if empty, only get objects with audios
       if (empty) {
-        out.scene_count = {
+        out.audio_count = {
           modifier: CriterionModifier.GreaterThan,
           value: 0,
         };
         break;
       }
-      out.scenes_filter = relatedFilterOutput as SceneFilterType;
+      out.audios_filter = relatedFilterOutput as AudioFilterType;
       break;
     case FilterMode.Performers:
       // if empty, only get objects with performers
@@ -569,28 +548,6 @@ export function setObjectFilter(
         break;
       }
       out.performers_filter = relatedFilterOutput as PerformerFilterType;
-      break;
-    case FilterMode.Galleries:
-      // if empty, only get objects with galleries
-      if (empty) {
-        out.gallery_count = {
-          modifier: CriterionModifier.GreaterThan,
-          value: 0,
-        };
-        break;
-      }
-      out.galleries_filter = relatedFilterOutput as GalleryFilterType;
-      break;
-    case FilterMode.Images:
-      // if empty, only get objects with galleries
-      if (empty) {
-        out.image_count = {
-          modifier: CriterionModifier.GreaterThan,
-          value: 0,
-        };
-        break;
-      }
-      out.images_filter = relatedFilterOutput as ImageFilterType;
       break;
     case FilterMode.Groups:
       // if empty, only get objects with groups
@@ -613,20 +570,6 @@ export function setObjectFilter(
         break;
       }
       out.studios_filter = relatedFilterOutput as StudioFilterType;
-      break;
-    case FilterMode.SceneMarkers:
-      // if empty, only get objects with scene markers
-      if (empty) {
-        out.marker_count = {
-          modifier: CriterionModifier.GreaterThan,
-          value: 0,
-        };
-        break;
-      }
-      out.markers_filter = relatedFilterOutput as SceneMarkerFilterType;
-      break;
-    case FilterMode.Audios:
-      // audios_filter cross-reference not yet implemented on related filter types
       break;
     default:
       throw new Error("Invalid filter mode");

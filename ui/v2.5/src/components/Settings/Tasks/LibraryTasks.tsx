@@ -8,7 +8,6 @@ import {
 } from "src/core/StashService";
 import { withoutTypename } from "src/utils/data";
 import { useConfigurationContext } from "src/hooks/Config";
-import { IdentifyDialog } from "../../Dialogs/IdentifyDialog/IdentifyDialog";
 import * as GQL from "src/core/generated-graphql";
 import { DirectorySelectionDialog } from "./DirectorySelectionDialog";
 import { ScanOptions } from "./ScanOptions";
@@ -78,7 +77,6 @@ export const LibraryTasks: React.FC = () => {
   const [dialogOpen, setDialogOpenState] = useState({
     scan: false,
     autoTag: false,
-    identify: false,
     generate: false,
   });
 
@@ -258,14 +256,6 @@ export const LibraryTasks: React.FC = () => {
     }
   }
 
-  function maybeRenderIdentifyDialog() {
-    if (!dialogOpen.identify) return;
-
-    return (
-      <IdentifyDialog onClose={() => setDialogOpen({ identify: false })} />
-    );
-  }
-
   function renderGenerateDialog() {
     if (!dialogOpen.generate) {
       return;
@@ -342,7 +332,6 @@ export const LibraryTasks: React.FC = () => {
     <Form.Group>
       {renderScanDialog()}
       {renderAutoTagDialog()}
-      {maybeRenderIdentifyDialog()}
       {renderGenerateDialog()}
 
       <SettingSection headingID="library">
@@ -383,28 +372,6 @@ export const LibraryTasks: React.FC = () => {
         >
           <ScanOptions options={scanOptions} setOptions={onSetScanOptions} />
         </SettingGroup>
-      </SettingSection>
-
-      <SettingSection advanced>
-        <Setting
-          heading={
-            <>
-              <FormattedMessage id="config.tasks.identify.heading" />
-              <ManualLink tab="Identify">
-                <Icon icon={faQuestionCircle} />
-              </ManualLink>
-            </>
-          }
-          subHeadingID="config.tasks.identify.description"
-        >
-          <Button
-            variant="secondary"
-            type="submit"
-            onClick={() => setDialogOpen({ identify: true })}
-          >
-            <FormattedMessage id="actions.identify" />…
-          </Button>
-        </Setting>
       </SettingSection>
 
       <SettingSection advanced>
