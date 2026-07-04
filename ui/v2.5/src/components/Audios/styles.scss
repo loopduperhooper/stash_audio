@@ -1,5 +1,11 @@
 // Audio card grid
 .audio-card {
+  width: 240px;
+
+  @media (max-width: 576px) {
+    width: 100%;
+  }
+
   &-preview {
     aspect-ratio: 1 / 1;
     display: flex;
