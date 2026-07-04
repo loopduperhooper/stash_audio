@@ -280,7 +280,7 @@ func TestExtractCoverIfMissing_SkipsWhenNoFFMpegOrCoverUpdater(t *testing.T) {
 	cu := &mockCoverUpdater{}
 	h := &ScanHandler{} // intentionally missing both fields
 
-	h.extractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
+	h.ExtractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
 
 	cu.AssertNotCalled(t, "HasCover", mock.Anything, mock.Anything)
 	cu.AssertNotCalled(t, "UpdateCover", mock.Anything, mock.Anything, mock.Anything)
@@ -295,7 +295,7 @@ func TestExtractCoverIfMissing_SkipsWhenCoverAlreadyExists(t *testing.T) {
 		// FFMpeg intentionally nil — extraction must not be attempted.
 	}
 
-	h.extractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
+	h.ExtractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
 
 	cu.AssertCalled(t, "HasCover", mock.Anything, testAudioID)
 	cu.AssertNotCalled(t, "UpdateCover", mock.Anything, mock.Anything, mock.Anything)
@@ -315,7 +315,7 @@ func TestExtractCoverIfMissing_SkipsUpdateWhenNoCoverExtracted(t *testing.T) {
 		FFMpeg:       nil,
 	}
 
-	h.extractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
+	h.ExtractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
 
 	cu.AssertNotCalled(t, "UpdateCover", mock.Anything, mock.Anything, mock.Anything)
 }
@@ -327,7 +327,7 @@ func TestExtractCoverIfMissing_SkipsUpdateOnHasCoverError(t *testing.T) {
 	h := &ScanHandler{CoverUpdater: cu}
 
 	// Must not panic and must not call UpdateCover.
-	h.extractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
+	h.ExtractCoverIfMissing(context.Background(), testAudioID, "test.mp3")
 
 	cu.AssertNotCalled(t, "UpdateCover", mock.Anything, mock.Anything, mock.Anything)
 }

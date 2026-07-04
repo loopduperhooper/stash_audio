@@ -113,7 +113,7 @@ func (h *ScanHandler) Handle(ctx context.Context, f models.File, oldFile models.
 			return fmt.Errorf("creating new audio: %w", err)
 		}
 
-		h.extractCoverIfMissing(ctx, newAudio.ID, f.Base().Path)
+		h.ExtractCoverIfMissing(ctx, newAudio.ID, f.Base().Path)
 
 		if err := h.associateSubdirGroup(ctx, newAudio.ID, f.Base().Path); err != nil {
 			logger.Warnf("auto-group for audio %d: %v", newAudio.ID, err)
@@ -228,18 +228,20 @@ func (h *ScanHandler) associateExisting(ctx context.Context, existing []*models.
 
 		// Extract cover if the audio has none yet (respects manually uploaded covers).
 		if !found {
-			h.extractCoverIfMissing(ctx, a.ID, f.Path)
+			h.ExtractCoverIfMissing(ctx, a.ID, f.Path)
 		}
 	}
 
 	return nil
 }
 
-// extractCoverIfMissing finds cover art for audioID and stores it, but only
+// ExtractCoverIfMissing finds cover art for audioID and stores it, but only
 // when no cover is already set. It checks sidecar image files first (same
 // directory, common cover names), then falls back to embedded art via ffmpeg.
 // Errors are logged and not propagated so cover extraction never aborts a scan.
-func (h *ScanHandler) extractCoverIfMissing(ctx context.Context, audioID int, filePath string) {
+// Exported so it can be reused by standalone tools (e.g. cmd/backfill_covers)
+// that want to backfill covers for audios scanned before this logic existed.
+func (h *ScanHandler) ExtractCoverIfMissing(ctx context.Context, audioID int, filePath string) {
 	if h.CoverUpdater == nil {
 		return
 	}
@@ -299,15 +301,26 @@ func findSidecarCover(audioPath string) []byte {
 	}
 
 	// Priority 2: common cover filenames in the same directory
+	if data := FindFolderCover(dir); len(data) > 0 {
+		return data
+	}
+
+	return nil
+}
+
+// FindFolderCover looks for a cover image file directly inside dir, trying
+// each of sidecarCoverNames in turn. It's used both for per-audio sidecar
+// lookup and for folder-level lookup (e.g. backfilling a Group's cover from
+// the folder it maps to). Returns nil if none is found.
+func FindFolderCover(dir string) []byte {
 	for _, name := range sidecarCoverNames {
 		for _, ext := range sidecarCoverExts {
 			candidate := filepath.Join(dir, name+ext)
 			if data, err := os.ReadFile(candidate); err == nil {
-				logger.Debugf("Using sidecar cover: %s", candidate)
+				logger.Debugf("Using folder cover: %s", candidate)
 				return data
 			}
 		}
 	}
-
 	return nil
 }
