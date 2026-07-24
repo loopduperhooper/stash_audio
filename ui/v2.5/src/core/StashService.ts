@@ -166,8 +166,20 @@ export const useAudioUpdate = () => GQL.useAudioUpdateMutation();
 
 export const useBulkAudioUpdate = () => GQL.useBulkAudioUpdateMutation();
 
-export const useAudioIncrementO = () => GQL.useAudioIncrementOMutation();
-export const useAudioDecrementO = () => GQL.useAudioDecrementOMutation();
+export const useAudioIncrementO = () =>
+  GQL.useAudioIncrementOMutation({
+    update(cache, result, { variables }) {
+      if (result.data?.audioIncrementO === undefined || !variables?.id) return;
+      updateO(cache, "Audio", variables.id, result.data.audioIncrementO);
+    },
+  });
+export const useAudioDecrementO = () =>
+  GQL.useAudioDecrementOMutation({
+    update(cache, result, { variables }) {
+      if (result.data?.audioDecrementO === undefined || !variables?.id) return;
+      updateO(cache, "Audio", variables.id, result.data.audioDecrementO);
+    },
+  });
 
 export const useAudioIncrementPlayCount = () =>
   GQL.useAudioIncrementPlayCountMutation();

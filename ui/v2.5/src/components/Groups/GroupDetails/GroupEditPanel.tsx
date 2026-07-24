@@ -25,6 +25,10 @@ import {
   yupUniqueStringList,
 } from "src/utils/yup";
 import { Studio, StudioSelect } from "src/components/Studios/StudioSelect";
+import {
+  Performer,
+  PerformerSelect,
+} from "src/components/Performers/PerformerSelect";
 import { useTagsEdit } from "src/hooks/tagsEdit";
 import { Group } from "src/components/Groups/GroupSelect";
 import { RelatedGroupTable, IRelatedGroupEntry } from "./RelatedGroupTable";
@@ -68,6 +72,7 @@ export const GroupEditPanel: React.FC<IGroupEditPanel> = ({
 
   const [studio, setStudio] = useState<Studio | null>(null);
   const [containingGroups, setContainingGroups] = useState<Group[]>([]);
+  const [performers, setPerformers] = useState<Performer[]>([]);
 
   const schema = yup.object({
     name: yup.string().required(),
@@ -75,6 +80,7 @@ export const GroupEditPanel: React.FC<IGroupEditPanel> = ({
     duration: yup.number().integer().min(0).nullable().defined(),
     date: yupDateString(intl),
     studio_id: yup.string().required().nullable(),
+    performer_ids: yup.array(yup.string().required()).defined(),
     tag_ids: yup.array(yup.string().required()).defined(),
     containing_groups: yup
       .array(
@@ -98,6 +104,7 @@ export const GroupEditPanel: React.FC<IGroupEditPanel> = ({
     duration: group?.duration ?? null,
     date: group?.date ?? "",
     studio_id: group?.studio?.id ?? null,
+    performer_ids: (group?.performers ?? []).map((p) => p.id),
     tag_ids: (group?.tags ?? []).map((t) => t.id),
     containing_groups: (group?.containing_groups ?? []).map((m) => {
       return { group_id: m.group.id, description: m.description ?? "" };
@@ -148,6 +155,14 @@ export const GroupEditPanel: React.FC<IGroupEditPanel> = ({
     formik.setFieldValue("studio_id", item ? item.id : null);
   }
 
+  function onSetPerformers(items: Performer[]) {
+    setPerformers(items);
+    formik.setFieldValue(
+      "performer_ids",
+      items.map((i) => i.id)
+    );
+  }
+
   useEffect(() => {
     setStudio(group.studio ?? null);
   }, [group.studio]);
@@ -155,6 +170,10 @@ export const GroupEditPanel: React.FC<IGroupEditPanel> = ({
   useEffect(() => {
     setContainingGroups(group.containing_groups?.map((m) => m.group) ?? []);
   }, [group.containing_groups]);
+
+  useEffect(() => {
+    setPerformers(group.performers ?? []);
+  }, [group.performers]);
 
   // set up hotkeys
   useEffect(() => {
@@ -420,6 +439,19 @@ export const GroupEditPanel: React.FC<IGroupEditPanel> = ({
     return renderField("tag_ids", title, tagsControl());
   }
 
+  function renderPerformersField() {
+    const title = intl.formatMessage({ id: "performers" });
+    const control = (
+      <PerformerSelect
+        isMulti
+        onSelect={onSetPerformers}
+        values={performers}
+      />
+    );
+
+    return renderField("performer_ids", title, control);
+  }
+
   function onSetContainingGroupEntries(input: IRelatedGroupEntry[]) {
     setContainingGroups(input.map((m) => m.group));
 
@@ -477,6 +509,7 @@ export const GroupEditPanel: React.FC<IGroupEditPanel> = ({
         {renderInputField("director")}
         {renderURLListField("urls", onScrapeGroupURL, urlScrapable)}
         {renderInputField("synopsis", "textarea")}
+        {renderPerformersField()}
         {renderTagsField()}
 
         <CustomFieldsInput

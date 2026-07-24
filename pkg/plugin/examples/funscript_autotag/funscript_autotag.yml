@@ -1,0 +1,19 @@
+name: Funscript Auto-Tagger
+description: Tags audio files with a "Funscript" tag when a same-named .funscript sidecar file is present alongside the audio file.
+version: 1.0
+url: http://www.github.com/stashapp/stash
+exec:
+  - python
+  - "{pluginDir}/funscript_autotag.py"
+interface: raw
+hooks:
+  - name: Tag audio on scan
+    description: Checks a newly scanned or updated audio file for a matching .funscript sidecar and tags it.
+    triggeredBy:
+      - Audio.Create.Post
+      - Audio.Update.Post
+tasks:
+  - name: Tag existing library
+    description: Scans the entire audio library for .funscript sidecars and tags all matches.
+    defaultArgs:
+      mode: backfill

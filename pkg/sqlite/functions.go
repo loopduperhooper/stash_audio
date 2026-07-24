@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"math"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -34,4 +35,15 @@ func durationToTinyIntFn(str string) (int64, error) {
 
 func basenameFn(str string) (string, error) {
 	return filepath.Base(str), nil
+}
+
+// modFn implements SQL mod(a, b) without relying on SQLite being compiled
+// with the sqlite_math_functions build tag. Operates on floats since the
+// random-sort expression can overflow int64, at which point SQLite passes
+// the value through as a REAL.
+func modFn(a, b float64) (float64, error) {
+	if b == 0 {
+		return 0, nil
+	}
+	return math.Mod(a, b), nil
 }
