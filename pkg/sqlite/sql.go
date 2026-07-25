@@ -133,14 +133,12 @@ func getRandomSort(tableName string, direction string, seed uint64) string {
 	colName := getColumn(tableName, "id")
 
 	// https://stackoverflow.com/questions/21949795#comment33255354_21949859
-	// p1 := 52959209
-	// p2 := 1047483763
-	// p3 := 2147483647
 	// n := <colName>
 	// ORDER BY ((n+seed)*(n+seed)*p1 + (n+seed)*p2) % p3
-	// since sqlite converts overflowing numbers to reals, a custom db function that uses uints with overflow should be faster,
-	// however in practice the overhead of calling a custom function vastly outweighs the benefits
-	return fmt.Sprintf(" ORDER BY mod((%[1]s + %[2]d) * (%[1]s + %[2]d) * 52959209 + (%[1]s + %[2]d) * 1047483763, 2147483647) %[3]s", colName, seed, direction)
+	// random_sort_key evaluates this with modular reduction after each
+	// multiplication, so it stays in int64 range instead of overflowing to
+	// a float REAL (see randomSortKeyFn for why that matters).
+	return fmt.Sprintf(" ORDER BY random_sort_key(%[1]s, %[2]d) %[3]s", colName, seed, direction)
 }
 
 func getCountSort(primaryTable, joinTable, primaryFK, direction string) string {
