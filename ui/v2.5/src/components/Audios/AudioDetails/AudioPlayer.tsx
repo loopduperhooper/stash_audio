@@ -62,7 +62,6 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
   const funscriptUrl = audio.paths.funscript ?? undefined;
   const subtitlesUrl = audio.paths.subtitles ?? undefined;
 
-  const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const [showIntiface, setShowIntiface] = useState(false);
   const [activeCue, setActiveCue] = useState<string | null>(null);
 
@@ -96,7 +95,6 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
     const el = audioRef.current;
     if (!el) return;
     const t = el.currentTime;
-    setCurrentTimeMs(t * 1000);
     onTimeUpdate?.(t);
 
     const cues = cuesRef.current;
@@ -150,7 +148,7 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
         </div>
       )}
 
-      <FunscriptSync funscriptUrl={funscriptUrl} currentTimeMs={currentTimeMs} />
+      <FunscriptSync funscriptUrl={funscriptUrl} audioRef={audioRef} />
 
       <IntifaceModal show={showIntiface} onHide={() => setShowIntiface(false)} />
     </div>
