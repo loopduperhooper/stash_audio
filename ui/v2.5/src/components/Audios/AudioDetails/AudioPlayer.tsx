@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import { faBolt } from "@fortawesome/free-solid-svg-icons";
 import * as GQL from "src/core/generated-graphql";
 import { objectTitle } from "src/core/files";
 import { Icon } from "src/components/Shared/Icon";
 import { useIntiface } from "src/hooks/IntifaceContext";
+import { motionAlgorithms } from "src/motion";
 import { FunscriptSync } from "./FunscriptSync";
 import { IntifaceModal } from "../IntifaceModal";
 
@@ -62,13 +63,20 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
   const funscriptUrl = audio.paths.funscript ?? undefined;
   const subtitlesUrl = audio.paths.subtitles ?? undefined;
 
-  const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const [showIntiface, setShowIntiface] = useState(false);
   const [activeCue, setActiveCue] = useState<string | null>(null);
 
-  const { enabled, status } = useIntiface();
-  const hasFunscript = !!funscriptUrl;
-  const syncActive = enabled && status === "connected" && hasFunscript;
+  const { enabled, status, updatesSuspended, toggleUpdates, updateShortcut } = useIntiface();
+  const [motionSelection, setMotionSelection] = useState({ trackId: audio.id, source: "track" });
+  useEffect(() => {
+    setMotionSelection({ trackId: audio.id, source: "track" });
+  }, [audio.id]);
+  // A new track always defaults to its own script (or no motion if absent).
+  const motionSource = motionSelection.trackId === audio.id ? motionSelection.source : "track";
+  const algorithm = motionAlgorithms.find((item) => item.id === motionSource);
+  const hasFunscript = !!funscriptUrl || !!algorithm;
+  const syncConnected = enabled && status === "connected" && hasFunscript;
+  const syncActive = syncConnected && !updatesSuspended;
 
   const cuesRef = useRef<IVTTCue[]>([]);
   const lastCueRef = useRef<string | null>(null);
@@ -84,19 +92,20 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
     lastCueRef.current = null;
     setActiveCue(null);
     if (!subtitlesUrl) return;
-    fetch(subtitlesUrl)
+    const controller = new AbortController();
+    fetch(subtitlesUrl, { signal: controller.signal })
       .then((r) => r.text())
       .then((raw) => {
-        cuesRef.current = parseVTT(raw);
+        if (!controller.signal.aborted) cuesRef.current = parseVTT(raw);
       })
       .catch(() => {});
-  }, [subtitlesUrl]);
+    return () => controller.abort();
+  }, [audio.id, subtitlesUrl]);
 
   function handleTimeUpdate() {
     const el = audioRef.current;
     if (!el) return;
     const t = el.currentTime;
-    setCurrentTimeMs(t * 1000);
     onTimeUpdate?.(t);
 
     const cues = cuesRef.current;
@@ -136,8 +145,19 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
         </audio>
       )}
 
-      {hasFunscript && (
-        <div className="audio-intiface-bar">
+      <div className="audio-intiface-bar">
+        <Form.Group controlId="audio-motion-source">
+          <Form.Label>Motion source</Form.Label>
+          <Form.Control
+            as="select"
+            value={motionSource}
+            onChange={(event) => setMotionSelection({ trackId: audio.id, source: event.currentTarget.value })}
+          >
+            <option value="track">{funscriptUrl ? "Use track script" : "No track script — motion off"}</option>
+            {motionAlgorithms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </Form.Control>
+          {algorithm && <Form.Text muted>{algorithm.description}</Form.Text>}
+        </Form.Group>
           <Button
             variant={syncActive ? "success" : "outline-secondary"}
             size="sm"
@@ -145,12 +165,25 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
             title="Device sync settings"
           >
             <Icon icon={faBolt} className="mr-1" />
-            {syncActive ? "Sync active" : "Device sync"}
+            {syncConnected && updatesSuspended
+              ? "Updates stopped"
+              : syncActive ? "Sync active" : "Device sync"}
           </Button>
+          {syncConnected && (
+            <Button
+              variant={updatesSuspended ? "warning" : "outline-danger"}
+              size="sm"
+              className="ml-2"
+              onClick={toggleUpdates}
+              aria-pressed={updatesSuspended}
+              title={`Toggle device updates (${updateShortcut})`}
+            >
+              {updatesSuspended ? "Resume updates" : "Stop updates"}
+            </Button>
+          )}
         </div>
-      )}
 
-      <FunscriptSync funscriptUrl={funscriptUrl} currentTimeMs={currentTimeMs} />
+      <FunscriptSync key={audio.id} funscriptUrl={funscriptUrl} audioRef={audioRef} algorithm={algorithm} />
 
       <IntifaceModal show={showIntiface} onHide={() => setShowIntiface(false)} />
     </div>

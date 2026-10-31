@@ -1,6 +1,8 @@
 import React from "react";
 import { Button, Form, Modal, Badge } from "react-bootstrap";
 import { useIntiface, ConnectionStatus } from "src/hooks/IntifaceContext";
+import { DEFAULT_DEVICE_SYNC_SHORTCUT, deviceSyncShortcut } from "src/utils/deviceSyncShortcut";
+import { DEFAULT_SYNC_TIMING } from "src/utils/funscriptScheduler";
 
 interface IProps {
   show: boolean;
@@ -25,6 +27,9 @@ export const IntifaceModal: React.FC<IProps> = ({ show, onHide }) => {
     status, errorMessage,
     linearDevices,
     connect, disconnect,
+    updatesSuspended, toggleUpdates,
+    updateShortcut, setUpdateShortcut,
+    syncTiming, setSyncTiming,
   } = useIntiface();
 
   const isConnected = status === "connected";
@@ -49,8 +54,72 @@ export const IntifaceModal: React.FC<IProps> = ({ show, onHide }) => {
           />
         </Form.Group>
 
+        <Form.Group controlId="intiface-update-shortcut" className="mb-3">
+          <Form.Label>Stop / resume updates shortcut</Form.Label>
+          <Form.Control
+            type="text"
+            readOnly
+            value={updateShortcut}
+            onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
+              if (event.key === "Tab") return;
+              event.preventDefault();
+              event.stopPropagation();
+              if (event.repeat || event.nativeEvent.isComposing) return;
+              const shortcut = deviceSyncShortcut(event);
+              if (shortcut) setUpdateShortcut(shortcut);
+            }}
+          />
+          <Form.Text muted>
+            Focus this field and press a key combination to assign it. This
+            shortcut takes priority over page shortcuts while connected and is
+            ignored in text fields. Tab moves focus.
+          </Form.Text>
+          <Button
+            size="sm"
+            variant="outline-secondary"
+            className="mt-2"
+            onClick={() => setUpdateShortcut(DEFAULT_DEVICE_SYNC_SHORTCUT)}
+          >
+            Reset to Page Down
+          </Button>
+        </Form.Group>
+
         {enabled && (
           <>
+            <Form.Group controlId="intiface-sync-interval" className="mb-3">
+              <Form.Label>Scheduler interval (ms)</Form.Label>
+              <Form.Control
+                as="select"
+                value={syncTiming.intervalMs}
+                onChange={(e) => setSyncTiming({ ...syncTiming, intervalMs: Number(e.currentTarget.value) })}
+              >
+                {Array.from(new Set([10, 20, 25, 50, 100, syncTiming.intervalMs])).sort((a, b) => a - b).map((ms) => (
+                  <option key={ms} value={ms}>{ms} ms</option>
+                ))}
+              </Form.Control>
+              <Form.Text muted>
+                Checks playback timing at this interval. Sends one command per
+                target, not every check. Smaller values improve timing precision;
+                browser throttling can still delay updates.
+              </Form.Text>
+            </Form.Group>
+            <Form.Group controlId="intiface-sync-offset" className="mb-3">
+              <Form.Label>Script offset (ms): {syncTiming.offsetMs}</Form.Label>
+              <Form.Control
+                type="range"
+                min={-1000}
+                max={1000}
+                step={10}
+                value={syncTiming.offsetMs}
+                onChange={(e) => setSyncTiming({ ...syncTiming, offsetMs: Number(e.currentTarget.value) })}
+              />
+              <Form.Text muted>
+                Positive runs the script ahead of audio; negative delays it.
+              </Form.Text>
+              <Button size="sm" variant="outline-secondary" className="mt-2" onClick={() => setSyncTiming(DEFAULT_SYNC_TIMING)}>
+                Reset timing
+              </Button>
+            </Form.Group>
             {/* WS URL */}
             <Form.Group className="mb-3">
               <Form.Label>Intiface Central WebSocket URL</Form.Label>
@@ -84,6 +153,22 @@ export const IntifaceModal: React.FC<IProps> = ({ show, onHide }) => {
             )}
 
             {/* Device list */}
+            {isConnected && (
+              <div className="mb-3">
+                <Button
+                  variant={updatesSuspended ? "warning" : "outline-danger"}
+                  onClick={toggleUpdates}
+                  aria-pressed={updatesSuspended}
+                >
+                  {updatesSuspended ? "Resume updates" : "Stop updates"}
+                </Button>
+                <p className="small mt-2 mb-0" role="status">
+                  {updatesSuspended
+                    ? "Device updates stopped. Audio playback continues."
+                    : "Device updates allowed."}
+                </p>
+              </div>
+            )}
             {isConnected && (
               <div>
                 <p className="fw-bold mb-1">
