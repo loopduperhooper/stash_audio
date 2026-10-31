@@ -6,7 +6,7 @@ import { sixtyBpm } from '../../ui/v2.5/src/motion/sixtyBpm.ts';
 
 const actions = [{at:0,pos:0},{at:500,pos:100},{at:1000,pos:0},{at:1500,pos:100}];
 
-function harness(source = actions, interpolate = false) {
+function harness(source = actions, intervalMs = 20) {
   const media = Object.assign(new EventTarget(), {currentTime:0, playbackRate:1, paused:false, ended:false, seeking:false, readyState:4});
   let now = 0, id = 0;
   const jobs = new Map(), sent = [];
@@ -28,7 +28,7 @@ function harness(source = actions, interpolate = false) {
     move(ms); now+=ms;
     const callbacks = [...jobs.values()]; jobs.clear(); callbacks.forEach(job => job.fn());
   }
-  const start = () => startFunscriptScheduler(media, source, (position,durationMs) => sent.push({position,durationMs,at:now}), {intervalMs:20, offsetMs:0, interpolate}, clock);
+  const start = () => startFunscriptScheduler(media, source, (position,durationMs) => sent.push({position,durationMs,at:now}), {intervalMs, offsetMs:0}, clock);
   const event = name => media.dispatchEvent(new Event(name));
   return {media, jobs, sent, advance, late, start, event};
 }
@@ -120,15 +120,28 @@ test('rolling algorithm windows keep sending reversals without duplicate command
 });
 
 
-test('streaming interpolates the live curve and recovers after delayed callbacks', () => {
-  const h = harness(actions, true), stop = h.start();
-  assert.equal(h.sent[0].position, 0);
-  h.advance(100);
-  assert.ok(Math.abs(h.sent.at(-1).position - .2) < 1e-9);
-  h.late(1000);
-  assert.ok(Math.abs(h.sent.at(-1).position - .2) < 1e-9);
-  assert.equal(h.sent.at(-1).durationMs, 20);
-  h.advance(400);
-  assert.equal(h.sent.at(-1).position, 1);
-  stop(); assert.equal(h.jobs.size, 0);
+test('endpoint moves remain uninterrupted at both 10ms and 100ms polling', () => {
+  const points = [{at:0,pos:0},{at:375,pos:100},{at:750,pos:0},{at:1125,pos:100}];
+  for (const interval of [10, 100]) {
+    const h = harness(points, interval), stop = h.start();
+    h.advance(1125);
+    assert.deepEqual(h.sent, [
+      {position:1,durationMs:375,at:0},
+      {position:0,durationMs:375,at:375},
+      {position:1,durationMs:375,at:750},
+    ]);
+    assert.equal(h.jobs.size, 0);
+    stop();
+  }
+});
+
+test('short segments wake before the polling interval and delayed ticks use remaining time', () => {
+  const points = [{at:0,pos:0},{at:75,pos:100},{at:150,pos:0},{at:225,pos:100}];
+  const h = harness(points, 100), stop = h.start();
+  h.advance(75);
+  assert.deepEqual(h.sent.at(-1), {position:0,durationMs:75,at:75});
+  h.late(100);
+  assert.deepEqual(h.sent.at(-1), {position:1,durationMs:50,at:175});
+  assert.equal(h.sent.length,3);
+  stop();
 });

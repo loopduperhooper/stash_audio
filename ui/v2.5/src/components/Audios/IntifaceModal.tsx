@@ -98,9 +98,10 @@ export const IntifaceModal: React.FC<IProps> = ({ show, onHide }) => {
                 ))}
               </Form.Control>
               <Form.Text muted>
-                Checks playback timing at this interval. Sends one command per
-                target, not every check. Smaller values improve timing precision;
-                browser throttling can still delay updates.
+                Each move targets the next script point for its remaining duration.
+                Timing is checked at this interval and at each point’s deadline;
+                checks do not interrupt an active move. Browser throttling can
+                still delay updates.
               </Form.Text>
             </Form.Group>
             <Form.Group controlId="intiface-sync-offset" className="mb-3">
