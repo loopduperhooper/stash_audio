@@ -107,6 +107,125 @@
   z-index: 10;
 }
 
+.audio-queue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.5rem 0;
+}
+
+.audio-detail-playback {
+  padding: 1rem;
+  text-align: center;
+
+  img {
+    max-height: 65vh;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .audio-queue-actions {
+    justify-content: center;
+  }
+}
+
+.audio-queue-session.active .main {
+  padding-bottom: 180px;
+}
+
+.audio-queue-player {
+  background: #181818;
+  border-top: 1px solid #555;
+  bottom: 0;
+  box-shadow: 0 -2px 12px #0008;
+  color: #eee;
+  left: 0;
+  max-height: 75vh;
+  overflow-y: auto;
+  padding: 0.5rem 1rem;
+  position: fixed;
+  right: 0;
+  z-index: 1030;
+
+  .audio-queue-heading {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .audio-queue-current {
+    flex: 1;
+    min-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .audio-player {
+    height: auto;
+    min-height: 0;
+  }
+
+  .audio-player-element {
+    padding: 0.5rem 0 0;
+  }
+
+  .audio-player-cover,
+  .audio-intiface-bar {
+    display: none;
+  }
+
+  &.expanded {
+    .audio-queue-content {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      padding-top: 0.5rem;
+    }
+
+    .audio-player-cover {
+      display: flex;
+      flex: none;
+      height: 160px;
+    }
+
+    .audio-cover-image {
+      object-fit: contain;
+    }
+
+    .audio-cover-placeholder {
+      min-height: 160px;
+    }
+
+    .audio-intiface-bar {
+      display: block;
+      padding-top: 0.5rem;
+      position: static;
+    }
+  }
+
+  .audio-queue-list {
+    padding-left: 1.5rem;
+
+    li {
+      padding: 0.4rem 0;
+    }
+  }
+
+  .audio-queue-item-actions {
+    display: inline-flex;
+    gap: 0.3rem;
+    margin-left: 0.5rem;
+  }
+
+  @media (max-width: 767px) {
+    &.expanded .audio-queue-content {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
 // At xl breakpoint, make the player fill the viewport height
 @media (min-width: 1200px) {
   .audio-player-container {

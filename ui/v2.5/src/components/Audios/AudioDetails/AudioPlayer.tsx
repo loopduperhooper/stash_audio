@@ -1,17 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { faBolt } from "@fortawesome/free-solid-svg-icons";
 import * as GQL from "src/core/generated-graphql";
 import { objectTitle } from "src/core/files";
 import { Icon } from "src/components/Shared/Icon";
 import { useIntiface } from "src/hooks/IntifaceContext";
+import { loadQueuedAudio } from "src/utils/audioPlayback";
 import { motionAlgorithms } from "src/motion";
 import { FunscriptSync } from "./FunscriptSync";
 import { IntifaceModal } from "../IntifaceModal";
 
 interface IAudioPlayerProps {
-  audio: GQL.AudioDataFragment;
-  onTimeUpdate?: (currentTime: number) => void;
+  audio: GQL.AudioDataFragment | null;
+  entryKey: string;
+  initialTime?: number;
+  autoplay?: boolean;
+  onTimeUpdate?: (currentTime: number, flush?: boolean) => void;
+  onEnded?: () => void;
 }
 
 interface IVTTCue {
@@ -54,25 +59,33 @@ function parseVTT(raw: string): IVTTCue[] {
 
 export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
   audio,
+  entryKey,
+  initialTime,
+  autoplay = false,
   onTimeUpdate,
+  onEnded,
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const title = objectTitle(audio);
-  const coverSrc = audio.paths.cover ?? "";
-  const streamSrc = audio.paths.stream ?? "";
-  const funscriptUrl = audio.paths.funscript ?? undefined;
-  const subtitlesUrl = audio.paths.subtitles ?? undefined;
+  const startPosition = useRef({ key: entryKey, position: initialTime });
+  if (startPosition.current.key !== entryKey) startPosition.current = { key: entryKey, position: initialTime };
+  if (startPosition.current.position === undefined && audio) startPosition.current.position = audio.resume_time;
+  const title = audio ? objectTitle(audio) : "";
+  const coverSrc = audio?.paths.cover ?? "";
+  const streamSrc = audio?.paths.stream ?? "";
+  const funscriptUrl = audio?.paths.funscript ?? undefined;
+  const subtitlesUrl = audio?.paths.subtitles ?? undefined;
 
   const [showIntiface, setShowIntiface] = useState(false);
   const [activeCue, setActiveCue] = useState<string | null>(null);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   const { enabled, status, updatesSuspended, toggleUpdates, updateShortcut } = useIntiface();
-  const [motionSelection, setMotionSelection] = useState({ trackId: audio.id, source: "track" });
+  const [motionSelection, setMotionSelection] = useState({ trackId: entryKey, source: "track" });
   useEffect(() => {
-    setMotionSelection({ trackId: audio.id, source: "track" });
-  }, [audio.id]);
+    setMotionSelection({ trackId: entryKey, source: "track" });
+  }, [entryKey]);
   // A new track always defaults to its own script (or no motion if absent).
-  const motionSource = motionSelection.trackId === audio.id ? motionSelection.source : "track";
+  const motionSource = motionSelection.trackId === entryKey ? motionSelection.source : "track";
   const algorithm = motionAlgorithms.find((item) => item.id === motionSource);
   const hasFunscript = !!funscriptUrl || !!algorithm;
   const syncConnected = enabled && status === "connected" && hasFunscript;
@@ -81,11 +94,25 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
   const cuesRef = useRef<IVTTCue[]>([]);
   const lastCueRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const el = audioRef.current;
-    if (!el || !audio.resume_time) return;
-    el.currentTime = audio.resume_time;
-  }, [audio.resume_time]);
+  const playbackCallbacks = useRef({ onPosition: handleTimeUpdate, onEnded });
+  playbackCallbacks.current = { onPosition: handleTimeUpdate, onEnded };
+  const autoplayRef = useRef(autoplay);
+  autoplayRef.current = autoplay;
+
+  useLayoutEffect(() => {
+    setPlaybackError(null);
+    const media = audioRef.current;
+    if (!media) return;
+    return loadQueuedAudio(media, {
+      source: streamSrc,
+      initialPosition: startPosition.current.position ?? 0,
+      autoplay: autoplayRef.current,
+      onPosition: (position, flush) => playbackCallbacks.current.onPosition(position, flush),
+      onEnded: () => playbackCallbacks.current.onEnded?.(),
+      onError: setPlaybackError,
+      onPlaying: () => setPlaybackError(null),
+    });
+  }, [entryKey, streamSrc]);
 
   useEffect(() => {
     cuesRef.current = [];
@@ -100,13 +127,10 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [audio.id, subtitlesUrl]);
+  }, [entryKey, subtitlesUrl]);
 
-  function handleTimeUpdate() {
-    const el = audioRef.current;
-    if (!el) return;
-    const t = el.currentTime;
-    onTimeUpdate?.(t);
+  function handleTimeUpdate(t: number, flush = false) {
+    onTimeUpdate?.(t, flush);
 
     const cues = cuesRef.current;
     if (cues.length > 0) {
@@ -132,18 +156,17 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
         </div>
       </div>
 
-      {streamSrc && (
-        <audio
+      <audio
           ref={audioRef}
           className="audio-player-element"
           controls
           preload="metadata"
-          src={streamSrc}
-          onTimeUpdate={handleTimeUpdate}
+          src={streamSrc || undefined}
         >
-          <track kind="chapters" src={audio.paths.vtt ?? undefined} />
-        </audio>
-      )}
+          <track kind="chapters" src={audio?.paths.vtt ?? undefined} />
+      </audio>
+      {playbackError && <div className="alert alert-warning mb-0" role="alert">{playbackError}</div>}
+      {audio && !streamSrc && <div className="alert alert-warning mb-0" role="alert">This track has no playable stream.</div>}
 
       <div className="audio-intiface-bar">
         <Form.Group controlId="audio-motion-source">
@@ -151,7 +174,7 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
           <Form.Control
             as="select"
             value={motionSource}
-            onChange={(event) => setMotionSelection({ trackId: audio.id, source: event.currentTarget.value })}
+            onChange={(event) => setMotionSelection({ trackId: entryKey, source: event.currentTarget.value })}
           >
             <option value="track">{funscriptUrl ? "Use track script" : "No track script — motion off"}</option>
             {motionAlgorithms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
@@ -183,7 +206,7 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
           )}
         </div>
 
-      <FunscriptSync key={audio.id} funscriptUrl={funscriptUrl} audioRef={audioRef} algorithm={algorithm} />
+      <FunscriptSync key={entryKey} funscriptUrl={funscriptUrl} audioRef={audioRef} algorithm={algorithm} />
 
       <IntifaceModal show={showIntiface} onHide={() => setShowIntiface(false)} />
     </div>

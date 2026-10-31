@@ -11,8 +11,10 @@ import { faBox, faTag } from "@fortawesome/free-solid-svg-icons";
 import { PatchComponent } from "src/patch";
 import { StudioOverlay } from "../Shared/GridCard/StudioOverlay";
 import { objectTitle } from "src/core/files";
+import { AudioQueueActions } from "./AudioQueueActions";
 
 interface IAudioCardProps {
+  groupId?: string;
   audio: GQL.SlimAudioDataFragment;
   cardWidth?: number;
   selecting?: boolean;
@@ -105,6 +107,7 @@ const AudioCardDetails = PatchComponent(
     return (
       <div className="audio-card__details">
         <span>{details}</span>
+        {!props.selecting && <AudioQueueActions audio={props.audio} groupId={props.groupId} />}
       </div>
     );
   }

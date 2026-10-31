@@ -35,7 +35,7 @@ import { TruncatedText } from "src/components/Shared/TruncatedText";
 import { FormattedDate } from "src/components/Shared/Date";
 import TextUtils from "src/utils/text";
 import { goBackOrReplace } from "src/utils/history";
-import { AudioPlayer } from "./AudioPlayer";
+import { AudioQueueActions } from "../AudioQueueActions";
 
 const AudioDetailPanel = lazyComponent(() => import("./AudioDetailPanel"));
 const AudioFileInfoPanel = lazyComponent(() => import("./AudioFileInfoPanel"));
@@ -338,7 +338,11 @@ const AudioLoader: React.FC<RouteComponentProps<IAudioParams>> = ({
         onDelete={onDelete}
       />
       <div className={`content-container audio-player-container${collapsed ? " expanded" : ""}`}>
-        <AudioPlayer audio={audio} />
+        <div className="audio-detail-playback">
+          {audio.paths.cover && <img src={audio.paths.cover} alt={objectTitle(audio)} />}
+          <AudioQueueActions audio={audio} />
+          <p className="text-muted">Playback continues in the player while you browse.</p>
+        </div>
       </div>
     </div>
   );

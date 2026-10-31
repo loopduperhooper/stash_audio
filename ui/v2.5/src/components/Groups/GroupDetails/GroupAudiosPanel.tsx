@@ -21,6 +21,7 @@ export const GroupAudiosPanel: React.FC<IGroupAudiosPanelProps> = ({
         <AudioCard
           key={audio.id}
           audio={audio}
+          groupId={group.id}
           zoomIndex={1}
           selected={selectedIds.has(audio.id)}
           selecting={selectedIds.size > 0}

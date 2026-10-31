@@ -38,6 +38,8 @@ import {
 import { ManualProvider } from "./components/Help/context";
 import { InteractiveProvider } from "./hooks/Interactive/context";
 import { IntifaceProvider } from "./hooks/IntifaceContext";
+import { AudioQueueProvider } from "./hooks/AudioQueueContext";
+import { AudioQueuePlayer } from "./components/Audios/AudioQueuePlayer";
 import { ReleaseNotesDialog } from "./components/Dialogs/ReleaseNotesDialog";
 import { releaseNotes } from "./docs/en/ReleaseNotes";
 import { getPlatformURL } from "./core/createClient";
@@ -348,9 +350,16 @@ export const App: React.FC = () => {
                     <ManualProvider>
                       <InteractiveProvider>
                         <IntifaceProvider>
-                          <Helmet {...titleProps} />
-                          {maybeRenderNavbar()}
-                          <MainContainer>{renderContent()}</MainContainer>
+                          <AudioQueueProvider>
+                            <Helmet {...titleProps} />
+                            {maybeRenderNavbar()}
+                            <MainContainer>
+                              <Suspense fallback={<LoadingIndicator />}>
+                                {renderContent()}
+                              </Suspense>
+                            </MainContainer>
+                            <AudioQueuePlayer />
+                          </AudioQueueProvider>
                         </IntifaceProvider>
                       </InteractiveProvider>
                     </ManualProvider>
