@@ -20,7 +20,7 @@ export const FunscriptSync: React.FC<IProps> = ({ funscriptUrl, audioRef, algori
     if (!media || !enabled || status !== "connected" || updatesSuspended || !source || !linearDevices.length) return;
     return startFunscriptScheduler(media, source, (position, durationMs) => {
       for (const device of linearDevices) sendLinear(device.index, position, durationMs);
-    }, syncTiming);
+    }, { ...syncTiming, interpolate: true });
   }, [audioRef, funscriptUrl, algorithm, actions, enabled, status, updatesSuspended, linearDevices, sendLinear, syncTiming]);
 
   return null;

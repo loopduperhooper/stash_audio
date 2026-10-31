@@ -10,6 +10,7 @@ export type FunscriptSource = readonly FunscriptAction[] |
 export interface SyncTiming {
   intervalMs: number;
   offsetMs: number;
+  interpolate?: boolean;
 }
 
 export const DEFAULT_SYNC_TIMING: SyncTiming = { intervalMs: 20, offsetMs: 0 };
@@ -70,6 +71,7 @@ export function startFunscriptScheduler(
   const { intervalMs, offsetMs } = normalizeSyncTiming(timing);
   let timer: number | undefined;
   let lastAt: number | undefined;
+  let lastPosition: number | undefined;
   let disposed = false;
   let waiting = false;
 
@@ -77,6 +79,7 @@ export function startFunscriptScheduler(
     if (timer !== undefined) clock.clearTimeout(timer);
     timer = undefined;
     lastAt = undefined;
+    lastPosition = undefined;
   }
 
   function tick() {
@@ -85,13 +88,32 @@ export function startFunscriptScheduler(
     const timeMs = media.currentTime * 1000;
     const points = typeof actions === "function" ? actions(timeMs + offsetMs) : actions;
     const target = nextFunscriptTarget(points, timeMs, media.playbackRate, offsetMs);
-    if (!target) return;
-    if (target.at !== lastAt) {
+    if (!target) {
+      if (timing.interpolate && points.length && media.playbackRate > 0) {
+        const position = points[points.length - 1].pos / 100;
+        if (lastPosition === undefined || Math.abs(position - lastPosition) >= 0.005) {
+          send(position, intervalMs);
+          lastPosition = position;
+        }
+      }
+      return;
+    }
+    if (timing.interpolate) {
+      const previous = points[Math.max(0, target.index - 1)];
+      const next = points[target.index];
+      const fraction = next.at === previous.at ? 0
+        : Math.max(0, Math.min(1, (timeMs + offsetMs - previous.at) / (next.at - previous.at)));
+      const position = (previous.pos + (next.pos - previous.pos) * fraction) / 100;
+      if (lastPosition === undefined || Math.abs(position - lastPosition) >= 0.005) {
+        send(position, intervalMs);
+        lastPosition = position;
+      }
+    } else if (target.at !== lastAt) {
       lastAt = target.at;
       send(target.position, target.durationMs);
     }
-    // Poll the media clock independently of timeupdate/React. Do not resend an
-    // unchanged target: frequent LinearCmd replacement can interrupt motion.
+    // Poll the live media clock independently of timeupdate/React. Streaming
+    // mode re-anchors to the interpolated curve after delayed callbacks.
     timer = clock.setTimeout(tick, intervalMs);
   }
 
