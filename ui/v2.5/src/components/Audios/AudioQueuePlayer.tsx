@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useAudioQueue } from "src/hooks/AudioQueueContext";
@@ -23,7 +23,37 @@ export const AudioQueuePlayer: React.FC = () => {
     savePosition,
   } = useAudioQueue();
   const [expanded, setExpanded] = useState(false);
+  const viewButton = useRef<HTMLButtonElement>(null);
   const current = state.current;
+  const hasSession = !!current || !!state.upcoming.length;
+
+  function minimize() {
+    setExpanded(false);
+    viewButton.current?.focus();
+  }
+
+  useEffect(() => {
+    if (!expanded || !hasSession) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      // Let dialogs (such as device settings) handle their own Escape key.
+      if (event.key === "Escape" && !document.querySelector(".modal.show")) {
+        event.preventDefault();
+        setExpanded(false);
+        viewButton.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [expanded, hasSession]);
+
+  useEffect(() => {
+    if (!hasSession) setExpanded(false);
+  }, [hasSession]);
   if (!current && !state.upcoming.length) return null;
 
   return (
@@ -46,10 +76,11 @@ export const AudioQueuePlayer: React.FC = () => {
           size="sm"
           variant="outline-secondary"
           aria-expanded={expanded}
-          aria-controls="audio-queue-panel"
-          onClick={() => setExpanded(!expanded)}
+          ref={viewButton}
+          aria-controls="audio-queue-content"
+          onClick={() => expanded ? minimize() : setExpanded(true)}
         >
-          {expanded ? "Hide queue" : "Show queue"} ({state.upcoming.length})
+          {expanded ? "Minimize player" : "View player"} ({state.upcoming.length})
         </Button>
         <Button
           size="sm"
@@ -69,7 +100,7 @@ export const AudioQueuePlayer: React.FC = () => {
           {error} <Button size="sm" onClick={retry}>Retry</Button>
         </div>
       )}
-      <div className="audio-queue-content">
+      <div id="audio-queue-content" className="audio-queue-content">
         {current && (
           <AudioPlayer
             entryKey={current.key}
