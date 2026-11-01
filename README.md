@@ -56,8 +56,9 @@ Play starts that track and clears the previous queue. Play next inserts at the
 front of the queue; Add to queue appends without interrupting playback. Adding
 tracks while idle does not start playback; choose **Start queue** in the player.
 
-The bottom player stays mounted while browsing. **Show queue** opens the current
-track's cover, motion controls and upcoming tracks. Move queued tracks earlier or
+The bottom player stays mounted while browsing. **View player** opens a full-window
+view of the current track's cover, motion controls and upcoming tracks. Choose
+**Minimize player** or press Escape to return to the compact player. Move queued tracks earlier or
 later, remove individual entries, or clear the upcoming queue. **Close player**
 stops audio and clears the whole session.
 
@@ -122,14 +123,105 @@ playback speed, with linear half-strokes of 500 ms. Phase starts at media time
 zero. Seeking, playback speed, script offset and Stop / Resume updates work with
 generated motion through the same scheduler as track scripts.
 
-To add an algorithm, create a TypeScript module in `ui/v2.5/src/motion` implementing
-`MotionAlgorithm`, then register it in that directory's `index.ts`. Each module
-supplies an ID, name, description and pure `generate(timeMs)` function returning a
-small sorted window of funscript-style `{ at, pos }` points. Timestamps are absolute
-media milliseconds, positions are 0–100, and the window must include a future
-target. Keep the same timeline/phase on repeated calls and seeks. The scheduler
-identifies targets by timestamp, so sliding windows do not resend unchanged
-commands. Generation runs locally; it does not create or modify track files.
+### Defining a new algorithm
+
+Algorithms are **TypeScript** modules compiled into the frontend and run locally
+in the browser. They are repository code, rather than uploaded scripts or backend
+plugins; adding one requires rebuilding the frontend (and the binary if it embeds
+the frontend). They do not create or modify track files.
+
+1. Create a module under [`ui/v2.5/src/motion/`](ui/v2.5/src/motion/).
+2. Export an object implementing
+   [`MotionAlgorithm`](ui/v2.5/src/motion/types.ts).
+3. Import it and add it to `motionAlgorithms` in
+   [`ui/v2.5/src/motion/index.ts`](ui/v2.5/src/motion/index.ts).
+4. Rebuild using the instructions above. The algorithm's name appears in the
+   player's **Motion source** selector.
+
+The interface is:
+
+```ts
+interface MotionAlgorithm {
+  id: string;
+  name: string;
+  description: string;
+  generate: (timeMs: number) => readonly { at: number; pos: number }[];
+}
+```
+
+| Field | Contract |
+| --- | --- |
+| `id` | Stable, unique identifier; avoid `track`, which selects the track's script. |
+| `name` | Label shown in the source selector. |
+| `description` | Help text shown when selected. |
+| `generate(timeMs)` | Pure, deterministic function returning a small window of motion points for the supplied absolute media time. |
+| Point `at` | Finite, nonnegative timestamp in **milliseconds from media time zero**, strictly increasing with no duplicate timestamps. |
+| Point `pos` | Finite position from **0 to 100**, inclusive; not a normalized 0–1 value. |
+
+Always include a point strictly **after** `timeMs` so the scheduler has a next
+target. Include the current or preceding endpoint when practical. Return a bounded
+window rather than an entire track's worth of points: the function is called
+repeatedly during playback and must also work after arbitrary seeks, including
+hours into a track. Input includes the configured script offset and can be
+negative near the start; handle that case without returning negative timestamps.
+
+Keep each point's position stable for its absolute timestamp across calls.
+Anchor phase to media time, rather than call counts, `Date.now()`, timers, or
+unseeded randomness. The scheduler identifies targets by timestamp, so changing
+the position of an already-issued target will not update that move. Generators
+must honor this contract themselves; runtime validation of their output is not
+currently provided.
+
+The scheduler sends the next endpoint with the remaining wall-clock duration,
+then lets that move run uninterrupted. Define endpoints and reversals rather
+than generating tiny steps just to approximate a straight line. Playback speed
+scales the duration automatically; do not apply it again in the generator. Pauses,
+buffering, seeks and Stop / Resume updates are handled by the shared scheduler.
+
+For example, create `ui/v2.5/src/motion/thirtyBpm.ts` for a two-second cycle between
+20% and 80%, with a one-second move in each direction:
+
+```ts
+import type { MotionAlgorithm } from "./types";
+
+export const thirtyBpm: MotionAlgorithm = {
+  id: "stroke-30-bpm",
+  name: "30 BPM gentle strokes",
+  description: "One 20%–80%–20% cycle every two seconds at normal speed.",
+  generate: (timeMs) => {
+    const halfStrokeMs = 1000;
+    const first = Math.max(0, Math.floor(timeMs / halfStrokeMs));
+    return Array.from({ length: 4 }, (_, offset) => {
+      const index = first + offset;
+      return {
+        at: index * halfStrokeMs,
+        pos: index % 2 === 0 ? 20 : 80,
+      };
+    });
+  },
+};
+```
+
+Register it alongside the existing preset in `ui/v2.5/src/motion/index.ts`:
+
+```ts
+import { sixtyBpm } from "./sixtyBpm";
+import { thirtyBpm } from "./thirtyBpm";
+import type { MotionAlgorithm } from "./types";
+
+export const motionAlgorithms: readonly MotionAlgorithm[] = [sixtyBpm, thirtyBpm];
+```
+
+At `timeMs = 1250`, this example returns points at 1000, 2000, 3000 and 4000 ms.
+At normal speed with no offset, the scheduler targets 20% at 2000 ms with a
+750 ms move. At twice the playback speed, that move takes 375 ms.
+
+Use [`sixtyBpm.ts`](ui/v2.5/src/motion/sixtyBpm.ts) and the generator checks in
+[`funscript-scheduler.test.mjs`](scripts/tests/funscript-scheduler.test.mjs) as
+references. For a new algorithm, check deterministic output, sorted unique times,
+position bounds, a future target, and behavior at negative times, exact endpoints
+and long seeks. Run the scheduler checks shown above and the frontend TypeScript
+check (`cd ui/v2.5 && pnpm check`), then validate motion on your device.
 
 ## Docker
 
