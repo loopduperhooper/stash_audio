@@ -123,6 +123,33 @@ playback speed, with linear half-strokes of 500 ms. Phase starts at media time
 zero. Seeking, playback speed, script offset and Stop / Resume updates work with
 generated motion through the same scheduler as track scripts.
 
+### T&D_v1 state machine
+
+**T&D_v1** starts in mode 1 and uses the following states:
+
+| Mode | Motion | Duration/count | Next mode |
+| --- | --- | --- | --- |
+| 1 | Hold a random partial position (1–99%) | 5–15 seconds at that position | Random choice of 2, 3 or 4 |
+| 2 | Alternate full strokes between 0% and 100% | 3–7 seconds per movement; 1–30 movements, favoring shorter runs | 1 |
+| 3 | Accelerating full strokes between 0% and 100% | Five movements over 15–20 seconds; movement durations decrease linearly from 5–7 seconds to exactly 1 second | 5 |
+| 4 | Alternate half strokes between 0% and 50% | 2–4 seconds per movement; 1–30 movements, favoring shorter runs | 1 |
+| 5 | Hold at exactly 0% | 10–15 seconds at zero | Random choice of 2, 3 or 4 |
+
+A movement is one direction, rather than an out-and-back cycle. When needed,
+a one-second approach reaches the hold position or a stroke-range endpoint before
+the state's timed hold or movement sequence begins. Acceleration decreases the
+duration evenly per movement, with the five durations summing to the chosen
+window. All times are at normal playback speed.
+
+Random choices use a fixed seed: the same media timestamp produces the same
+motion, including after a seek or refresh. Tracks share that sequence; this version
+does not choose a fresh seed for each play. The implementation is
+[`tdV1.ts`](ui/v2.5/src/motion/tdV1.ts). State and generator checks (Node.js 22.18+):
+
+```bash
+node scripts/tests/td-v1.test.mjs
+```
+
 ### Defining a new algorithm
 
 Algorithms are **TypeScript** modules compiled into the frontend and run locally
