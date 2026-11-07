@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { tdV1, buildTdState, nextTdMode } from '../../ui/v2.5/src/motion/tdV1.ts';
+import { tdV1, createTdV1Generator, buildTdState, nextTdMode } from '../../ui/v2.5/src/motion/tdV1.ts';
 
 function rng(seed = 1) {
   return () => {
@@ -38,10 +38,11 @@ test('full and half modes alternate endpoints for 1–30 movements', () => {
   const counts = new Set();
   for (let seed = 1; seed <= 1000; seed++) {
     for (const mode of [2,4]) {
-      const {points} = buildTdState(mode, 0, 0, rng(seed));
+      const lower = mode === 2 ? 0 : 50;
+      const {points} = buildTdState(mode, 0, lower, rng(seed));
       counts.add(points.length - 1);
       assert.ok(points.length >= 2 && points.length <= 31);
-      points.forEach((p,i) => assert.equal(p.pos, i % 2 ? (mode === 2 ? 100 : 50) : 0));
+      points.forEach((p,i) => assert.equal(p.pos, i % 2 ? 100 : lower));
       assert.ok(durations(points).every(ms => ms >= (mode === 2 ? 3000 : 2000) && ms <= (mode === 2 ? 7000 : 4000)));
     }
   }
@@ -73,4 +74,29 @@ test('timeline is bounded, phase-stable across seeks and includes a future targe
     assert.ok(points.some(p => p.at > samples[i]));
     assert.ok(points.every((p,j) => Number.isFinite(p.at) && p.at >= 0 && p.pos >= 0 && p.pos <= 100 && (!j || p.at > points[j-1].at)));
   }
+});
+
+
+test('half mode approaches the upper half before alternating within 50–100%', () => {
+  for (const [start, endpoint] of [[0,50], [60,50], [90,100]]) {
+    const {points} = buildTdState(4, 0, start, rng());
+    assert.deepEqual(points[1], {at:1000,pos:endpoint});
+    assert.ok(points.slice(1).every(p => p.pos === 50 || p.pos === 100));
+    assert.ok(durations(points).slice(1).every(ms => ms >= 2000 && ms <= 4000));
+  }
+});
+
+
+test('playback seeds vary the timeline while seeks and recreated generators preserve it', () => {
+  const first = createTdV1Generator(12345);
+  const replay = createTdV1Generator(12345);
+  const nextPlay = createTdV1Generator(98765);
+  const times = [0, 10000, 60000, 3600000];
+  const expected = times.map(time => first(time));
+  assert.notDeepEqual(nextPlay(0), expected[0]);
+  for (let i = times.length - 1; i >= 0; i--) {
+    assert.deepEqual(first(times[i]), expected[i]);
+    assert.deepEqual(replay(times[i]), expected[i]);
+  }
+  assert.equal(tdV1.createGenerator, createTdV1Generator);
 });

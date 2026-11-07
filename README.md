@@ -132,7 +132,7 @@ generated motion through the same scheduler as track scripts.
 | 1 | Hold a random partial position (1–99%) | 5–15 seconds at that position | Random choice of 2, 3 or 4 |
 | 2 | Alternate full strokes between 0% and 100% | 3–7 seconds per movement; 1–30 movements, favoring shorter runs | 1 |
 | 3 | Accelerating full strokes between 0% and 100% | Five movements over 15–20 seconds; movement durations decrease linearly from 5–7 seconds to exactly 1 second | 5 |
-| 4 | Alternate half strokes between 0% and 50% | 2–4 seconds per movement; 1–30 movements, favoring shorter runs | 1 |
+| 4 | Alternate half strokes between 50% and 100% | 2–4 seconds per movement; 1–30 movements, favoring shorter runs | 1 |
 | 5 | Hold at exactly 0% | 10–15 seconds at zero | Random choice of 2, 3 or 4 |
 
 A movement is one direction, rather than an out-and-back cycle. When needed,
@@ -141,9 +141,10 @@ the state's timed hold or movement sequence begins. Acceleration decreases the
 duration evenly per movement, with the five durations summing to the chosen
 window. All times are at normal playback speed.
 
-Random choices use a fixed seed: the same media timestamp produces the same
-motion, including after a seek or refresh. Tracks share that sequence; this version
-does not choose a fresh seed for each play. The implementation is
+Each playback entry receives a fresh random seed. Pausing, resuming, seeking,
+and switching motion sources within that entry preserve the seed, so returning
+to the same media timestamp produces the same motion. Playing the track again,
+advancing to another queue entry, or refreshing creates a new seed. The implementation is
 [`tdV1.ts`](ui/v2.5/src/motion/tdV1.ts). State and generator checks (Node.js 22.18+):
 
 ```bash
@@ -173,6 +174,7 @@ interface MotionAlgorithm {
   name: string;
   description: string;
   generate: (timeMs: number) => readonly { at: number; pos: number }[];
+  createGenerator?: (seed: number) => MotionAlgorithm["generate"];
 }
 ```
 
@@ -181,6 +183,7 @@ interface MotionAlgorithm {
 | `id` | Stable, unique identifier; avoid `track`, which selects the track's script. |
 | `name` | Label shown in the source selector. |
 | `description` | Help text shown when selected. |
+| `createGenerator(seed)` | Optional factory for randomized algorithms; the player supplies a fresh seed per playback entry. Return a generator that reuses this seed for every call. |
 | `generate(timeMs)` | Pure, deterministic function returning a small window of motion points for the supplied absolute media time. |
 | Point `at` | Finite, nonnegative timestamp in **milliseconds from media time zero**, strictly increasing with no duplicate timestamps. |
 | Point `pos` | Finite position from **0 to 100**, inclusive; not a normalized 0–1 value. |

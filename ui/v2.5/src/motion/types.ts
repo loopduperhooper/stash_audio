@@ -8,4 +8,6 @@ export interface MotionAlgorithm {
   // Include a future target beyond timeMs; positions are 0–100, times in ms.
   // Return a bounded window so duration and seeks do not require a whole script.
   generate: (timeMs: number) => readonly FunscriptAction[];
+  // Optional per-playback generator. Keep this seed fixed through seeks/resumes.
+  createGenerator?: (seed: number) => MotionAlgorithm["generate"];
 }

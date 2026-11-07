@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { faBolt } from "@fortawesome/free-solid-svg-icons";
 import * as GQL from "src/core/generated-graphql";
@@ -86,7 +86,19 @@ export const AudioPlayer: React.FC<IAudioPlayerProps> = ({
   }, [entryKey]);
   // A new track always defaults to its own script (or no motion if absent).
   const motionSource = motionSelection.trackId === entryKey ? motionSelection.source : "track";
-  const algorithm = motionAlgorithms.find((item) => item.id === motionSource);
+  const motionSession = useRef<{ key: string; seed: number } | null>(null);
+  if (!motionSession.current || motionSession.current.key !== entryKey) {
+    const values = new Uint32Array(1);
+    crypto.getRandomValues(values);
+    motionSession.current = { key: entryKey, seed: values[0] };
+  }
+  const motionSeed = motionSession.current.seed;
+  const algorithm = useMemo(() => {
+    const preset = motionAlgorithms.find((item) => item.id === motionSource);
+    return preset?.createGenerator
+      ? { ...preset, generate: preset.createGenerator(motionSeed) }
+      : preset;
+  }, [motionSource, motionSeed]);
   const hasFunscript = !!funscriptUrl || !!algorithm;
   const syncConnected = enabled && status === "connected" && hasFunscript;
   const syncActive = syncConnected && !updatesSuspended;

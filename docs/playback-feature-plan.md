@@ -1,162 +1,226 @@
-# Playback feature planning
+# Playback feature plan
 
-Status: all four features have initial implementations; browser/device validation remains pending.
+Updated: 2026-10-31.
+
+All four features have initial implementations. Automated behavior checks pass;
+full UI checks, browser testing and Handy validation remain pending. Synchronization
+changes have not yet been benchmarked against MultiFunPlayer on hardware.
 
 ## Feature tracker
 
-1. Playback queue — persistent player, queue actions/panel, group fallback and refresh restoration implemented.
-2. Funscript synchronization performance — initial code comparison recorded; measurement and tuning design proposed.
-3. Repo-defined motion algorithms — framework, source selection and 60 BPM strokes implemented.
-4. Keyboard shortcut for funscript Stop — configurable binding confirmed; default Page Down.
+| Feature | Implemented | Remaining |
+| --- | --- | --- |
+| Playback queue | Persistent player, queue actions/panel, group continuation, paused refresh restoration | Browser and device transition checks |
+| Funscript synchronization | Media-clock scheduler, upcoming targets, playback-rate handling, interval and offset settings | Handy/MultiFunPlayer comparison, timing diagnostics, evaluation of interpolation/output modes |
+| Motion algorithms | Repo-defined generator framework, source selection, 60 BPM preset | Browser/Handy validation; additional presets and parameters are optional follow-ups |
+| Stop/resume shortcut | Configurable binding, default Page Down, shared suspension state | Browser shortcut/focus checks and Handy validation |
 
 ## 1. Playback queue
 
-### Confirmed requirements
+### Agreed behavior
 
-- Play next and Add to queue actions.
-- Ordinary Play on another track overrides the current playback and clears the existing explicit queue. Resolve group fallback from the newly selected track. Play next and Add to queue preserve current playback.
-- Queue panel with current and upcoming audio; reorder, remove, and clear controls.
-- Automatically play the next queued item.
-- On natural end or manual Next, consume the next explicit queue entry first. If the queue is empty, fall back to the next item in the current audio's group.
-- Group continuation is a fallback, not a list of automatically enqueued items. At the last item in the group (or with no applicable group), do not advance or wrap; disable Next and stop on natural end.
-- Expect each track to belong to exactly one group. If multiple memberships exist, choose a random group for playback context; keep that choice stable for the current playback entry so Next and natural end agree. This does not require a database exclusivity constraint or membership cleanup.
-- Persist queue across navigation and refresh.
-- Switch audio and its associated funscript together while preserving the device connection.
+- **Play** replaces current playback and clears the explicit queue. **Play next**
+  inserts at the front; **Add to queue** appends without interrupting playback.
+- Queuing while idle does not start audio or motion. **Start queue** starts the
+  first queued entry.
+- Both natural end and **Next** consume explicit queued entries first. When the
+  queue is empty, continue with the next item in the currently playing track's
+  group, using the same order shown on the group page.
+- At the last item in a group, or with no applicable group, disable Next and stop
+  at natural end. Do not wrap or enqueue the group's remainder automatically.
+- After playing a queued track from another group, continuation belongs to that
+  track's group. Do not return to the interrupted group's next item.
+- Expect one group per track. Group-page actions retain that group context;
+  otherwise, choose randomly among multiple memberships and keep that choice
+  stable for the playback entry, including across refresh. No database exclusivity
+  constraint or membership cleanup is included.
+- Preserve playback across navigation. Save the queue, current entry, group
+  context and position locally; restore paused after refresh.
+- Ordinary Play uses the selected track's server resume position. Queued tracks
+  and group continuation start at zero.
 
-### Existing implementation inspected
+### Implementation
 
-- `ui/v2.5/src/models/sceneQueue.ts`: inherited SceneQueue supports explicit scene IDs or a cloned list filter, including sorting, filtering, pagination, autoplay, continue, and start-time URL parameters. It still targets scene types/routes; only Wall components reference it. It is a useful precedent, not an integrated audio queue.
-- `ui/v2.5/src/components/Audios/AudioDetails/AudioPlayer.tsx`: page-local audio element, resume-time restoration, subtitles, and FunscriptSync. No ended handler or queue integration.
-- `ui/v2.5/src/components/Groups/GroupDetails/GroupAudiosPanel.tsx`: renders group.audios as cards without forwarding group playback context.
-- `ui/v2.5/src/hooks/IntifaceContext.tsx`: app-level device connection and persisted connection settings; reuse across track changes.
-- `ui/v2.5/src/hooks/useFunscript.ts`: cancels stale fetch results but does not immediately clear actions when changing between script URLs.
-- `ui/v2.5/src/components/Audios/AudioDetails/FunscriptSync.tsx`: action index/timing is local; transitions need an explicit reset. Playback state and stopping are not currently modeled here.
+- `src/models/audioQueue.ts`: queue reducer, group selection/continuation and
+  versioned snapshot validation. Each occurrence has its own key, so duplicate
+  tracks can be reordered or removed independently. Stale advance events cannot
+  consume a newer current entry.
+- `src/hooks/AudioQueueContext.tsx`: app-level queue ownership, metadata loading,
+  stable group context and browser-local persistence. Position writes are
+  throttled and flushed on pause, seek and page hiding.
+- `AudioQueuePlayer`: one native audio element remains mounted across navigation
+  and metadata loading. Route content has a separate Suspense boundary. The
+  bottom player shows the current track and an expandable queue with move
+  earlier/later, remove and clear controls. **Close player** stops playback and
+  clears the session.
+- Audio cards and detail pages expose all three playback actions; group cards
+  forward their group ID. The inherited scene-specific `sceneQueue.ts` remains
+  separate from the audio implementation.
+- `src/utils/audioPlayback.ts`: removes old listeners, pauses/reloads the media
+  element and ignores old-position events until the new source's metadata arrives.
+  Script/subtitle loads are invalidated and algorithm selection resets per entry.
+- Intiface connection, settings and updates-suspended state remain at app scope.
+  Source changes cancel old scheduling. A movement already sent to the device
+  may finish; no physical stop command is promised.
+- Missing metadata/streams, autoplay rejection and persistence failure are shown
+  in the player. Retry or Next allow recovery where applicable. Unavailable entries
+  are not silently skipped. Script-fetch failures currently leave motion inactive
+  without a dedicated script error message.
 
-### Proposed design (not yet confirmed)
+### Remaining validation
 
-- App-level playback provider owning one persistent audio element, active queue entry, upcoming entries, playback state, and source context. Browsing should not unmount playback.
-- Reuse inherited queue concepts for explicit IDs and source-list context, adapted to audio; do not reuse scene-specific types/routes.
-- Keep group context separately from the explicit queue; do not seed the queue with remaining group items. Resolve the track's sole group, or choose a random group if multiple memberships exist, and retain it for the current playback entry.
-- Play next inserts at the front of the upcoming explicit queue; Add to queue appends. When that queue is exhausted, resolve group continuation from the item then playing and its applicable group context. Do not silently jump back to a previously interrupted group's next item.
-- Queue entries have independent entry IDs so repeated audio can be reordered/removed reliably.
-- Queue panel shows explicit queued items. It may show a separately labeled group fallback when the explicit queue is empty.
-- Persist a versioned queue snapshot, current entry, source context, and playback position locally. Restore paused after refresh; handle browser autoplay rejection visibly.
-- Ordinary Play replaces current playback and clears upcoming explicit entries; it does not automatically enqueue the selected track's remaining group items.
-
-### Track switching contract
-
-- Invalidate old script/subtitle loads and stop old script scheduling before switching.
-- Retain the Intiface connection and device settings.
-- Reset playback timing, script action index, and subtitle state for each entry.
-- Load the next audio and script, then align device commands to actual media playback time.
-- No script, pause, buffering, playback failure, or exhausted queue must not leave old script scheduling active. Define and implement a device stop operation rather than assuming that ceasing commands stops motion.
-- Automatic continuation should start the next item at the beginning; separately define resume behavior for an explicit user Play action.
-- Define handling of deleted/unplayable entries and script-load failures with visible status and bounded skipping.
-
-### Implementation sequence
-
-1. Settle group ordering and resume semantics; ordinary Play override and group selection rules are confirmed.
-2. Add queue state/persistence and move media ownership above page routes.
-3. Add actions to cards, lists, details, and group playback entry points.
-4. Add queue panel and next/previous controls; wire ended transitions.
-5. Implement script transition lifecycle and device stop handling.
-6. Verify insertion/reordering, explicit-queue priority on both natural end and Next, empty-queue group fallback, last-in-group blocking without wrapping, persistence, stale asynchronous loads, navigation, autoplay rejection, and script/no-script transitions. Validate device transitions with real hardware.
-
-### Initial implementation
-
-- `AudioQueueProvider` owns the explicit queue, current entry and stable group context. The app-level `AudioQueuePlayer` keeps a single native audio element mounted across navigation and metadata loading. Route loading has its own Suspense boundary so it does not hide the player.
-- Audio cards and detail pages expose Play, Play next and Add to queue. Group cards pass their group ID. Each queued occurrence has its own key; the panel offers move earlier/later, remove and clear. Close player stops playback and clears the entire session.
-- Both ended and Next dispatch the same advancement operation: consume the explicit queue, otherwise use the next item in the current group array (same ordering as GroupAudiosPanel). No wrapping or automatic seeding of group remainders. An idle queue starts only through Start queue.
-- Versioned browser-local persistence saves current entry, stable group choice, ordered queue and position; refresh restores paused. Ordinary Play uses server resume_time, while queue/group transitions start at zero. Position writes are throttled and flushed on pause, seek and page hiding.
-- Source replacement removes old media listeners, pauses/reloads the same element and ignores transition events until new metadata arrives. Script/subtitle loads are invalidated; algorithm selection resets per playback entry. Intiface connection and updates-suspended state stay at app scope.
-- Unavailable metadata/streams and autoplay rejection are shown in the player. Retry or Next allow recovery; missing entries are not silently skipped. Storage failure is surfaced.
-- Thirteen queue tests and seven media lifecycle tests pass, alongside nine scheduler/generator checks. Coverage includes interrupted-group fallback, no wrap, duplicates, stale advance events, paused restoration, old-position guards, repeated tracks, autoplay rejection and sync suspension on source replacement. Full UI check remains blocked by missing dependencies/compiler; browser/Handy checks remain pending.
+- Exercise card/detail/group actions, queue editing and duplicate tracks in the UI.
+- Verify navigation and refresh preserve the intended session and position.
+- Check queued and group transitions, final-group blocking, autoplay rejection and
+  missing/unplayable tracks in supported browsers.
+- On the Handy, verify script-to-script, script-to-no-script and algorithm-to-track
+  transitions retain the connection and respect suspended updates.
 
 ## 2. Funscript synchronization performance
 
-### Reported symptom and intent
+### Problem and comparison target
 
-Some scripts with apparently consistent oscillation periods feel sporadic in speed. User recollection is approximate; reproduce before attributing the full symptom to software. Compare MultiFunPlayer with our implementation and consider tunable update timing and other useful parameters.
+Some apparently steady oscillating scripts feel sporadic in speed. The previous
+implementation used variable-frequency HTML audio `timeupdate` events through
+React, targeted the most recent past point, used the full segment duration and
+ignored playback rate. Those were plausible contributors; hardware diagnosis
+remains open.
 
-Validation device: Handy v1, connected through Intiface Central. The physical device-to-Intiface transport and firmware version have not been confirmed. Prioritize this setup when evaluating command frequency and interrupted movements; do not assume more frequent commands improve smoothness.
+Validation setup: **Handy v1 through Intiface Central**. Physical transport and
+firmware version still need recording for reproducible comparisons.
 
-### Initial findings
+The comparison checkout is `MultiFunPlayer`, branch `master`, commit `36c08fbb`,
+inspected locally on 2026-10-30. Its inspected Buttplug output supports fixed
+sampled updates (50 ms default, configurable 16–200 ms) and polled target events.
+Its interpolation implementation supports Linear, PCHIP, Makima and Step. These
+are reference behaviors from that checkout, not claims about the latest release.
 
-- Our commands are driven by HTML audio timeupdate events through React state/effects. These events have a variable frequency, documented around 4–66 Hz; they are not a precise motion clock.
-- FunscriptSync finds the last action at or before media time, sends that past action's position, and uses the full interval to the following action as movement duration. This can send late targets, omit intermediate reversals, and ignore elapsed segment time. It also does not convert script duration for playback rate. These are plausible contributors, not hardware-validated diagnoses.
-- Current public MultiFunPlayer Buttplug output supports fixed updates (50 ms default, configurable 16–200 ms in the inspected source) and polled updates. Fixed output uses sampled values and elapsed update time for movement duration; polled output uses a target-value event and its duration. Compare both end-to-end timing paths before selecting an equivalent design.
-- MultiFunPlayer also advertises linear alternatives such as PCHIP/Makima script smoothing and speed limits. Interpolation changes motion shape; evaluate separately from scheduling accuracy.
+### Implementation
 
-Sources inspected on 2026-10-30:
+- `src/utils/funscriptScheduler.ts` reads the media clock independently of React
+  rendering and `timeupdate`. It targets the first future point with the remaining
+  real-time duration adjusted for playback speed.
+- Send once per target; skip obsolete points after delayed callbacks instead of
+  replaying them in a burst. Targets are identified by absolute timestamp so
+  generated rolling windows do not resend the same point.
+- Poll every **20 ms** by default, configurable within **10–100 ms**. Polling is a
+  clock-check interval, not a fixed device command frequency.
+- Signed script offset is configurable within **−1000 to +1000 ms**. Positive runs
+  motion ahead of audio; negative delays it. Timing settings persist in the browser
+  and can be reset to defaults.
+- Pause, buffering, seeking, ending, source replacement, unmount and update
+  suspension cancel scheduling. Resume follows the current media position.
+- `useFunscript` aborts obsolete fetches, immediately hides old-source points,
+  filters invalid points and resolves duplicate timestamps to the last point.
+- Interpolation remains linear. There is one keyframe-target scheduling mode;
+  fixed-rate sampled output, PCHIP/Makima smoothing, speed/range limits and
+  per-device profiles are not implemented. Browser timer throttling still applies.
 
-- Local comparison checkout: `/Users/scubasteve/projects/MultiFunPlayer`, branch `master`, commit `36c08fbb` (clean when inspected). Use this pinned checkout for further investigation; online master may differ.
-- https://raw.githubusercontent.com/Yoooi0/MultiFunPlayer/master/Source/MultiFunPlayer/OutputTarget/ViewModels/ButtplugOutputTarget.cs
-- https://github.com/Yoooi0/MultiFunPlayer
-- https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/timeupdate_event
+### Next investigation
 
-### Proposed investigation and implementation plan
+1. Record firmware, transport and MultiFunPlayer output settings. Compare the same
+   steady triangular script, dense script and a reported problematic script at
+   matched playback speed and movement range.
+2. Add timing diagnostics for intended targets, actual send times/durations,
+   scheduler lateness and device errors. Command acknowledgments do not establish
+   physical arrival time.
+3. Compare the current target scheduler with MultiFunPlayer's polled and fixed
+   sampled output, including background-tab behavior and interrupted movements.
+4. Evaluate optional smoothing separately from timing. PCHIP/Makima would require
+   sampled output or curve subdivision and would change the motion shape.
+5. Use measured jitter, phase error, missed reversals, command rate and device feel
+   to decide whether more output modes or controls are justified.
 
-1. Capture intended action timestamps/positions, actual command send times/targets/durations, media time, scheduler lateness, and device errors. Distinguish send timing from physical movement; acknowledgments alone do not establish physical arrival time.
-2. Compare steady triangular oscillations, sinusoidal/dense scripts, and a reported problematic script using the same device, connection, playback rate, and movement range in both applications. Record MultiFunPlayer version and output settings.
-3. Move motion timing outside React rendering and timeupdate events into a cancellable media-clock-based scheduler. Account for late callbacks without replaying bursts of obsolete actions; align targets and remaining durations with playback rate. Evaluate background-tab throttling rather than assuming browser timers are precise.
-4. Evaluate keyframe-target scheduling versus fixed-rate interpolated output, including device transport limits and whether frequent commands interrupt ongoing motion. Implement pause, buffering, seek, track change, and stop lifecycle handling.
-5. Proposed controls: advanced update interval (initial candidates 16/25/50 ms, defaults chosen after measurement), signed sync offset in ms with explicit direction labels, and linear versus optional smooth interpolation. Distinguish internal scheduler wake frequency from device command frequency. Consider per-device profiles and reset-to-defaults. Speed/range limits are separate optional controls.
-6. Validate jitter, phase error, missed reversals, commands per second, and real-device feel. Add deterministic scheduler checks with a fake clock; real-device comparison remains necessary.
+Comparison references retained from the initial investigation:
 
-### Initial implementation
-
-- A cancellable scheduler reads the audio element directly, independently of timeupdate/React rendering. It targets the first future script point with remaining real-time duration adjusted for playback speed, sending once per target rather than repeatedly interrupting a move.
-- Default clock polling is 20 ms, configurable 10–100 ms. This is a scheduler check interval, not a fixed command send rate. Signed offset is configurable within ±1000 ms. Settings persist in this browser.
-- Pause, buffering, seeking, ending, source changes, unmount, and update suspension cancel scheduling. Resume uses current media position. Already-issued device movement may finish.
-- Script fetching is aborted on source change, old-source actions are hidden immediately, invalid points are filtered, and duplicate timestamps collapse to one target.
-- Linear movement between keyframes is retained. The local MultiFunPlayer `KeyframeCollection.Interpolate` supports Linear/Pchip/Makima/Step, and its polled `DeviceAxisScriptEvent` targets the next keyframe. Optional curve smoothing would require sampled output or curve subdivision; it is not implemented in this pass and should be evaluated separately on the Handy.
-- Seven deterministic fake-clock checks cover target/duration selection, playback rate and offset, bounds, steady oscillation, delayed callbacks, lifecycle events, suspension/resume, and script exhaustion. Full TypeScript check is blocked by absent dependencies/compiler. No hardware benchmark or claim of MultiFunPlayer parity yet.
+- [MultiFunPlayer Buttplug output source](https://github.com/Yoooi0/MultiFunPlayer/blob/master/Source/MultiFunPlayer/OutputTarget/ViewModels/ButtplugOutputTarget.cs)
+- [MultiFunPlayer repository](https://github.com/Yoooi0/MultiFunPlayer)
+- [HTML media timeupdate event](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/timeupdate_event)
 
 ## 3. Repo-defined motion algorithms
 
-### Confirmed requirements
+### Agreed behavior and implementation
 
-- Each algorithm is a distinct code snippet/module defined in the repository that programmatically generates timestamped motion points, simulating a funscript.
-- Default to the track's funscript when present.
-- When no track script exists, allow the user to select an algorithm. Do not automatically start an algorithm merely because the script is missing.
-- When a track script exists, allow explicit algorithm override and a Use track script option to return to it.
+- Each algorithm is a repository-defined TypeScript module implementing
+  `MotionAlgorithm` in `src/motion/types.ts`, registered in `src/motion/index.ts`.
+  It supplies an ID, name, description and deterministic `generate(timeMs)` function.
+- Generators return bounded windows of sorted, unique `{ at, pos }` points on the
+  absolute media timeline, with a future target. Times are milliseconds and
+  positions are 0–100. Long tracks and seeks do not require complete point arrays.
+- **Motion source** defaults to the track's funscript. With no script, motion stays
+  off until an algorithm is chosen. An algorithm can override an existing script;
+  **Use track script** restores it.
+- Selection resets per playback entry and on refresh. Queue transitions do not
+  silently carry an algorithm override to the next track.
+- The initial **60 BPM strokes** preset performs one full 0–100–0 cycle per second
+  at normal playback speed, with linear endpoints every 500 ms. Phase is anchored
+  to media time zero; playback speed changes tempo.
+- Generated motion shares the file-script scheduler, offset, seek, pause/buffering
+  lifecycle and Stop/Resume updates controls. It does not modify track files.
 
-### Initial implementation
+### Remaining validation and optional extensions
 
-- Repo-defined TypeScript modules in `src/motion` implement `MotionAlgorithm` and register in `index.ts`. The player offers a Motion source selector even without a track script. Selecting an algorithm overrides the track script; selecting Use track script restores it. Selection resets on track changes.
-- Initial preset: 60 BPM strokes, one full 0–100–0 cycle per second at normal playback speed, linear endpoints every 500 ms. Phase follows absolute media time; playback speed changes tempo.
-- Generators return bounded windows, and the shared scheduler deduplicates targets by absolute timestamp. Pause, seek, buffering, offset and Stop / Resume updates use the existing lifecycle.
-- Nine deterministic scheduler/generator checks pass, including long seeks and rolling-window command deduplication. Full UI type check is blocked by missing `tsc`; browser and hardware validation remain pending.
+- Validate source selection, override/restoration and 60 BPM motion in the browser
+  and on the Handy, including seeks and suspended updates.
+- Additional algorithms, user-adjustable parameters, seeded variation and optional
+  source persistence are follow-ups, not part of the initial preset.
+- Generic runtime validation and visible errors for invalid generator output are
+  not implemented; current repo-defined generators must honor the interface contract.
 
-### Future extensions
+## 4. Stop/resume keyboard shortcut
 
-- Use TypeScript modules in the existing frontend, with stable ID, display name, parameter definitions, and a point generator. Language is an implementation proposal, not a user requirement.
-- Feed generated points through the same scheduler and device lifecycle as file-based scripts.
-- Generate bounded windows as needed; derive points from media time, parameters, and an optional seed so seeking is reproducible and long tracks do not require unbounded point arrays.
-- Validate generated timestamps and positions; handle invalid output visibly and stop scheduling motion.
-- Source changes cancel old pending output and align the new source to current playback time.
-- Parameter controls, additional algorithms and optional persistence can be added later. Track script remains the default on each track.
+### Agreed behavior and implementation
 
-## 4. Stop keyboard shortcut
+- Default binding is **Page Down** (`PageDown`). A recorder in the Intiface modal
+  accepts another key combination and offers reset to default. The binding is
+  saved in this browser; no backend file configuration was added.
+- Player and modal buttons share the same app-level toggle as the shortcut.
+  **Stop updates** suspends commands while audio continues and Intiface stays
+  connected. **Resume updates** follows the current media position without catch-up.
+- Suspension guards command dispatch immediately, cancels scheduling and survives
+  track changes. Refresh starts a new session with updates allowed; audio restores
+  paused. Already-issued device movements may finish.
+- A capture-phase key listener handles enabled/connected sessions, prevents the
+  handled key's page action, ignores editable fields and composition, suppresses
+  repeated keydown toggles and cleans up bindings when changed.
 
-### Confirmed requirements
+### Remaining validation
 
-- Add a configurable keyboard shortcut for the funscript Stop action.
-- Default binding: Page Down (`pagedown` in Mousetrap).
-- Configuration may be exposed through an application setting, a config file, or both; exact storage/UI remains an implementation choice.
-- The Stop button and shortcut toggle device updates off/on without pausing audio or disconnecting Intiface. While suspended, send no further motion updates; this does not promise to halt a movement command already accepted by the device.
-- Activating the toggle again resumes updates at the current media position, without replaying points missed while suspended. Applies to both track scripts and generated algorithms.
+- Check rebinding, editable-field behavior, held keys, scrolling and shortcut
+  conflicts in the browser, including after navigation.
+- On the Handy, confirm audio continues, the connection remains open and resuming
+  follows the current timeline for both file scripts and generated motion.
 
-### Proposed implementation
+## Validation status and next steps
 
-- Route the button and shortcut through the same update-suspension toggle so behavior cannot diverge. Clearly display suspended/active state and offer Resume updates while suspended.
-- Prevent Page Down scrolling when the shortcut is handled. Respect editable fields and shortcut conflicts, and clean up bindings when changed.
-- Ensure the binding works wherever persistent playback is available.
-- Cancel pending scheduler callbacks on suspension; resume by resolving the current source at current media time. Track transitions must not implicitly resume updates while the toggle is suspended.
+**29 committed automated checks pass:**
 
-### Initial implementation
+| Suite | Checks | Coverage |
+| --- | --- | --- |
+| `scripts/tests/audio-queue.test.mjs` | 13 | Insertion, override, group fallback, no wrap, duplicates, stale actions, persistence and invalid storage |
+| `scripts/tests/audio-playback.test.mjs` | 7 | Source replacement, old-position guards, paused restoration, repeated tracks, sync suspension, autoplay failure and cleanup |
+| `scripts/tests/funscript-scheduler.test.mjs` | 9 | Target timing, rate/offset, lifecycle, delayed callbacks and deterministic rolling generators |
 
-- App-level suspension state guards command dispatch immediately and suppresses FunscriptSync updates. Resetting the action index allows resume within the same script segment. Suspension survives track changes; refresh starts with updates allowed.
-- Stop updates / Resume updates buttons in the player and Intiface modal share the toggle.
-- Shortcut recorder in the Intiface modal, browser-local persistence, and reset to Page Down. Listener handles connected/enabled sessions, ignores editable fields and composition, suppresses repeat toggles, and removes the old binding on change.
-- Focused Node checks passed for shortcut normalization and provider command gating, repeat handling, editable targets, resume, rebinding, persistence, and connection retention using mocked React hooks and transport. Full TypeScript check could not run because dependencies/compiler are absent. Browser and Handy validation remain pending.
+Run from the repository root with Node.js 22.18+:
+
+```bash
+node scripts/tests/audio-queue.test.mjs
+node scripts/tests/audio-playback.test.mjs
+node scripts/tests/funscript-scheduler.test.mjs
+```
+
+Additional temporary harnesses passed mocked provider/shortcut checks, including
+command gating, group continuation, stale metadata/position guards, persistence,
+storage failure and connection retention. Those harnesses are not committed test
+suites and do not replace UI or hardware validation.
+
+Next steps, in order:
+
+1. Install frontend dependencies and run the required UI checks/build. The current
+   environment lacks `tsc`; package-registry access failed, so these checks have
+   not passed yet.
+2. Complete the browser checks listed above for all four features.
+3. Validate on Handy v1 through Intiface Central and run the pinned MultiFunPlayer
+   comparison before claiming improved physical smoothness or performance parity.
+4. Choose further interpolation modes, diagnostics or algorithm parameters based
+   on the results.

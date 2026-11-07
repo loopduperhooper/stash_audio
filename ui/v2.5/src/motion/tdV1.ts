@@ -8,9 +8,8 @@ export interface TdState {
   points: FunscriptAction[];
 }
 
-// A fixed seed makes the randomized timeline independent of call order/seeks.
-function randomSource() {
-  let seed = 0x54445631;
+// Replaying a playback seed keeps the timeline independent of call order/seeks.
+function randomSource(seed: number) {
   return () => {
     seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
     return seed / 0x100000000;
@@ -59,25 +58,25 @@ export function buildTdState(
       move(position === 0 ? 100 : 0, deadline - at);
     }
   } else {
-    const upper = mode === 2 ? 100 : 50;
+    const lower = mode === 2 ? 0 : 50;
+    const upper = 100;
     const minMs = mode === 2 ? 3000 : 2000;
     const maxMs = mode === 2 ? 7000 : 4000;
-    if (position !== 0 && position !== upper) move(position < upper / 2 ? 0 : upper, 1000);
+    if (position !== lower && position !== upper) {
+      move(position < (lower + upper) / 2 ? lower : upper, 1000);
+    }
     // Favor several successive movements while still allowing 1 through 30.
     const count = 1 + Math.floor(random() * random() * 30);
     for (let i = 0; i < count; i++) {
-      move(position === 0 ? upper : 0, between(minMs, maxMs));
+      move(position === lower ? upper : lower, between(minMs, maxMs));
     }
   }
   return { mode, points };
 }
 
-export const tdV1: MotionAlgorithm = {
-  id: "td-v1",
-  name: "T&D_v1",
-  description: "Randomized partial holds, slow full/half strokes and accelerating full strokes, with recovery holds.",
-  generate: (timeMs) => {
-    const random = randomSource();
+export function createTdV1Generator(seed: number): MotionAlgorithm["generate"] {
+  return (timeMs) => {
+    const random = randomSource(seed);
     const time = Math.max(0, timeMs);
     let mode: TdMode = 1;
     let at = 0;
@@ -95,5 +94,13 @@ export const tdV1: MotionAlgorithm = {
       position = end.pos;
       mode = nextTdMode(mode, random);
     }
-  },
+  };
+}
+
+export const tdV1: MotionAlgorithm = {
+  id: "td-v1",
+  name: "T&D_v1",
+  description: "Randomized partial holds, slow full/half strokes and accelerating full strokes, with recovery holds.",
+  generate: createTdV1Generator(0x54445631),
+  createGenerator: createTdV1Generator,
 };
